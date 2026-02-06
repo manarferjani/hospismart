@@ -307,31 +307,37 @@
 <!-- Nouvelle ligne de stats avec priorités -->
 <div class="row mb-5">
     <div class="col-md-3 mb-3">
-        <div class="card card-stats bg-danger text-white shadow">
-            <div class="card-body text-center">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <h3>{{ stats.priorite_urgente }}</h3>
-                <p>Priorité Urgente</p>
+        <a href="{{ path('back_office_dashboard', {'filterPriorite': 'Urgente', 'filterStatut': filterStatut, 'searchQuery': searchQuery ?? '', 'filterCategorie': filterCategorie ?? '', 'filterStatutSearch': filterStatutSearch ?? 'total'}) }}" class="text-decoration-none">
+            <div class="card card-stats bg-danger text-white shadow" style="cursor: pointer; transition: all 0.3s ease;">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <h3>{{ stats.priorite_urgente }}</h3>
+                    <p>Priorité Urgente</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card card-stats" style="background: linear-gradient(135deg, #fd7e14 0%, #fc7604 100%); color: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
-            <div class="card-body text-center">
-                <i class="bi bi-exclamation-circle-fill"></i>
-                <h3>{{ stats.priorite_haute }}</h3>
-                <p>Priorité Haute</p>
+        <a href="{{ path('back_office_dashboard', {'filterPriorite': 'Haute', 'filterStatut': filterStatut, 'searchQuery': searchQuery ?? '', 'filterCategorie': filterCategorie ?? '', 'filterStatutSearch': filterStatutSearch ?? 'total'}) }}" class="text-decoration-none">
+            <div class="card card-stats" style="background: linear-gradient(135deg, #fd7e14 0%, #fc7604 100%); color: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease;">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    <h3>{{ stats.priorite_haute }}</h3>
+                    <p>Priorité Haute</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card card-stats" style="background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%); color: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);">
-            <div class="card-body text-center">
-                <i class="bi bi-exclamation-lg"></i>
-                <h3>{{ stats.non_traitees }}</h3>
-                <p>Non Traitées</p>
+        <a href="{{ path('back_office_dashboard', {'filterPriorite': 'Normale', 'filterStatut': filterStatut, 'searchQuery': searchQuery ?? '', 'filterCategorie': filterCategorie ?? '', 'filterStatutSearch': filterStatutSearch ?? 'total'}) }}" class="text-decoration-none">
+            <div class="card card-stats" style="background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%); color: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease;">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-lg"></i>
+                    <h3>{{ stats.non_traitees }}</h3>
+                    <p>Non Traitées</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 mb-3">
         <div class="card card-stats bg-success text-white shadow">
@@ -485,7 +491,7 @@
     </div>
 </div>
 
-<div class="card table-container">
+<div id="reclamations" tabindex="-1" class="card table-container">
     <div class="card-header bg-dark text-white">
         <div class="row align-items-center">
             <div class="col">

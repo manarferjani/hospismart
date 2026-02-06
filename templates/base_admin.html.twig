@@ -1,33 +1,287 @@
 {% extends 'base.html.twig' %}
 
+{% block stylesheets %}
+<style>
+    .admin-wrapper { 
+        display: flex; 
+        min-height: 100vh; 
+    }
+    
+    .sidebar {
+        width: 280px;
+        background: var(--dark-sidebar);
+        color: white;
+        padding: 30px 20px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar-brand { 
+        font-size: 20px; 
+        font-weight: 700; 
+        margin-bottom: 40px; 
+        display: flex; 
+        align-items: center;
+        padding: 0 10px;
+    }
+    
+    .sidebar-brand i { 
+        color: var(--primary-color); 
+        margin-right: 12px;
+        font-size: 24px;
+    }
+
+    .sidebar-menu { 
+        list-style: none; 
+        padding: 0; 
+        margin: 0;
+    }
+    
+    .sidebar-menu li { 
+        margin-bottom: 8px; 
+    }
+    
+    .sidebar-menu a {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .sidebar-menu a:hover { 
+        background: rgba(13, 110, 253, 0.15);
+        color: white;
+        font-weight: 600;
+        padding-left: 20px;
+    }
+    
+    .sidebar-menu a.active {
+        background: rgba(13, 110, 253, 0.2);
+        color: white;
+        font-weight: 700;
+        border-left: 4px solid var(--primary-color);
+        padding-left: 11px;
+    }
+    
+    .sidebar-menu i { 
+        width: 20px; 
+        margin-right: 12px; 
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .main-content { 
+        flex: 1; 
+        padding: 40px;
+        background: var(--main-bg);
+    }
+
+    /* Card header: ensure icons contrast on dark header */
+    .card-header .btn .bi {
+        color: #ffffff !important;
+    }
+
+    /* Warning buttons keep dark text/icon for readability on yellow */
+    .card-header .btn.btn-warning,
+    .card-header .btn.btn-warning .bi {
+        color: #1a1a1a !important;
+    }
+
+    /* Outline warning: show yellow border but white icon on dark header */
+    .card-header .btn.btn-outline-warning {
+        border-color: #ffc107 !important;
+        color: #ffc107 !important;
+    }
+    .card-header .btn.btn-outline-warning .bi {
+        color: #ffffff !important;
+    }
+
+    /* Make the sort-order icon clearly visible and slightly larger */
+    .card-header .btn.btn-sm .bi {
+        font-size: 1.1rem;
+        vertical-align: middle;
+    }
+
+    /* Table action buttons: increase hit area, contrast and clarity */
+    .table .btn-sm {
+        min-width: 34px;
+        height: 34px;
+        padding: 0.25rem 0.45rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .table .btn-sm .bi {
+        font-size: 1.05rem;
+    }
+
+    .table .btn-sm.btn-outline-primary {
+        color: #0d6efd;
+        border-color: #0d6efd;
+        background: transparent;
+    }
+    .table .btn-sm.btn-outline-primary .bi { color: #0d6efd; }
+
+    .table .btn-sm.btn-success {
+        color: #ffffff;
+        background: linear-gradient(135deg,#198754 0%,#157347 100%);
+        border: none;
+    }
+    .table .btn-sm.btn-success .bi { color: #ffffff; }
+
+    .table .btn-sm.btn-outline-danger {
+        color: #dc3545;
+        border-color: #dc3545;
+        background: transparent;
+    }
+    .table .btn-sm.btn-outline-danger .bi { color: #dc3545; }
+
+    .table .btn-sm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+    }
+    
+    .logout-box { 
+        margin-top: auto; 
+        border-top: 1px solid rgba(255, 255, 255, 0.1); 
+        padding-top: 20px; 
+        margin-top: 40px;
+    }
+
+    .sidebar-menu a.text-danger:hover {
+        background: rgba(220, 53, 69, 0.15) !important;
+        color: #ff6b7a !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .sidebar {
+            position: fixed;
+            left: -280px;
+            height: 100vh;
+            z-index: 1000;
+            transition: left 0.3s;
+        }
+
+        .sidebar.show {
+            left: 0;
+        }
+
+        .main-content {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block body %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-        <a class="navbar-brand" href="{{ path('back_office_dashboard') }}">
-            <i class="bi bi-shield-lock"></i> Admin - Réclamations
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarAdmin">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ path('back_office_dashboard') }}">Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ path('reponse_index') }}">Réponses</a>
+<div class="admin-wrapper">
+    <aside class="sidebar d-flex flex-column">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-heart-pulse"></i>
+            <div>
+                Hospismart
+                <small class="d-block" style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 2px;">Admin</small>
+            </div>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li>
+                <a href="{{ path('back_office_dashboard') }}">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{{ path('back_office_dashboard') }}#reclamations" class="{% if 'reclamation' in app.request.attributes.get('_route') %}active{% endif %}">
+                    <i class="fa-solid fa-list-check"></i> Réclamations
+                </a>
+            </li>
+            <li>
+                <a href="{{ path('reponse_index') }}" class="{% if 'reponse' in app.request.attributes.get('_route') %}active{% endif %}">
+                    <i class="fa-solid fa-message"></i> Réponses
+                </a>
+            </li>
+        </ul>
+
+        <div class="logout-box">
+            <ul class="sidebar-menu">
+                <li>
+                    <a href="#" class="text-danger">
+                        <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+                    </a>
                 </li>
             </ul>
         </div>
-    </div>
-</nav>
-<main class="container mt-4">
-    {% for flash_message in app.flashes('success') %}
-        <div class="alert alert-success alert-dismissible fade show">
-            {{ flash_message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    {% endfor %}
-    {% block content %}{% endblock %}
-</main>
+    </aside>
+
+    <main class="main-content">
+        {% for flash_message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-circle-check"></i> {{ flash_message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+        {% for flash_message in app.flashes('error') %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa-solid fa-circle-exclamation"></i> {{ flash_message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        // Handle active state of Réclamations menu item based on hash
+        function updateMenuActiveState() {
+            try {
+                var reclamationsLink = document.querySelector('.sidebar-menu a[href*="#reclamations"]');
+                
+                if (location.hash === '#reclamations') {
+                    // Activate reclamations
+                    if (reclamationsLink) reclamationsLink.classList.add('active');
+                } else {
+                    // Deactivate reclamations
+                    if (reclamationsLink) reclamationsLink.classList.remove('active');
+                }
+            } catch (e) { /* ignore */ }
+        }
+
+        // If URL hash is #reclamations, scroll that section into view and focus it.
+        function focusReclamationsIfHash() {
+            try {
+                if (location.hash === '#reclamations') {
+                    var el = document.getElementById('reclamations');
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        el.focus();
+                    }
+                }
+            } catch (e) { /* ignore */ }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMenuActiveState();
+            focusReclamationsIfHash();
+        });
+
+        window.addEventListener('hashchange', function() {
+            updateMenuActiveState();
+            focusReclamationsIfHash();
+        });
+    </script>
 {% endblock %}

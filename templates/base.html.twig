@@ -3,16 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Gestion des Réclamations{% endblock %}</title>
+    <title>{% block title %}Hospismart - Gestion des Réclamations{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        .badge-en-attente { background-color: #ffc107; color: #000; }
-        .badge-en-cours { background-color: #17a2b8; color: #fff; }
-        .badge-traite { background-color: #28a745; color: #fff; }
-        .card-stats { transition: transform 0.2s; }
-        .card-stats:hover { transform: translateY(-5px); }
+        :root {
+            --main-bg: #eef4ff; 
+            --primary-color: #0d6efd;
+            --dark-sidebar: #1a1a2e;
+            --text-primary: #333;
+            --text-secondary: #666;
+        }
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--main-bg);
+            background: radial-gradient(circle at top right, #ffffff 0%, var(--main-bg) 60%);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            position: relative;
+            overflow-x: hidden;
+            color: var(--text-primary);
+        }
+
+        /* Pulsation animée en arrière-plan */
+        body::before {
+            content: "";
+            position: fixed;
+            bottom: 100px;
+            right: -400px;
+            width: 800px;
+            height: 500px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20'%3E%3Cpath d='M0 10 L10 10 L12 2 L15 18 L18 10 L30 10' fill='none' stroke='%230d6efd' stroke-width='2.8' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: bottom right;
+            background-size: contain;
+            z-index: -1;
+            opacity: 0.12;
+            animation: heartPulseBottom 3s ease-in-out infinite;
+        }
+
+        @keyframes heartPulseBottom {
+            0% { opacity: 0.08; transform: scale(1); }
+            50% { opacity: 0.18; transform: scale(1.03); }
+            100% { opacity: 0.08; transform: scale(1); }
+        }
+
+        /* Badges de statut */
+        .badge-en-attente { background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%); color: #1a1a1a; }
+        .badge-en-cours { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: #fff; }
+        .badge-traite { background: linear-gradient(135deg, #198754 0%, #15703f 100%); color: #fff; }
+        .badge-urgente { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: #fff; }
+        .badge-haute { background: linear-gradient(135deg, #fd7e14 0%, #f76707 100%); color: #fff; }
+        .badge-normale { background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); color: #fff; }
+        .badge-basse { background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%); color: #fff; }
+
+        /* Cartes générales */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Boutons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0a58ca 0%, #0d6efd 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(13, 110, 253, 0.3);
+        }
+
+        /* Liens */
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            color: #0a58ca;
+        }
     </style>
+
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
