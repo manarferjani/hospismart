@@ -1,0 +1,21 @@
+{{ form_start(form) }}
+    {% if form.reclamation is defined %}
+        <div class="mb-3">
+            {{ form_label(form.reclamation) }}
+            {{ form_widget(form.reclamation) }}
+        </div>
+    {% endif %}
+    <div class="mb-3">
+        {{ form_label(form.adminNom) }}
+        {{ form_widget(form.adminNom) }}
+    </div>
+    <div class="mb-3">
+        {{ form_label(form.adminEmail) }}
+        {{ form_widget(form.adminEmail) }}
+    </div>
+    <div class="mb-3">
+        {{ form_label(form.contenu) }}
+        {{ form_widget(form.contenu) }}
+    </div>
+    <button type="submit" class="btn btn-primary">{{ button_label|default('Enregistrer') }}</button>
+{{ form_end(form) }}

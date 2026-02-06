@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="{{ path('front_office_index') }}">
+            <i class="bi bi-hospital"></i> Réclamations Patient
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('front_office_index') }}">Accueil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('front_office_nouvelle_reclamation') }}">Nouvelle Réclamation</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('front_office_mes_reclamations') }}">Mes Réclamations</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<main class="container mt-4">
+    {% block content %}{% endblock %}
+</main>
+{% endblock %}

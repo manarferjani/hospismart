@@ -1,0 +1,118 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Répondre - Réclamation #{{ reclamation.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .badge-priority {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: white;
+        display: inline-block;
+        margin-left: 0.5rem;
+    }
+    
+    .badge-priority-basse {
+        background: rgba(40, 167, 69, 0.9);
+    }
+    
+    .badge-priority-normale {
+        background: rgba(13, 110, 253, 0.9);
+    }
+    
+    .badge-priority-haute {
+        background: rgba(255, 193, 7, 0.9);
+    }
+    
+    .badge-priority-urgente {
+        background: rgba(220, 53, 69, 0.9);
+    }
+</style>
+
+<a href="{{ path('back_office_dashboard') }}" class="btn btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Retour</a>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Réclamation #{{ reclamation.id }}</h5>
+            </div>
+            <div class="card-body">
+                <h5>{{ reclamation.titre }}</h5>
+                <p>
+                    <span class="badge {% if reclamation.statut == 'En attente' %}badge-en-attente{% elseif reclamation.statut == 'En cours' %}badge-en-cours{% else %}badge-traite{% endif %}">{{ reclamation.statut }}</span>
+                    <span class="badge-priority badge-priority-{{ reclamation.priorite|lower }}">{{ reclamation.priorite }}</span>
+                </p>
+                <hr>
+                <p><strong>Patient:</strong> {{ reclamation.nomPatient }}</p>
+                <p><strong>Email:</strong> {{ reclamation.email }}</p>
+                <p><strong>Date:</strong> {{ reclamation.dateCreation|date('d/m/Y H:i') }}</p>
+                <p><strong>Catégorie:</strong> {{ reclamation.categorie ?? 'Non spécifiée' }}</p>
+                <hr>
+                <h6>Description:</h6>
+                <div class="bg-light p-3 rounded">{{ reclamation.description|nl2br }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-reply"></i> Rédiger une Réponse</h5>
+            </div>
+            <div class="card-body">
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    {% if form.vars.errors|length > 0 %}
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Erreurs de saisie :</strong>
+                            <ul class="mb-0">
+                                {% for error in form.vars.errors %}
+                                    <li>{{ error.message }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        {{ form_label(form.adminNom) }}
+                        {{ form_widget(form.adminNom) }}
+                        {% if form.adminNom.vars.errors|length > 0 %}
+                            <div class="alert alert-danger mt-2" role="alert">
+                                {% for error in form.adminNom.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.adminEmail) }}
+                        {{ form_widget(form.adminEmail) }}
+                        {% if form.adminEmail.vars.errors|length > 0 %}
+                            <div class="alert alert-danger mt-2" role="alert">
+                                {% for error in form.adminEmail.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.contenu) }}
+                        {{ form_widget(form.contenu) }}
+                        {% if form.contenu.vars.errors|length > 0 %}
+                            <div class="alert alert-danger mt-2" role="alert">
+                                {% for error in form.contenu.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        <i class="bi bi-send"></i> Envoyer
+                    </button>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

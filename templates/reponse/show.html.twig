@@ -1,0 +1,81 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Réponse #{{ reponse.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .badge-priority {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: white;
+        display: inline-block;
+        margin-left: 0.5rem;
+    }
+    
+    .badge-priority-basse {
+        background: rgba(40, 167, 69, 0.9);
+    }
+    
+    .badge-priority-normale {
+        background: rgba(13, 110, 253, 0.9);
+    }
+    
+    .badge-priority-haute {
+        background: rgba(255, 193, 7, 0.9);
+    }
+    
+    .badge-priority-urgente {
+        background: rgba(220, 53, 69, 0.9);
+    }
+</style>
+
+<div class="d-flex justify-content-between mb-4">
+    <a href="{{ path('reponse_index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+    <div>
+        <a href="{{ path('reponse_edit', {'id': reponse.id}) }}" class="btn btn-warning"><i class="bi bi-pencil"></i> Modifier</a>
+        <form method="post" action="{{ path('reponse_delete', {'id': reponse.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reponse.id) }}">
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Supprimer</button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Réponse #{{ reponse.id }}</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Admin:</strong> {{ reponse.adminNom }}</p>
+                <p><strong>Email:</strong> {{ reponse.adminEmail }}</p>
+                <p><strong>Date:</strong> {{ reponse.dateReponse|date('d/m/Y H:i') }}</p>
+                <hr>
+                <h6>Contenu</h6>
+                <div class="bg-light p-3 rounded">{{ reponse.contenu|nl2br }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        {% if reponse.reclamation %}
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Réclamation Associée</h5>
+                </div>
+                <div class="card-body">
+                    <h5>{{ reponse.reclamation.titre }}</h5>
+                    <p>
+                        <span class="badge {% if reponse.reclamation.statut == 'En attente' %}badge-en-attente{% elseif reponse.reclamation.statut == 'En cours' %}badge-en-cours{% else %}badge-traite{% endif %}">{{ reponse.reclamation.statut }}</span>
+                        <span class="badge-priority badge-priority-{{ reponse.reclamation.priorite|lower }}">{{ reponse.reclamation.priorite }}</span>
+                    </p>
+                    <p><strong>Patient:</strong> {{ reponse.reclamation.nomPatient }}</p>
+                    <p><strong>Email:</strong> {{ reponse.reclamation.email }}</p>
+                    <a href="{{ path('back_office_voir_reclamation', {'id': reponse.reclamation.id}) }}" class="btn btn-outline-primary btn-sm">Voir la réclamation</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
