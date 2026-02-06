@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\MedecinRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: MedecinRepository::class)]
@@ -29,6 +31,17 @@ class Medecin
     #[ORM\ManyToOne(targetEntity: Service::class, inversedBy: 'medecins')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Service $service = null;
+
+    /**
+     * @var Collection<int, Disponibilite>
+     */
+    #[ORM\OneToMany(targetEntity: Disponibilite::class, mappedBy: 'medecin')]
+    private Collection $disponibilites;
+
+    public function __construct()
+    {
+        $this->disponibilites = new ArrayCollection();
+    }
 
     public function getService(): ?Service
     {
@@ -90,6 +103,36 @@ class Medecin
     public function setUser(User $user): static
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Disponibilite>
+     */
+    public function getDisponibilites(): Collection
+    {
+        return $this->disponibilites;
+    }
+
+    public function addDisponibilite(Disponibilite $disponibilite): static
+    {
+        if (!$this->disponibilites->contains($disponibilite)) {
+            $this->disponibilites->add($disponibilite);
+            $disponibilite->setMedecin($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDisponibilite(Disponibilite $disponibilite): static
+    {
+        if ($this->disponibilites->removeElement($disponibilite)) {
+            // set the owning side to null (unless already changed)
+            if ($disponibilite->getMedecin() === $this) {
+                $disponibilite->setMedecin(null);
+            }
+        }
 
         return $this;
     }
