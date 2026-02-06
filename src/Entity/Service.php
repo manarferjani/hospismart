@@ -18,7 +18,7 @@ class Service
     #[ORM\Column(length: 255)]
     private ?string $nom = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
 
     /**
@@ -27,9 +27,17 @@ class Service
     #[ORM\OneToMany(targetEntity: Equipement::class, mappedBy: 'service')]
     private Collection $equipements;
 
+    /**
+     * @var Collection<int, Medecin>
+     */
+    #[ORM\OneToMany(targetEntity: Medecin::class, mappedBy: 'service')]
+    private Collection $medecins;
+
+    // --- UN SEUL CONSTRUCTEUR QUI INITIALISE TOUT ---
     public function __construct()
     {
         $this->equipements = new ArrayCollection();
+        $this->medecins = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -45,7 +53,6 @@ class Service
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
-
         return $this;
     }
 
@@ -54,10 +61,9 @@ class Service
         return $this->description;
     }
 
-    public function setDescription(string $description): static
+    public function setDescription(?string $description): static
     {
         $this->description = $description;
-
         return $this;
     }
 
@@ -69,25 +75,16 @@ class Service
         return $this->equipements;
     }
 
-    public function addEquipement(Equipement $equipement): static
+    /**
+     * @return Collection<int, Medecin>
+     */
+    public function getMedecins(): Collection
     {
-        if (!$this->equipements->contains($equipement)) {
-            $this->equipements->add($equipement);
-            $equipement->setService($this);
-        }
-
-        return $this;
+        return $this->medecins;
     }
 
-    public function removeEquipement(Equipement $equipement): static
+    public function __toString(): string
     {
-        if ($this->equipements->removeElement($equipement)) {
-            // set the owning side to null (unless already changed)
-            if ($equipement->getService() === $this) {
-                $equipement->setService(null);
-            }
-        }
-
-        return $this;
+        return $this->nom ?? 'Nouveau Service';
     }
 }
