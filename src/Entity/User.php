@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use BcMath\Number;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -39,8 +38,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $email = null;
     
-#[ORM\Column(type: 'string', length: 20, nullable: true)]
-private ?string $telephone = null;
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private ?string $telephone = null;
+
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Patient::class, cascade: ['persist', 'remove'])]
+    private ?Patient $patient = null;
 
     public function getId(): ?int
     {
@@ -147,14 +149,36 @@ private ?string $telephone = null;
         return $this;
     }
 
-    public function getTelephone(): ?Number
+    public function getTelephone(): ?string
     {
         return $this->telephone;
     }
 
-    public function setTelephone(Number $telephone): static
+    public function setTelephone(?string $telephone): static
     {
         $this->telephone = $telephone;
+
+        return $this;
+    }
+
+    public function getPatient(): ?Patient
+    {
+        return $this->patient;
+    }
+
+    public function setPatient(?Patient $patient): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($patient === null && $this->patient !== null) {
+            $this->patient->setUser(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($patient !== null && $patient->getUser() !== $this) {
+            $patient->setUser($this);
+        }
+
+        $this->patient = $patient;
 
         return $this;
     }

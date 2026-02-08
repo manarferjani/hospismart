@@ -1,0 +1,82 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Liste des médicaments{% endblock %}
+
+{% block body %}
+    <div class="content-header">
+        <div class="container-fluid">
+            <h1 class="m-0">Médicaments</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Recherche et tri</h3>
+            <div class="card-tools">
+                <a href="{{ path('app_medicament_export_pdf') }}" class="btn btn-success btn-sm me-1" target="_blank"><i class="fa-solid fa-file-pdf"></i> Exporter PDF</a>
+                <a href="{{ path('app_medicament_new') }}" class="btn btn-primary btn-sm me-1"><i class="fa-solid fa-plus"></i> Nouveau médicament</a>
+                <a href="{{ path('app_mouvement_stock_new') }}" class="btn btn-outline-primary btn-sm"><i class="fa-solid fa-arrows-rotate"></i> Nouveau mouvement</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{{ path('app_medicament_index') }}" class="form-inline mb-3">
+                <input type="hidden" name="sort" value="{{ sortBy|default('nom') }}">
+                <input type="hidden" name="order" value="{{ order|default('ASC') }}">
+                <div class="input-group input-group-sm">
+                    <input type="text" name="search" class="form-control" placeholder="Rechercher par nom..." value="{{ search|default('') }}">
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-info"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>{{ _self.sort_link('Id', 'id', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                            <th>{{ _self.sort_link('Nom', 'nom', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                            <th>{{ _self.sort_link('Quantité', 'quantite', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                            <th>{{ _self.sort_link('Seuil alerte', 'seuilAlerte', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                            <th>Prix unitaire</th>
+                            <th>{{ _self.sort_link('Date péremption', 'datePeremption', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                            <th style="width: 140px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for medicament in medicaments %}
+                            <tr class="{{ medicament.quantite <= medicament.seuilAlerte ? 'table-warning' : '' }}">
+                                <td>{{ medicament.id }}</td>
+                                <td><a href="{{ path('app_medicament_show', {id: medicament.id}) }}" class="text-decoration-none fw-medium">{{ medicament.nom }}</a></td>
+                                <td>{{ medicament.quantite }}</td>
+                                <td>{{ medicament.seuilAlerte }}</td>
+                                <td>{{ medicament.prixUnitaire|number_format(2, ',', ' ') }} €</td>
+                                <td>{{ medicament.datePeremption ? medicament.datePeremption|date('d/m/Y') : '' }}</td>
+                                <td>
+                                    <a href="{{ path('app_medicament_show', {id: medicament.id}) }}" class="btn btn-sm btn-info" title="Voir"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ path('app_medicament_edit', {id: medicament.id}) }}" class="btn btn-sm btn-secondary" title="Modifier"><i class="fas fa-edit"></i></a>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">Aucun médicament trouvé.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% macro sort_link(label, column, sortBy, order, search) %}
+    {% set newOrder = (sortBy == column and order == 'ASC') ? 'DESC' : 'ASC' %}
+    <a href="{{ path('app_medicament_index', { search: search, sort: column, order: newOrder }) }}">
+        {{ label }}
+        {% if sortBy == column %}
+            <i class="fas fa-sort-{{ order == 'ASC' ? 'up' : 'down' }}"></i>
+        {% else %}
+            <i class="fas fa-sort text-muted"></i>
+        {% endif %}
+    </a>
+{% endmacro %}

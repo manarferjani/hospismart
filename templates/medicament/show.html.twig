@@ -1,0 +1,43 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}{{ medicament.nom }}{% endblock %}
+
+{% block body %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_medicament_index') }}">Médicaments</a></li>
+            <li class="breadcrumb-item active">{{ medicament.nom }}</li>
+        </ol>
+    </nav>
+    <div class="content-header">
+        <div class="container-fluid">
+            <h1 class="m-0">Fiche médicament</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ medicament.nom }}</h3>
+            <div class="card-tools">
+                <a href="{{ path('app_medicament_edit', {id: medicament.id}) }}" class="btn btn-sm btn-primary">Modifier</a>
+                {{ include('medicament/_delete_form.html.twig') }}
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr><th>Id</th><td>{{ medicament.id }}</td></tr>
+                    <tr><th>Nom</th><td>{{ medicament.nom }}</td></tr>
+                    <tr><th>Quantité</th><td>{{ medicament.quantite }}</td></tr>
+                    <tr><th>Seuil alerte</th><td>{{ medicament.seuilAlerte }}</td></tr>
+                    <tr><th>Prix unitaire</th><td>{{ medicament.prixUnitaire|number_format(2, ',', ' ') }} €</td></tr>
+                    <tr><th>Date péremption</th><td>{{ medicament.datePeremption ? medicament.datePeremption|date('d/m/Y') : '' }}</td></tr>
+                </tbody>
+            </table>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ path('app_medicament_index') }}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Retour à la liste</a>
+                <a href="{{ path('app_mouvement_stock_new', { medicament: medicament.id }) }}" class="btn btn-success"><i class="fa-solid fa-arrows-rotate"></i> Créer un mouvement pour ce médicament</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

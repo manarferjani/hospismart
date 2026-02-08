@@ -1,0 +1,27 @@
+{{ form_start(form, { attr: { class: 'form-hospi' } }) }}
+<div class="row g-4">
+    <div class="col-md-6">
+        {{ form_row(form.type) }}
+    </div>
+    <div class="col-md-6">
+        {{ form_row(form.medicament) }}
+    </div>
+    <div class="col-md-6">
+        {{ form_row(form.quantite) }}
+    </div>
+    <div class="col-md-6">
+        {{ form_row(form.dateMouvement) }}
+    </div>
+    <div class="col-12">
+        {{ form_row(form.commentaire) }}
+    </div>
+</div>
+<div class="form-actions-hospi">
+    <button type="submit" class="btn btn-primary btn-hospi-primary">
+        <i class="fa-solid fa-check me-2"></i> {{ button_label|default('Enregistrer') }}
+    </button>
+    <a href="{{ path('app_mouvement_stock_index') }}" class="btn btn-light btn-hospi-outline">
+        <i class="fa-solid fa-arrow-left me-2"></i> Annuler
+    </a>
+</div>
+{{ form_end(form) }}
