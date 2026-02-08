@@ -1,0 +1,18 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Accueil - Hospismart{% endblock %}
+
+{% block body %}
+<div class="text-center py-5">
+    <div class="bg-primary text-white rounded-4 p-4 d-inline-flex mb-4 shadow">
+        <i class="fa-solid fa-heart-pulse fa-4x"></i>
+    </div>
+    <h1 class="display-5 fw-bold">Bienvenue sur Hospismart</h1>
+    <p class="lead text-muted mx-auto" style="max-width: 600px;">
+        Découvrez les services et les prochains événements de notre établissement de santé.
+    </p>
+    <a href="{{ path('app_evenement_public') }}" class="btn btn-primary btn-lg mt-3">
+        <i class="fa-solid fa-calendar-days"></i> Voir les événements
+    </a>
+</div>
+{% endblock %}

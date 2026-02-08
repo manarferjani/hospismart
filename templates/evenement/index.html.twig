@@ -1,0 +1,122 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Liste des Événements{% endblock %}
+{% block page_title %}Liste des Événements{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('app_evenement_index') }}">Accueil</a></li>
+<li class="breadcrumb-item active">Événements</li>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Événements</h3>
+                <div class="card-tools">
+                    <a href="{{ path('app_evenement_new') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Nouvel Événement
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Formulaire de recherche -->
+                <form method="get" action="{{ path('app_evenement_index') }}" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ searchTerm }}">
+                        </div>
+                        <div class="col-md-3">
+                            <select name="type" class="form-control">
+                                <option value="">Tous les types</option>
+                                <option value="réunion" {{ typeFilter == 'réunion' ? 'selected' : '' }}>Réunion</option>
+                                <option value="formation" {{ typeFilter == 'formation' ? 'selected' : '' }}>Formation</option>
+                                <option value="visite" {{ typeFilter == 'visite' ? 'selected' : '' }}>Visite</option>
+                                <option value="maintenance" {{ typeFilter == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                                <option value="autre" {{ typeFilter == 'autre' ? 'selected' : '' }}>Autre</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="statut" class="form-control">
+                                <option value="">Tous les statuts</option>
+                                <option value="planifié" {{ statutFilter == 'planifié' ? 'selected' : '' }}>Planifié</option>
+                                <option value="en_cours" {{ statutFilter == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                                <option value="terminé" {{ statutFilter == 'terminé' ? 'selected' : '' }}>Terminé</option>
+                                <option value="annulé" {{ statutFilter == 'annulé' ? 'selected' : '' }}>Annulé</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-info btn-block">
+                                <i class="fas fa-search"></i> Filtrer
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Titre</th>
+                                <th>Type</th>
+                                <th>Date début</th>
+                                <th>Date fin</th>
+                                <th>Lieu</th>
+                                <th>Statut</th>
+                                <th>Budget</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for evenement in evenements %}
+                            <tr>
+                                <td>{{ evenement.id }}</td>
+                                <td>{{ evenement.titre }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ evenement.typeEvenement }}</span>
+                                </td>
+                                <td>{{ evenement.dateDebut ? evenement.dateDebut|date('d/m/Y H:i') : '' }}</td>
+                                <td>{{ evenement.dateFin ? evenement.dateFin|date('d/m/Y H:i') : '' }}</td>
+                                <td>{{ evenement.lieu }}</td>
+                                <td>
+                                    {% if evenement.statut == 'planifié' %}
+                                        <span class="badge bg-warning text-dark">{{ evenement.statut }}</span>
+                                    {% elseif evenement.statut == 'en_cours' %}
+                                        <span class="badge bg-primary">{{ evenement.statut }}</span>
+                                    {% elseif evenement.statut == 'terminé' %}
+                                        <span class="badge bg-success">{{ evenement.statut }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ evenement.statut }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ evenement.budgetAlloue ? evenement.budgetAlloue ~ ' TND' : '-' }}</td>
+                                <td>
+                                    <a href="{{ path('app_evenement_show', {'id': evenement.id}) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_evenement_edit', {'id': evenement.id}) }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="post" action="{{ path('app_evenement_delete', {'id': evenement.id}) }}" class="d-inline" onsubmit="return confirm('Supprimer cet événement ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ evenement.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center">Aucun événement trouvé</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

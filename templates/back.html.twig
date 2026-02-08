@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .admin-wrapper { display: flex; min-height: 100vh; }
+    
+    .sidebar {
+        width: 280px;
+        background: var(--dark-sidebar);
+        color: white;
+        padding: 30px 20px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+    }
+
+    .sidebar-brand { font-size: 22px; font-weight: 700; margin-bottom: 40px; display: flex; align-items: center; }
+    .sidebar-brand i { color: var(--primary-color); margin-right: 15px; }
+
+    .sidebar-menu { list-style: none; padding: 0; }
+    .sidebar-menu li { margin-bottom: 10px; }
+    .sidebar-menu a {
+        color: rgba(255,255,255,0.7);
+        text-decoration: none;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        border-radius: 12px;
+        transition: 0.3s;
+    }
+    .sidebar-menu a:hover, .sidebar-menu a.active {
+        background: rgba(13, 110, 253, 0.15);
+        color: white;
+        font-weight: 600;
+    }
+    .sidebar-menu i { width: 25px; margin-right: 10px; font-size: 18px; }
+
+    .main-content { flex: 1; padding: 40px; }
+    
+    .logout-box { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="admin-wrapper">
+    <aside class="sidebar d-flex flex-column">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-heart-pulse"></i> Hospismart <small class="ms-2 text-muted" style="font-size: 12px;">OASIS</small>
+        </div>
+
+        <ul class="sidebar-menu">
+            <li><a href="{{ path('app_evenement_index') }}" class="active"><i class="fa-solid fa-calendar"></i> Événements</a></li>
+            <li><a href="{{ path('app_evenement_new') }}"><i class="fa-solid fa-plus-circle"></i> Nouvel Événement</a></li>
+            <li><a href="{{ path('app_participant_evenement_index') }}"><i class="fa-solid fa-users"></i> Participants</a></li>
+            <li><a href="{{ path('app_evenement_public') }}"><i class="fa-solid fa-globe"></i> Front Office</a></li>
+        </ul>
+
+        <div class="logout-box">
+            <ul class="sidebar-menu">
+                <li><a href="{{ path('app_evenement_public') }}" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> Voir le site</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+        {% block body %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
