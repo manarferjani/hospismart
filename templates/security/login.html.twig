@@ -1,0 +1,29 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Connexion - Hospismart{% endblock %}
+
+{% block content %}
+<div class="front-form-box">
+    <h2>Se connecter</h2>
+    {% if error %}
+        <div class="error">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+    {% endif %}
+    <form method="post" action="{{ path('app_login') }}" class="js-form-validate">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+        <div class="form-group">
+            <label for="username">Nom d'utilisateur ou email</label>
+            <input type="text" id="username" name="_username" value="{{ last_username }}" placeholder="Votre nom ou votre email" required autofocus data-required-msg="Saisissez votre identifiant.">
+            <span class="field-error" aria-live="polite"></span>
+        </div>
+        <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="_password" required data-required-msg="Saisissez votre mot de passe.">
+            <span class="field-error" aria-live="polite"></span>
+        </div>
+        <button type="submit" class="btn-primary">Connexion</button>
+    </form>
+    <p style="margin-top:1rem;text-align:center;">
+        <a href="{{ path('app_register') }}">Créer un compte</a>
+    </p>
+</div>
+{% endblock %}

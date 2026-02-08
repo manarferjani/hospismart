@@ -3,11 +3,11 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use BcMath\Number;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_NOM', fields: ['nom'])]
@@ -19,6 +19,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Assert\NotBlank(message: 'Le nom d\'utilisateur est obligatoire')]
+    #[Assert\Length(min: 3, max: 180, minMessage: 'Le nom doit contenir au moins 3 caractères', maxMessage: 'Le nom ne doit pas dépasser 180 caractères')]
     private ?string $nom = null;
 
     /**
@@ -31,15 +33,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'Le mot de passe est obligatoire')]
+    #[Assert\Length(min: 6, minMessage: 'Le mot de passe doit contenir au moins 6 caractères')]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le prénom est obligatoire')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'Le prénom doit contenir au moins 2 caractères', maxMessage: 'Le prénom ne doit pas dépasser 255 caractères')]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'L\'email est obligatoire')]
+    #[Assert\Email(message: 'L\'adresse email n\'est pas valide')]
     private ?string $email = null;
     
 #[ORM\Column(type: 'string', length: 20, nullable: true)]
+#[Assert\Regex(pattern: '/^[0-9\s\+\-\(\)]+$/', message: 'Le numéro de téléphone n\'est pas valide')]
 private ?string $telephone = null;
 
     public function getId(): ?int
@@ -147,12 +156,12 @@ private ?string $telephone = null;
         return $this;
     }
 
-    public function getTelephone(): ?Number
+    public function getTelephone(): ?string
     {
         return $this->telephone;
     }
 
-    public function setTelephone(Number $telephone): static
+    public function setTelephone(?string $telephone): static
     {
         $this->telephone = $telephone;
 

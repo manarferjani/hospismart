@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\EquipementRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EquipementRepository::class)]
 class Equipement
@@ -14,19 +15,28 @@ class Equipement
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le nom de l\'equipement est obligatoire')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'Le nom doit contenir au moins 2 caractères', maxMessage: 'Le nom ne doit pas dépasser 255 caractères')]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'La référence est obligatoire')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'La référence doit contenir au moins 2 caractères')]
     private ?string $reference = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'L\'etat est obligatoire')]
+    #[Assert\Choice(choices: ['Bon', 'Moyen', 'Mauvais', 'Défaillant'], message: 'L\'etat doit être Bon, Moyen, Mauvais ou Défaillant')]
     private ?string $etat = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'La relation est obligatoire')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'La relation doit contenir au moins 2 caractères')]
     private ?string $relation = null;
 
     #[ORM\ManyToOne(inversedBy: 'equipements')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank(message: 'Un service doit être associé')]
     private ?Service $service = null;
 
     public function getId(): ?int

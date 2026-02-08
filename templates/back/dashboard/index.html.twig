@@ -1,0 +1,81 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Tableau de bord - Hospismart{% endblock %}
+
+{% block content %}
+<div class="back-page-header">
+    <h1 class="back-page-title">📊 Tableau de Bord</h1>
+    <div class="back-page-actions">
+        <a href="#" class="btn btn-pdf">PDF</a>
+        <a href="#" class="btn btn-excel">Excel</a>
+    </div>
+</div>
+
+<div class="back-cards">
+    <div class="back-card blue">
+        <div>
+            <div class="back-card-value">{{ total_reclamations }}</div>
+            <div class="back-card-label">Total des Réclamations</div>
+        </div>
+        <div class="back-card-icon">📋</div>
+    </div>
+    <div class="back-card yellow">
+        <div>
+            <div class="back-card-value">{{ en_attente }}</div>
+            <div class="back-card-label">En Attente</div>
+        </div>
+        <div class="back-card-icon">⏳</div>
+    </div>
+    <div class="back-card cyan">
+        <div>
+            <div class="back-card-value">{{ en_cours }}</div>
+            <div class="back-card-label">En Cours</div>
+        </div>
+        <div class="back-card-icon">🔄</div>
+    </div>
+    <div class="back-card green">
+        <div>
+            <div class="back-card-value">{{ traites }}</div>
+            <div class="back-card-label">Traités</div>
+        </div>
+        <div class="back-card-icon">✓</div>
+    </div>
+    <div class="back-card red">
+        <div>
+            <div class="back-card-value">{{ urgent }}</div>
+            <div class="back-card-label">Priorité Urgente</div>
+        </div>
+        <div class="back-card-icon">⚠</div>
+    </div>
+    <div class="back-card orange">
+        <div>
+            <div class="back-card-value">{{ haute }}</div>
+            <div class="back-card-label">Priorité Haute</div>
+        </div>
+        <div class="back-card-icon">!</div>
+    </div>
+    <div class="back-card dark">
+        <div>
+            <div class="back-card-value">{{ non_traitees }}</div>
+            <div class="back-card-label">Non Traitées</div>
+        </div>
+        <div class="back-card-icon">!</div>
+    </div>
+    <div class="back-card green">
+        <div>
+            <div class="back-card-value">{{ taux_reponse }}%</div>
+            <div class="back-card-label">Taux de Réponse</div>
+        </div>
+        <div class="back-card-icon">%</div>
+    </div>
+</div>
+
+<div class="back-filters">
+    <input type="text" placeholder="Titre, patient, email...">
+    <select><option>Toutes</option></select>
+    <select><option>Toutes</option></select>
+    <select><option>Tous</option></select>
+    <button type="button" class="btn-search">🔍 Chercher</button>
+    <a href="{{ path('app_dashboard_reclamations') }}" class="btn-reset">↺ Réinitialiser</a>
+</div>
+{% endblock %}

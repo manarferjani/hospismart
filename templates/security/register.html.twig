@@ -1,0 +1,67 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Créer un compte - Hospismart{% endblock %}
+
+{% block content %}
+<div class="front-form-box" style="max-width: 520px;">
+    <h2>Créer un compte</h2>
+    {% if errors %}
+        <div class="alert alert-danger" style="padding: 15px; margin-bottom: 20px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;">
+            <strong>Erreur(s) de validation :</strong>
+            <ul style="margin: 10px 0 0 20px;">
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    <form method="post" action="{{ path('app_register') }}" class="js-form-validate" data-password-minlength="6">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
+        <div class="form-group">
+            <label for="nom">Nom d'utilisateur *</label>
+            <input type="text" id="nom" name="nom" required value="{{ app.request.get('nom') }}" maxlength="180" data-required-msg="Le nom d'utilisateur est obligatoire.">
+            <span class="field-error" aria-live="polite"></span>
+        </div>
+        <div class="form-group">
+            <label for="prenom">Prénom *</label>
+            <input type="text" id="prenom" name="prenom" required value="{{ app.request.get('prenom') }}" maxlength="255" data-required-msg="Le prénom est obligatoire.">
+            <span class="field-error" aria-live="polite"></span>
+        </div>
+        <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required value="{{ app.request.get('email') }}" data-required-msg="L'email est obligatoire." data-email-msg="Email invalide.">
+            <span class="field-error" aria-live="polite"></span>
+        </div>
+        <div class="form-group">
+            <label for="password">Mot de passe *</label>
+            <input type="password" id="password" name="password" required data-required-msg="Le mot de passe est obligatoire." data-minlength="6" data-minlength-msg="Minimum 6 caractères.">
+            <span class="field-error" aria-live="polite"></span>
+        </div>
+        <div class="form-group">
+            <label for="genre">Genre</label>
+            <select id="genre" name="genre">
+                <option value="">-- Non spécifié --</option>
+                <option value="Homme" {{ app.request.get('genre') == 'Homme' ? 'selected' : '' }}>Homme</option>
+                <option value="Femme" {{ app.request.get('genre') == 'Femme' ? 'selected' : '' }}>Femme</option>
+                <option value="Autre" {{ app.request.get('genre') == 'Autre' ? 'selected' : '' }}>Autre</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="date_naissance">Date de naissance</label>
+            <input type="date" id="date_naissance" name="date_naissance" value="{{ app.request.get('date_naissance') }}">
+        </div>
+        <div class="form-group">
+            <label for="groupe_sanguin">Groupe sanguin</label>
+            <input type="text" id="groupe_sanguin" name="groupe_sanguin" value="{{ app.request.get('groupe_sanguin') }}" placeholder="ex: O+">
+        </div>
+        <div class="form-group">
+            <label for="adresse">Adresse</label>
+            <input type="text" id="adresse" name="adresse" value="{{ app.request.get('adresse') }}">
+        </div>
+        <button type="submit" class="btn-primary">Créer le compte</button>
+    </form>
+    <p style="margin-top:1rem;text-align:center;">
+        <a href="{{ path('app_login') }}">Déjà un compte ? Se connecter</a>
+    </p>
+</div>
+{% endblock %}

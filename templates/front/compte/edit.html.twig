@@ -1,0 +1,103 @@
+{% extends 'base_front.html.twig' %}
+
+{% block title %}Mon compte - Hospismart{% endblock %}
+
+{% block content %}
+<h1 class="front-title">Mon compte</h1>
+
+{% if errors %}
+    <div class="alert alert-danger" style="padding: 15px; margin-bottom: 20px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;">
+        <strong>Erreur(s) de validation :</strong>
+        <ul style="margin: 10px 0 0 20px;">
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
+
+<form method="post" action="{{ path('app_compte_edit') }}" class="front-form-box js-form-validate" style="max-width:600px;">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('compte_edit') }}">
+    <h2>Informations du compte</h2>
+    <div class="form-group">
+        <label for="nom">Nom d'utilisateur *</label>
+        <input type="text" id="nom" name="nom" value="{{ user.nom }}" required data-required-msg="Le nom est obligatoire." data-minlength="3" data-minlength-msg="Le nom doit contenir au moins 3 caractères." data-maxlength="180" data-maxlength-msg="Le nom ne doit pas dépasser 180 caractères." maxlength="180">
+        <span class="field-error" aria-live="polite"></span>
+    </div>
+    <div class="form-group">
+        <label for="prenom">Prénom *</label>
+        <input type="text" id="prenom" name="prenom" value="{{ user.prenom }}" required data-required-msg="Le prénom est obligatoire." data-minlength="2" data-minlength-msg="Le prénom doit contenir au moins 2 caractères." data-maxlength="255" data-maxlength-msg="Le prénom ne doit pas dépasser 255 caractères." maxlength="255">
+        <span class="field-error" aria-live="polite"></span>
+    </div>
+    <div class="form-group">
+        <label for="email">Email *</label>
+        <input type="email" id="email" name="email" value="{{ user.email }}" required data-required-msg="L'email est obligatoire." data-email-msg="Email invalide." data-maxlength="255">
+        <span class="field-error" aria-live="polite"></span>
+    </div>
+    <div class="form-group">
+        <label for="telephone">Téléphone</label>
+        <input type="text" id="telephone" name="telephone" value="{{ user.telephone }}" data-maxlength="20" maxlength="20">
+    </div>
+    <div class="form-group">
+        <label for="password">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" data-minlength="6" data-minlength-msg="Le mot de passe doit contenir au moins 6 caractères.">
+    </div>
+
+    {% if patient %}
+    <h2 style="margin-top:1.5rem;">Profil patient</h2>
+    <div class="form-group">
+        <label for="genre">Genre *</label>
+        <select id="genre" name="genre" required data-required-msg="Le genre est obligatoire.">
+            <option value="">-- Sélectionner --</option>
+            <option value="Homme" {{ patient.genre == 'Homme' ? 'selected' : '' }}>Homme</option>
+            <option value="Femme" {{ patient.genre == 'Femme' ? 'selected' : '' }}>Femme</option>
+            <option value="Autre" {{ patient.genre == 'Autre' ? 'selected' : '' }}>Autre</option>
+        </select>
+        <span class="field-error" aria-live="polite"></span>
+    </div>
+    <div class="form-group">
+        <label for="date_naissance">Date de naissance *</label>
+        <input type="date" id="date_naissance" name="date_naissance" value="{{ patient.dateNaissance ? patient.dateNaissance|date('Y-m-d') : '' }}" required data-required-msg="La date de naissance est obligatoire.">
+        <span class="field-error" aria-live="polite"></span>
+    </div>
+    <div class="form-group">
+        <label for="groupe_sanguin">Groupe sanguin</label>
+        <input type="text" id="groupe_sanguin" name="groupe_sanguin" value="{{ patient.groupeSanguin }}" placeholder="ex: O+">
+    </div>
+    <div class="form-group">
+        <label for="adresse">Adresse</label>
+        <input type="text" id="adresse" name="adresse" value="{{ patient.adresse }}" data-maxlength="1000" maxlength="1000">
+    </div>
+    {% endif %}
+
+    {% if medecin %}
+    <h2 style="margin-top:1.5rem;">Profil médecin</h2>
+    <div class="form-group">
+        <label for="specialite">Spécialité *</label>
+        <input type="text" id="specialite" name="specialite" value="{{ medecin.specialite }}" required data-required-msg="La spécialité est obligatoire." data-minlength="3" data-minlength-msg="La spécialité doit contenir au moins 3 caractères." data-maxlength="255" data-maxlength-msg="La spécialité ne doit pas dépasser 255 caractères." maxlength="255">
+        <span class="field-error" aria-live="polite"></span>
+    </div>
+    <div class="form-group">
+        <label for="matricule">Matricule *</label>
+        <input type="text" id="matricule" name="matricule" value="{{ medecin.matricule }}" required data-required-msg="Le matricule est obligatoire." data-minlength="3" data-minlength-msg="Le matricule doit contenir au moins 3 caractères." data-maxlength="255" data-maxlength-msg="Le matricule ne doit pas dépasser 255 caractères." maxlength="255">
+        <span class="field-error" aria-live="polite"></span>
+    </div>
+    <div class="form-group">
+        <label for="medecin_telephone">Téléphone</label>
+        <input type="text" id="medecin_telephone" name="medecin_telephone" value="{{ medecin.telephone }}" data-maxlength="255" maxlength="255">
+    </div>
+    <div class="form-group">
+        <label for="service">Service *</label>
+        <select id="service" name="service" required data-required-msg="Le service est obligatoire.">
+            <option value="">-- Sélectionner --</option>
+            {% for s in services %}
+            <option value="{{ s.id }}" {{ medecin.service and medecin.service.id == s.id ? 'selected' : '' }}>{{ s.nom }}</option>
+            {% endfor %}
+        </select>
+        <span class="field-error" aria-live="polite"></span>
+    </div>
+    {% endif %}
+
+    <button type="submit" class="btn-primary" style="margin-top:1rem;">Enregistrer les modifications</button>
+</form>
+{% endblock %}

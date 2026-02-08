@@ -1,0 +1,81 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Utilisateurs - Hospismart{% endblock %}
+
+{% block content %}
+<div class="back-page-header">
+    <h1 class="back-page-title">👥 Liste des utilisateurs</h1>
+    <a href="{{ path('app_dashboard_utilisateurs_new') }}" class="btn" style="background:#27ae60;color:#fff;">+ Ajouter un utilisateur</a>
+</div>
+
+<form method="get" action="{{ path('app_dashboard_utilisateurs_list') }}" class="back-filters">
+    <input type="text" name="nom" value="{{ nom }}" placeholder="Rechercher par nom, prénom, email...">
+    <select name="role">
+        <option value="">Tous les rôles</option>
+        <option value="ROLE_ADMIN" {{ role == 'ROLE_ADMIN' ? 'selected' : '' }}>Admin</option>
+        <option value="ROLE_MEDECIN" {{ role == 'ROLE_MEDECIN' ? 'selected' : '' }}>Médecin</option>
+        <option value="ROLE_PATIENT" {{ role == 'ROLE_PATIENT' ? 'selected' : '' }}>Patient</option>
+    </select>
+    <select name="tri">
+        <option value="nom_asc" {{ tri == 'nom_asc' ? 'selected' : '' }}>Nom (A → Z)</option>
+        <option value="nom_desc" {{ tri == 'nom_desc' ? 'selected' : '' }}>Nom (Z → A)</option>
+    </select>
+    <button type="submit" class="btn-search">🔍 Chercher</button>
+    <a href="{{ path('app_dashboard_utilisateurs_list') }}" class="btn-reset">↺ Réinitialiser</a>
+</form>
+
+<div class="back-table-wrap">
+    <div class="back-table-header">
+        <span class="title">👥 Patients, médecins, admins</span>
+    </div>
+    <table class="back-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.nom }}</td>
+                <td>{{ u.prenom }}</td>
+                <td>{{ u.email }}</td>
+                <td>
+                    {% if 'ROLE_ADMIN' in u.roles %}
+                        <span class="badge badge-red">Admin</span>
+                    {% elseif 'ROLE_MEDECIN' in u.roles %}
+                        <span class="badge badge-blue">Médecin</span>
+                    {% elseif 'ROLE_PATIENT' in u.roles %}
+                        <span class="badge badge-green">Patient</span>
+                    {% else %}
+                        <span class="badge badge-grey">User</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="back-table-actions">
+                        <a href="{{ path('app_dashboard_utilisateurs_show', { id: u.id }) }}" class="action-view" title="Voir">👁</a>
+                        <a href="{{ path('app_dashboard_utilisateurs_edit', { id: u.id }) }}" class="action-edit" title="Modifier">✎</a>
+                        {% if u.id != app.user.id %}
+                        <form method="post" action="{{ path('app_dashboard_utilisateurs_delete', { id: u.id }) }}" style="display:inline;" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ u.id) }}">
+                            <button type="submit" class="action-delete" style="border:none;cursor:pointer;padding:0;width:32px;height:32px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:#e74c3c;color:#fff;" title="Supprimer">🗑</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center;padding:2rem;">Aucun utilisateur trouvé.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
