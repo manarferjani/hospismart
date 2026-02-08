@@ -1,0 +1,252 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Dashboard - Dr. {{ medecin.user.nom }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+<div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold" style="color: #1a1a2e;">Tableau de bord Médical</h1>
+            <p class="text-muted">Bienvenue, Dr. {{ medecin.user.prenom }} {{ medecin.user.nom }}</p>
+        </div>
+        <span class="badge bg-light text-dark shadow-sm p-2">
+            <i class="fa-solid fa-calendar-day me-2 text-primary"></i>{{ "now"|date("d F Y") }}
+        </span>
+    </div>
+
+    {# 1. Cartes de Statistiques (KPI) #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; border-left: 5px solid #0d6efd !important;">
+                <div class="card-body">
+                    <h6 class="text-muted small uppercase fw-bold">RDV du Jour</h6>
+                    <div class="d-flex align-items-center mt-2">
+                        <h3 class="mb-0 fw-bold">{{ rdv_du_jour|default(0) }}</h3>
+                        <i class="fa-solid fa-user-clock ms-auto text-primary fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; border-left: 5px solid #ffc107 !important;">
+                <div class="card-body">
+                    <h6 class="text-muted small uppercase fw-bold">Demandes en attente</h6>
+                    <div class="d-flex align-items-center mt-2">
+                        <h3 class="mb-0 fw-bold">{{ demandes_attente|default(0) }}</h3>
+                        <i class="fa-solid fa-hourglass-half ms-auto text-warning fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; border-left: 5px solid #198754 !important;">
+                <div class="card-body">
+                    <h6 class="text-muted small uppercase fw-bold">Total Patients</h6>
+                    <div class="d-flex align-items-center mt-2">
+                        <h3 class="mb-0 fw-bold">{{ total_patients|default(0) }}</h3>
+                        <i class="fa-solid fa-hospital-user ms-auto text-success fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; border-left: 5px solid #6f42c1 !important;">
+                <div class="card-body">
+                    <h6 class="text-muted small uppercase fw-bold">Taux d'occupation</h6>
+                    <div class="d-flex align-items-center mt-2">
+                        <h3 class="mb-0 fw-bold">{{ taux_occupation|default(0) }}%</h3>
+                        <i class="fa-solid fa-chart-pie ms-auto text-purple fs-4" style="color: #6f42c1;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {# 2. Focus sur le Prochain Patient #}
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 20px; background: linear-gradient(145deg, #ffffff, #f8f9ff);">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4">Prochain Patient</h5>
+                    
+                    {% if prochain_rdv is defined and prochain_rdv is not null %}
+<div class="text-center mb-4">
+    {# Accès direct à prochain_rdv.patient.image #}
+    {% if prochain_rdv.patient.image is not empty %}
+        <img src="{{ asset('images/patients/' ~ prochain_rdv.patient.image) }}" 
+             class="rounded-circle shadow-sm mb-3" 
+             style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #fff;">
+    {% else %}
+        <img src="https://ui-avatars.com/api/?name={{ prochain_rdv.patient.user.nom }}+{{ prochain_rdv.patient.user.prenom }}&background=0D6EFD&color=fff&size=80" 
+             class="rounded-circle shadow-sm mb-3">
+    {% endif %}
+    
+    <h4 class="fw-bold mb-1">{{ prochain_rdv.patient.user.prenom }} {{ prochain_rdv.patient.user.nom }}</h4>
+    <span class="badge bg-primary-soft text-primary rounded-pill px-3">À {{ prochain_rdv.datetime|date('H:i') }}</span>
+</div>
+                        <div class="bg-white p-3 rounded-3 shadow-sm mb-4 border">
+                            <p class="small text-muted mb-1"><i class="fa-solid fa-comment-medical me-2"></i>Motif :</p>
+                            <p class="mb-0 fw-medium">{{ prochain_rdv.motif|default('Consultation générale') }}</p>
+                        </div>
+                        <a href="{{ path('app_medecin_patient_show', {'id': prochain_rdv.patient.id}) }}" class="btn btn-primary w-100 py-2 shadow-sm" style="border-radius: 10px;">
+                            <i class="fa-solid fa-file-medical me-2"></i>Voir le dossier
+                        </a>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fa-solid fa-bed-pulse fs-1 text-light mb-3"></i>
+                            <p class="text-muted">Aucun rendez-vous prévu prochainement.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# 3. Vue Calendrier Simplifiée #}
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 20px;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Aperçu Hebdomadaire</h5>
+                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3" 
+        data-bs-toggle="modal" 
+        data-bs-target="#calendarModal">
+    Voir tout le calendrier
+</button>
+                </div>
+                
+                {# Emplacement pour FullCalendar #}
+                <div id="calendar" style="min-height: 400px; background: #fdfdfd; border-radius: 10px;" class="p-2 border border-dashed">
+                    {# Si vous n'installez pas JS tout de suite, voici une vue liste propre #}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mt-2">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">Patient</th>
+                                    <th class="border-0">Date & Heure</th>
+                                    <th class="border-0">Statut</th>
+                                    <th class="border-0 text-end">Action</th>
+                                </tr>
+                            </thead>
+<tbody>
+    {% for rdv in demandes %}
+        {# On n'affiche la ligne QUE si le statut est CONFIRME ou EN_ATTENTE #}
+        {% if rdv.statut == 'CONFIRME' or rdv.statut == 'EN_ATTENTE' %}
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        {% if rdv.patient.image is not empty %}
+                            <img src="{{ asset('images/patients/' ~ rdv.patient.image) }}" 
+                                 class="rounded-circle me-2" 
+                                 style="width: 32px; height: 32px; object-fit: cover;">
+                        {% else %}
+                            <div class="small-avatar me-2">{{ rdv.patient.user.nom|slice(0,1)|upper }}</div>
+                        {% endif %}
+                        <span class="fw-bold">{{ rdv.patient.user.prenom }} {{ rdv.patient.user.nom }}</span>
+                    </div>
+                </td>
+                <td>{{ rdv.datetime|date('d/m/Y H:i') }}</td>
+                <td>
+                    {% if rdv.statut == 'CONFIRME' %}
+                        <span class="badge bg-success-soft text-success">Confirmé</span>
+                    {% else %}
+                        <span class="badge bg-warning-soft text-warning">En attente</span>
+                    {% endif %}
+                </td>
+                <td class="text-end">
+                    <a href="{{ path('app_medecin_demandes_rdv') }}" class="btn btn-light btn-sm rounded-circle">
+                        <i class="fa-solid fa-eye"></i>
+                    </a>
+                </td>
+            </tr>
+        {% endif %}
+    {% else %}
+        <tr>
+            <td colspan="4" class="text-center text-muted py-3">Aucun rendez-vous actif.</td>
+        </tr>
+    {% endfor %}
+</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="calendarModal" tabindex="-1" aria-labelledby="calendarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" style="border-radius: 20px; border: none; shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="calendarModalLabel">Mon Calendrier (Confirmés)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="calendar-el" style="min-height: 600px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary-soft { background-color: rgba(13, 110, 253, 0.1); }
+    .bg-success-soft { background-color: rgba(25, 135, 84, 0.1); }
+    .bg-warning-soft { background-color: rgba(255, 193, 7, 0.1); }
+    .small-avatar { width: 32px; height: 32px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: #666; }
+    .border-dashed { border-style: dashed !important; }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {# Scripts FullCalendar #}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalEl = document.getElementById('calendarModal');
+        const calendarEl = document.getElementById('calendar-el');
+        let calendar = null;
+
+        // On initialise le calendrier seulement à l'ouverture de la modal pour éviter les bugs d'affichage
+        modalEl.addEventListener('shown.bs.modal', function () {
+            if (!calendar) {
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'timeGridWeek',
+                    locale: 'fr',
+                    slotMinTime: '08:00:00',
+                    slotMaxTime: '19:00:00',
+                    allDaySlot: false,
+                    expandRows: true,
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    buttonText: {
+                        today: "Aujourd'hui", month: "Mois", week: "Semaine", day: "Jour"
+                    },
+                    events: [
+                        {% for rdv in demandes %}
+                            {% if rdv.statut == 'CONFIRME' and rdv.patient and rdv.patient.user %}
+                                {
+                                    title: "{{ rdv.patient.user.prenom|e('js') }} {{ rdv.patient.user.nom|e('js') }}",
+                                    start: "{{ rdv.datetime|date('Y-m-d\\TH:i:s') }}",
+                                    end: "{{ rdv.datetime|date_modify('+30 minutes')|date('Y-m-d\\TH:i:s') }}",
+                                    backgroundColor: '#0d6efd',
+                                    borderColor: '#0d6efd',
+                                    textColor: '#ffffff'
+                                },
+                            {% endif %}
+                        {% endfor %}
+                    ],
+                    eventClick: function(info) {
+                        alert('Patient: ' + info.event.title);
+                    }
+                });
+                calendar.render();
+            } else {
+                calendar.updateSize(); // Force le redimensionnement si déjà créé
+            }
+        });
+    });
+    </script>
+{% endblock %}

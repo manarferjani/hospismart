@@ -22,8 +22,6 @@ class Equipement
     #[ORM\Column(length: 255)]
     private ?string $etat = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $relation = null;
 
     #[ORM\ManyToOne(inversedBy: 'equipements')]
     #[ORM\JoinColumn(nullable: false)]
@@ -66,18 +64,6 @@ class Equipement
     public function setEtat(string $etat): static
     {
         $this->etat = $etat;
-
-        return $this;
-    }
-
-    public function getRelation(): ?string
-    {
-        return $this->relation;
-    }
-
-    public function setRelation(string $relation): static
-    {
-        $this->relation = $relation;
 
         return $this;
     }

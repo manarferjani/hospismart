@@ -1,0 +1,59 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Mes Patients - Hospismart{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0" style="color: #1a1a2e;">Ma File Active Patients</h2>
+        <div class="badge bg-primary px-3 py-2" style="border-radius: 10px;">
+            <i class="fa-solid fa-user-group me-2"></i> {{ patients|length|default(0) }} Patients
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 p-4" style="border-radius: 20px;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="text-muted small text-uppercase">
+                    <tr>
+                        <th>Identité</th>
+                        <th>Dernier RDV</th>
+                        <th>Email</th>
+                        <th class="text-center">Dossier</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {# Cette boucle sera active quand vous passerez la variable 'patients' depuis le controller #}
+                    {% for patient in patients|default([]) %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-3 bg-light rounded-circle p-2">
+                                        <i class="fa-solid fa-user text-secondary"></i>
+                                    </div>
+                                    <span class="fw-bold">{{ patient.user.nom }} {{ patient.user.prenom }}</span>
+                                </div>
+                            </td>
+                            <td>{{ "now"|date("d/m/Y") }}</td>
+                            <td class="text-muted">{{ patient.user.email }}</td>
+                            <td class="text-center">
+<a href="{{ path('app_medecin_patient_show', {'id': patient.id}) }}" 
+       class="btn btn-sm btn-outline-primary rounded-pill px-3">
+        <i class="fa-solid fa-eye"></i> Voir
+    </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <div class="mb-3"><i class="fa-solid fa-users-slash fa-3x text-light"></i></div>
+                                <p class="text-muted">Vous n'avez pas encore de patients rattachés.</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

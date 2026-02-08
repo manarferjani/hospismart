@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+    <h2 class="fw-bold text-dark"><i class="fa-solid fa-microscope me-2 text-primary"></i>Inventaire Médical</h2>
+
+<a href="{{ path('app_equipement_new') }}" class="btn btn-primary rounded-pill px-4 shadow">
+    <i class="fa-solid fa-plus me-1"></i> Nouveau Matériel
+</a>
+</div>
+
+<div class="row g-4">
+    {# ÉQUIPEMENT 1 : SCANNER #}
+    <div class="col-md-4">
+        <div class="glass-card h-100 p-0 overflow-hidden border-0 shadow-sm hover-card">
+            <div class="position-relative">
+                <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=500" class="img-fluid w-100" style="height: 200px; object-fit: cover;" alt="Scanner CT">
+                <span class="position-absolute top-0 end-0 m-3 badge bg-success-subtle text-success border border-success px-3 py-2 rounded-pill shadow-sm">
+                    <i class="fa-solid fa-check-circle me-1"></i> Opérationnel
+                </span>
+            </div>
+            <div class="p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="fw-bold mb-0">Scanner CT GE VCT 64</h5>
+                    <i class="fa-solid fa-bolt text-warning"></i>
+                </div>
+                <p class="text-muted small mb-3">Service : <strong>Radiologie</strong></p>
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                    <code class="text-primary fw-bold">REF-8842-X</code>
+                    <div>
+                        <a href="#" class="btn btn-sm btn-light rounded-circle shadow-sm me-1"><i class="fa-solid fa-pen"></i></a>
+                        <a href="#" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm"><i class="fa-solid fa-trash"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ÉQUIPEMENT 2 : IRM #}
+    <div class="col-md-4">
+        <div class="glass-card h-100 p-0 overflow-hidden border-0 shadow-sm hover-card">
+            <div class="position-relative">
+                <img src="https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=500" class="img-fluid w-100" style="height: 200px; object-fit: cover;" alt="IRM">
+                <span class="position-absolute top-0 end-0 m-3 badge bg-warning-subtle text-warning border border-warning px-3 py-2 rounded-pill shadow-sm">
+                    <i class="fa-solid fa-clock me-1"></i> Maintenance
+                </span>
+            </div>
+            <div class="p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="fw-bold mb-0">IRM Siemens Magnetom</h5>
+                    <i class="fa-solid fa-magnet text-info"></i>
+                </div>
+                <p class="text-muted small mb-3">Service : <strong>Imagerie Médicale</strong></p>
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                    <code class="text-primary fw-bold">REF-7710-M</code>
+                    <div>
+                        <a href="#" class="btn btn-sm btn-light rounded-circle shadow-sm me-1"><i class="fa-solid fa-pen"></i></a>
+                        <a href="#" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm"><i class="fa-solid fa-trash"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ÉQUIPEMENT 3 : RESPIRATEUR #}
+    <div class="col-md-4">
+        <div class="glass-card h-100 p-0 overflow-hidden border-0 shadow-sm hover-card">
+            <div class="position-relative">
+                <img src="https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?auto=format&fit=crop&q=80&w=500" class="img-fluid w-100" style="height: 200px; object-fit: cover;" alt="Respirateur">
+                <span class="position-absolute top-0 end-0 m-3 badge bg-danger-subtle text-danger border border-danger px-3 py-2 rounded-pill shadow-sm">
+                    <i class="fa-solid fa-circle-xmark me-1"></i> En Panne
+                </span>
+            </div>
+            <div class="p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="fw-bold mb-0">Ventilateur Dräger XL</h5>
+                    <i class="fa-solid fa-wind text-primary"></i>
+                </div>
+                <p class="text-muted small mb-3">Service : <strong>Réanimation</strong></p>
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                    <code class="text-primary fw-bold">REF-2204-V</code>
+                    <div>
+                        <a href="#" class="btn btn-sm btn-light rounded-circle shadow-sm me-1"><i class="fa-solid fa-pen"></i></a>
+                        <a href="#" class="btn btn-sm btn-outline-danger rounded-circle shadow-sm"><i class="fa-solid fa-trash"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+    .badge {
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+</style>
+{% endblock %}

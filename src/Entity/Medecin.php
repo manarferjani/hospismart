@@ -32,15 +32,36 @@ class Medecin
     #[ORM\JoinColumn(nullable: false)]
     private ?Service $service = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+private ?string $image = null;
+
+public function getImage(): ?string
+{
+    return $this->image;
+}
+
+public function setImage(?string $image): static
+{
+    $this->image = $image;
+    return $this;
+}
+
     /**
      * @var Collection<int, Disponibilite>
      */
     #[ORM\OneToMany(targetEntity: Disponibilite::class, mappedBy: 'medecin')]
     private Collection $disponibilites;
 
+    /**
+     * @var Collection<int, RendezVous>
+     */
+    #[ORM\OneToMany(targetEntity: RendezVous::class, mappedBy: 'medecin')]
+    private Collection $rendezVouses;
+
     public function __construct()
     {
         $this->disponibilites = new ArrayCollection();
+        $this->rendezVouses = new ArrayCollection();
     }
 
     public function getService(): ?Service
@@ -131,6 +152,36 @@ class Medecin
             // set the owning side to null (unless already changed)
             if ($disponibilite->getMedecin() === $this) {
                 $disponibilite->setMedecin(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, RendezVous>
+     */
+    public function getRendezVouses(): Collection
+    {
+        return $this->rendezVouses;
+    }
+
+    public function addRendezVouse(RendezVous $rendezVouse): static
+    {
+        if (!$this->rendezVouses->contains($rendezVouse)) {
+            $this->rendezVouses->add($rendezVouse);
+            $rendezVouse->setMedecin($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRendezVouse(RendezVous $rendezVouse): static
+    {
+        if ($this->rendezVouses->removeElement($rendezVouse)) {
+            // set the owning side to null (unless already changed)
+            if ($rendezVouse->getMedecin() === $this) {
+                $rendezVouse->setMedecin(null);
             }
         }
 

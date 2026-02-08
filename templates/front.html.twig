@@ -2,15 +2,50 @@
 
 {% block stylesheets %}
 <style>
+    :root {
+        --primary-color: #0d6efd;
+        --hover-color: #4178F5;
+    }
     .navbar { background: transparent !important; padding: 20px 0; }
-    .nav-link { color: #555 !important; font-weight: 500; margin: 0 10px; }
-    .nav-link.active { color: var(--primary-color) !important; font-weight: 600; }
+    
+    /* Style des liens */
+    .nav-link { 
+        color: #555 !important; 
+        font-weight: 500; 
+        margin: 0 10px; 
+        transition: all 0.3s ease;
+        border-bottom: 2px solid transparent;
+    }
+
+    /* Effet Hover */
+    .nav-link:hover { 
+        color: var(--hover-color) !important; 
+        transform: translateY(-2px);
+    }
+
+    /* État Actif (Lien cliqué) */
+    .nav-link.active { 
+        color: var(--primary-color) !important; 
+        font-weight: 700;
+        border-bottom: 2px solid var(--primary-color);
+    }
+
     .btn-logout { 
         background-color: white; color: var(--primary-color); 
         border: 2px solid var(--primary-color); border-radius: 50px; 
         padding: 8px 20px; font-weight: 600; text-decoration: none; transition: 0.3s;
     }
     .btn-logout:hover { background-color: var(--primary-color); color: white; }
+
+    /* Style spécifique pour la cloche dans la navbar */
+    .notification-bell {
+        color: #555;
+        transition: color 0.3s ease;
+        cursor: pointer;
+    }
+    .notification-bell:hover {
+        color: var(--primary-color);
+    }
 </style>
 {% endblock %}
 
@@ -30,15 +65,86 @@
 
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="#">Accueil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ path('app_service_index') }}">Services</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ path('app_equipement_index') }}">Équipements</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+                    {# On vérifie la route actuelle pour ajouter la classe 'active' #}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') == 'app_home' %}active{% endif %}" href="/">Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') == 'app_mes_rendezvous' %}active{% endif %}" href="{{ path('app_mes_rendezvous') }}">Mes Rendez-vous</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') == 'app_medecin_recherche' %}active{% endif %}" href="{{ path('app_medecin_recherche') }}">Services</a>
+                    </li>
+                    {% if app.user and app.user.medecin %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') == 'app_medecin_demandes_rdv' %}active{% endif %}" href="{{ path('app_medecin_demandes_rdv') }}">Demandes RDV</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.get('_route') == 'app_medecin_dispo_index' %}active{% endif %}" href="{{ path('app_medecin_dispo_index') }}">Mes créneaux</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Contact</a>
+                    </li>
                 </ul>
             </div>
 
-            <div class="d-none d-lg-block">
-                <a href="#" class="btn-logout">Déconnexion</a>
+            <div class="d-flex align-items-center">
+{# CLOCHE DE NOTIFICATION #}
+<div class="dropdown me-4">
+    <a class="nav-link p-0 position-relative notification-bell" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa-solid fa-bell fs-5"></i>
+        
+        {# On compte les notifications non lues en base de données #}
+        {% set unread_count = 0 %}
+        {% if app.user and app.user.patient %}
+            {% for notif in app.user.patient.notifications %}
+                {% if not notif.isRead %}{% set unread_count = unread_count + 1 %}{% endif %}
+            {% endfor %}
+        {% endif %}
+        
+        {% if unread_count > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                {{ unread_count }}
+            </span>
+        {% endif %}
+    </a>
+
+    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3" aria-labelledby="notifDropdown" style="width: 300px; border-radius: 15px; max-height: 400px; overflow-y: auto;">
+        <li class="dropdown-header border-bottom pb-2 d-flex justify-content-between align-items-center">
+            <span>Notifications</span>
+            {% if unread_count > 0 %}
+                <span class="badge bg-light text-primary small">{{ unread_count }} nouvelle(s)</span>
+            {% endif %}
+        </li>
+
+        {% if app.user and app.user.patient and app.user.patient.notifications|length > 0 %}
+            {# On trie pour avoir les plus récentes en haut #}
+            {% for notif in app.user.patient.notifications|sort((a, b) => b.createdAt <=> a.createdAt) %}
+                <li class="p-3 border-bottom notification-item {% if not notif.isRead %}bg-light{% endif %}">
+                    <div class="d-flex align-items-start">
+                        <i class="fa-solid {% if 'accept' in notif.message|lower or 'confirm' in notif.message|lower %}fa-circle-check text-success{% elseif 'refus' in notif.message|lower or 'annul' in notif.message|lower %}fa-circle-xmark text-danger{% else %}fa-circle-info text-primary{% endif %} mt-1 me-2"></i>
+                        <div class="small text-dark">
+                            <div class="{% if not notif.isRead %}fw-bold{% endif %}">{{ notif.message }}</div>
+                            <div class="text-muted mt-1" style="font-size: 0.75rem;">
+                                <i class="fa-regular fa-clock me-1"></i>{{ notif.createdAt|date('d/m à H:i') }}
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        {% else %}
+            <li class="p-4 text-center text-muted small">
+                <i class="fa-solid fa-bell-slash d-block mb-2 fs-4 opacity-50"></i>
+                Aucune notification
+            </li>
+        {% endif %}
+    </ul>
+</div>
+
+                <div class="d-none d-lg-block">
+                    <a href="#" class="btn-logout">Déconnexion</a>
+                </div>
             </div>
         </div>
     </nav>

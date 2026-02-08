@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Service - {{ service.nom }}{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {# Glass Card identique à la page Equipement #}
+            <div class="glass-card shadow-lg p-4 p-md-5 border-0 position-relative overflow-hidden">
+                
+                {# Décoration de fond subtile (Icône Hospitalière) #}
+                <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                    <i class="fa-solid fa-hospital-user fa-6x text-primary"></i>
+                </div>
+
+                <div class="mb-4">
+                    <a href="{{ path('app_service_index') }}" class="btn btn-sm btn-light rounded-pill px-3 mb-3">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Retour à la liste
+                    </a>
+                    <h2 class="fw-bold text-dark mb-1">Modifier le service</h2>
+                    <p class="text-muted">Mettez à jour les informations du service : <strong>{{ service.nom }}</strong></p>
+                </div>
+
+                <hr class="mb-4 opacity-10">
+
+                {# On injecte le formulaire avec la classe de style #}
+                <div class="custom-form-style">
+                    {{ include('service/_form.html.twig') }}
+                </div>
+
+<div class="mt-4 pt-3 border-top">
+    <div class="d-flex justify-content-between align-items-center">
+        <p class="small text-muted mb-0">Actions rapides :</p>
+        
+        {# Le bouton est maintenant poussé vers la droite #}
+        <a href="{{ path('app_equipement_new') }}" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm">
+            <i class="fa-solid fa-plus me-1"></i> Affecter un nouvel équipement
+        </a>
+    </div>
+</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* On réutilise tes styles exacts pour la cohérence visuelle */
+    .custom-form-style form label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+    
+    .custom-form-style input, 
+    .custom-form-style select, 
+    .custom-form-style textarea {
+        border-radius: 12px !important;
+        padding: 0.75rem 1rem;
+        border: 1px solid #dee2e6;
+        margin-bottom: 1rem;
+        width: 100%; /* S'assure que l'input ne dépasse pas */
+        background: rgba(255, 255, 255, 0.9);
+    }
+    
+    .custom-form-style input:focus, 
+    .custom-form-style select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+        outline: none;
+    }
+    
+    /* Style du bouton de validation (Enregistrer) */
+    .custom-form-style button.btn {
+        width: 100%;
+        padding: 0.8rem;
+        font-weight: bold;
+        border-radius: 50px;
+        margin-top: 1rem;
+        background: #0d6efd;
+        border: none;
+        color: white;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .custom-form-style button.btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(13, 110, 253, 0.3);
+        background: #0b5ed7;
+    }
+</style>
+{% endblock %}

@@ -3,14 +3,12 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use BcMath\Number;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_NOM', fields: ['nom'])]
+//#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_NOM', fields: ['nom'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -21,26 +19,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180)]
     private ?string $nom = null;
 
-    /**
-     * @var list<string> The user roles
-     */
-    #[ORM\Column]
-    private array $roles = [];
-
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
-    private ?string $password = null;
-
     #[ORM\Column(length: 255)]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 255)]
     private ?string $email = null;
-    
-#[ORM\Column(type: 'string', length: 20, nullable: true)]
-private ?string $telephone = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $telephone = null;
+
+    #[ORM\Column]
+    private array $roles = [];
+
+    #[ORM\Column]
+    private ?string $password = null;
+
+    // Relation vers le profil Patient
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Patient $patient = null;
+
+    // Relation vers le profil Medecin
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Medecin $medecin = null;
 
     public function getId(): ?int
     {
@@ -55,13 +55,43 @@ private ?string $telephone = null;
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
+        return $this;
+    }
 
+    public function getPrenom(): ?string
+    {
+        return $this->prenom;
+    }
+
+    public function setPrenom(string $prenom): static
+    {
+        $this->prenom = $prenom;
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): static
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    public function setTelephone(?string $telephone): static
+    {
+        $this->telephone = $telephone;
         return $this;
     }
 
     /**
-     * A visual identifier that represents this user.
-     *
      * @see UserInterface
      */
     public function getUserIdentifier(): string
@@ -75,19 +105,13 @@ private ?string $telephone = null;
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
-
         return array_unique($roles);
     }
 
-    /**
-     * @param list<string> $roles
-     */
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
-
         return $this;
     }
 
@@ -102,60 +126,41 @@ private ?string $telephone = null;
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
         return $this;
     }
 
-    /**
-     * Ensure the session doesn't contain actual password hashes by CRC32C-hashing them, as supported since Symfony 7.3.
-     */
-    public function __serialize(): array
-    {
-        $data = (array) $this;
-        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
-
-        return $data;
-    }
-
-    #[\Deprecated]
     public function eraseCredentials(): void
     {
-        // @deprecated, to be removed when upgrading to Symfony 8
+        // Si vous stockez des données temporaires sensibles sur l'utilisateur, effacez-les ici
     }
 
-    public function getPrenom(): ?string
+    /* --- RELATIONS BIDIRECTIONNELLES --- */
+
+    public function getPatient(): ?Patient
     {
-        return $this->prenom;
+        return $this->patient;
     }
 
-    public function setPrenom(string $prenom): static
+    public function setPatient(?Patient $patient): static
     {
-        $this->prenom = $prenom;
-
+        if ($patient !== null && $patient->getUser() !== $this) {
+            $patient->setUser($this);
+        }
+        $this->patient = $patient;
         return $this;
     }
 
-    public function getEmail(): ?string
+    public function getMedecin(): ?Medecin
     {
-        return $this->email;
+        return $this->medecin;
     }
 
-    public function setEmail(string $email): static
+    public function setMedecin(?Medecin $medecin): static
     {
-        $this->email = $email;
-
-        return $this;
-    }
-
-    public function getTelephone(): ?Number
-    {
-        return $this->telephone;
-    }
-
-    public function setTelephone(Number $telephone): static
-    {
-        $this->telephone = $telephone;
-
+        if ($medecin !== null && $medecin->getUser() !== $this) {
+            $medecin->setUser($this);
+        }
+        $this->medecin = $medecin;
         return $this;
     }
 }

@@ -1,0 +1,34 @@
+<div class="row justify-content-center">
+    {# On limite la largeur à 6 colonnes sur 12 pour que les inputs ne soient pas trop longs #}
+    <div class="col-md-8 col-lg-6">
+        {{ form_start(form) }}
+            
+            <div class="mb-4">
+                <label class="form-label fw-bold"><i class="fa-solid fa-tag me-2 text-primary"></i>Nom de l'équipement</label>
+                {{ form_widget(form.nom, {'attr': {'class': 'form-control shadow-sm', 'placeholder': 'ex: Scanner CT'}}) }}
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold"><i class="fa-solid fa-barcode me-2 text-primary"></i>Référence</label>
+                {{ form_widget(form.reference, {'attr': {'class': 'form-control shadow-sm', 'placeholder': 'ex: REF-2024-X'}}) }}
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold"><i class="fa-solid fa-heart-pulse me-2 text-primary"></i>État</label>
+                {{ form_widget(form.etat, {'attr': {'class': 'form-select shadow-sm'}}) }}
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold"><i class="fa-solid fa-hospital me-2 text-primary"></i>Service d'affectation</label>
+                {{ form_widget(form.service, {'attr': {'class': 'form-select shadow-sm'}}) }}
+            </div>
+
+            <div class="text-center mt-5">
+                <button class="btn btn-primary rounded-pill px-2 py-2 fw-bold shadow">
+                    <i class="fa-solid fa-check me-2"></i>{{ button_label|default('Enregistrer') }}
+                </button>
+            </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>

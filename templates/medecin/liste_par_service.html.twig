@@ -1,0 +1,130 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Médecins en {{ service.nom }} - Hospismart{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    body { background-color: #f4f7fe; }
+
+    .doctors-grid-section { 
+        max-width: 1280px; 
+        margin: 0 auto; 
+        padding: 40px 48px 80px; 
+    }
+    
+    .doctors-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+        gap: 30px; 
+    }
+
+    .medecin-card {
+        background: white; 
+        border-radius: 30px; 
+        padding: 40px 24px;
+        text-align: center; 
+        border: 1px solid #eef2f6; 
+        transition: 0.3s;
+    }
+    .medecin-card:hover { 
+        transform: translateY(-10px); 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.07); 
+    }
+
+    /* CERCLE PHOTO AGRANDI (150px) */
+    .avatar-container {
+        width: 150px; 
+        height: 150px;
+        margin: 0 auto 25px;
+        border-radius: 50%;
+        border: 5px solid #f0f4ff;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    .avatar-img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+    }
+
+    .btn-rdv {
+        display: block; width: 100%; padding: 14px;
+        background: #1a1a2e; color: white;
+        border-radius: 16px; text-decoration: none;
+        font-weight: 600; margin-bottom: 12px; transition: 0.2s;
+    }
+    .btn-rdv:hover { background: #4178F5; color: white; }
+
+    .header-service {
+        max-width: 1280px; margin: 40px auto 0; padding: 0 48px;
+    }
+    
+    .back-link { color: #4178F5; text-decoration: none; font-weight: 600; font-size: 14px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="header-service">
+    <a href="{{ path('app_medecin_recherche') }}" class="back-link">
+        <i class="fas fa-arrow-left"></i> Retour aux services
+    </a>
+    <h2 style="font-size: 36px; font-weight: 800; color: #1a1a2e; margin-top: 20px;">
+        Nos spécialistes en <span style="color: #4178F5;">{{ service.nom }}</span>
+    </h2>
+    <p style="color: #64748b; font-size: 16px;">{{ medecins|length }} expert(s) disponible(s) pour vous recevoir.</p>
+</div>
+
+<div class="doctors-grid-section">
+    <div class="doctors-grid">
+        {% for medecin in medecins %}
+            <div class="medecin-card">
+                
+                <div class="avatar-container">
+                    {# AFFICHAGE DE L'IMAGE DE LA BASE DE DONNÉES #}
+                    {% if medecin.image %}
+                        <img src="{{ asset('images/medecins/' ~ medecin.image) }}" 
+                             class="avatar-img" 
+                             alt="Dr. {{ medecin.user.nom }}"
+                             onerror="this.src='https://ui-avatars.com/api/?name={{ medecin.user.nom|url_encode }}+{{ medecin.user.prenom|url_encode }}&background=EBF2FF&color=4178F5&size=150&bold=true'">
+                    {% else %}
+                        {# Fallback si le champ image est vide #}
+                        <img src="https://ui-avatars.com/api/?name={{ medecin.user.nom|url_encode }}+{{ medecin.user.prenom|url_encode }}&background=EBF2FF&color=4178F5&size=150&bold=true"
+                             class="avatar-img" alt="Dr. {{ medecin.user.nom }}">
+                    {% endif %}
+                </div>
+                
+                <h4 style="color: #1a1a2e; font-size: 22px; font-weight: 700; margin-bottom: 5px;">
+                    Dr. {{ medecin.user.nom|upper }} {{ medecin.user.prenom }}
+                </h4>
+                
+                <p style="color: #4178F5; font-weight: 600; margin-bottom: 15px;">{{ medecin.specialite }}</p>
+                
+                <div style="color: #f59e0b; font-size: 14px; margin-bottom: 20px;">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                </div>
+                
+                <div style="text-align: left; background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 25px;">
+                    <p style="font-size: 13px; margin: 0; color: #64748b;">
+                        <i class="fas fa-envelope" style="color:#4178F5; margin-right: 10px;"></i> {{ medecin.user.email }}
+                    </p>
+                </div>
+
+                <a href="{{ path('app_rendezvous_dispo', {'id': medecin.id}) }}" class="btn-rdv">
+                    Prendre rendez-vous
+                </a>
+                
+                <a href="{{ path('app_medecin_show', {'id': medecin.id}) }}" style="color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none;">
+                    Consulter le profil complet
+                </a>
+            </div>
+        {% else %}
+            <div style="grid-column: 1/-1; text-align: center; padding: 100px 20px; background: white; border-radius: 40px;">
+                <h3 style="color: #1a1a2e;">Aucun spécialiste trouvé</h3>
+                <p style="color: #64748b;">Il n'y a pas encore de médecins dans le service {{ service.nom }}.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

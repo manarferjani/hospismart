@@ -1,0 +1,156 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Tableau de Bord - Dr. {{ medecin.user.nom }}{% endblock %}
+
+{% block body %}
+{# 1. Section des Notifications (Toasts) épurée #}
+<div class="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 320px;">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'success' ? 'success' : (label == 'info' ? 'info' : 'danger') }} alert-dismissible fade show shadow-lg border-0 mb-3" 
+                 role="alert" 
+                 style="border-left: 5px solid {{ label == 'success' ? '#198754' : (label == 'info' ? '#0dcaf0' : '#dc3545') }}; border-radius: 12px; background-color: white;">
+                
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        {# L'icône change selon le type de message #}
+                        <i class="fas {{ label == 'success' ? 'fa-check-circle text-success' : (label == 'info' ? 'fa-info-circle text-info' : 'fa-exclamation-circle text-danger') }} fa-lg"></i>
+                    </div>
+                    <div class="ms-3">
+                        {# On affiche directement le message sans le titre Succès/Erreur #}
+                        <span class="text-dark fw-medium">{{ message }}</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<div class="container mt-5">
+    {# 2. En-tête du Dashboard #}
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="fw-bold" style="color: #1a1a2e;">Demandes de rendez-vous</h1>
+            
+        </div>
+        <div class="d-flex gap-3">
+            <div class="card border-0 shadow-sm px-4 py-2 text-center" style="border-radius: 15px;">
+                <span class="d-block fw-bold text-primary" style="font-size: 1.2rem;">{{ demandes|length }}</span>
+                <span class="text-muted small">Rendez-vous</span>
+            </div>
+        </div>
+    </div>
+
+    {# 3. Tableau des demandes #}
+    <div class="card border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 border-0">Patient</th>
+                        <th class="py-3 border-0">Date & Heure</th>
+                        <th class="py-3 border-0">Motif</th>
+                        <th class="py-3 border-0">Statut</th>
+                        <th class="py-3 border-0 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rdv in demandes %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://ui-avatars.com/api/?name={{ rdv.patient.user.nom }}+{{ rdv.patient.user.prenom }}&background=random" 
+                                         class="rounded-circle me-3" width="40" height="40">
+                                    <div>
+                                        <span class="d-block fw-bold text-dark">{{ rdv.patient.user.nom }} {{ rdv.patient.user.prenom }}</span>
+                                        <span class="text-muted small">{{ rdv.patient.user.email }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="d-block fw-bold text-dark">{{ rdv.datetime|date('d/m/Y') }}</span>
+                                <span class="text-primary fw-bold small">{{ rdv.datetime|date('H:i') }}</span>
+                            </td>
+                            <td>
+                                <span class="text-muted small italic">{{ rdv.motif|default('Non précisé') }}</span>
+                            </td>
+                            <td>
+                                <span class="badge" style="
+                                    {% if rdv.statut == 'CONFIRME' %} background: #d1e7dd; color: #0f5132;
+                                    {% elseif rdv.statut == 'REFUSE' %} background: #f8d7da; color: #842029;
+                                    {% else %} background: #fff3cd; color: #664d03; {% endif %}
+                                    padding: 8px 12px; border-radius: 8px; font-size: 0.8rem;">
+                                    {{ rdv.statut }}
+                                </span>
+                            </td>
+<td class="text-center pe-4">
+    <div class="d-flex justify-content-center gap-2">
+        
+        {# CAS 1 : Le rendez-vous est en attente #}
+        {% if rdv.statut == 'EN_ATTENTE' %}
+            <form method="post" action="{{ path('app_medecin_rdv_accepter', {id: rdv.id}) }}" onsubmit="return confirm('Confirmer ce rendez-vous ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('accepter' ~ rdv.id) }}">
+                <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" title="Confirmer">
+                    <i class="fas fa-check"></i>
+                </button>
+            </form>
+
+            <form method="post" action="{{ path('app_medecin_rdv_refuser', {id: rdv.id}) }}" onsubmit="return confirm('Refuser ce rendez-vous ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('refuser' ~ rdv.id) }}">
+                <button class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm" title="Refuser">
+                    <i class="fas fa-times"></i> 
+                </button>
+            </form>
+
+        {# CAS 2 : Le rendez-vous est déjà confirmé, on ne laisse que le bouton pour Annuler #}
+        {% elseif rdv.statut == 'CONFIRME' %}
+            <form method="post" action="{{ path('app_medecin_rdv_annuler', {id: rdv.id}) }}" onsubmit="return confirm('Voulez-vous vraiment annuler ce rendez-vous déjà confirmé ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('annuler' ~ rdv.id) }}">
+                <button class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" title="Annuler le RDV confirmé">
+                    <i class="fas fa-ban me-1"></i>
+                </button>
+            </form>
+
+        {# CAS 3 : Affichage des textes finaux selon l'historique #}
+        {% elseif rdv.statut == 'REFUSE' %}
+            <span class="badge bg-light text-secondary border">Refusé</span>
+        {% elseif rdv.statut == 'ANNULE' %}
+            <span class="badge bg-light text-secondary border">Annulé</span>
+        {% endif %}
+
+    </div>
+</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <p class="text-muted mb-0 font-italic">Aucun rendez-vous trouvé dans votre agenda.</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    // Script pour faire disparaître les notifications automatiquement après 5 secondes
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.notification-container .alert');
+        alerts.forEach(function(alert) {
+            setTimeout(function() {
+                if (typeof bootstrap !== 'undefined') {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                } else {
+                    alert.style.display = 'none'; // Fallback si Bootstrap JS n'est pas chargé
+                }
+            }, 5000);
+        });
+    });
+</script>
+{% endblock %}

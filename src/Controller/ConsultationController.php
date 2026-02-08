@@ -79,27 +79,4 @@ final class ConsultationController extends AbstractController
         return $this->redirectToRoute('app_consultation_index', [], Response::HTTP_SEE_OTHER);
     }
 
-    #[Route('/patient/prendre-rdv/{id}', name: 'app_rendezvous_dispo')]
-public function prendreRdv(Medecin $medecin, Request $request, EntityManagerInterface $em): Response
-{
-    $consultation = new Consultation();
-    $consultation->setMedecin($medecin);
-    $consultation->setPatient($this->getUser()->getPatient());
-    $consultation->setStatut(ConsultationStatus::EN_ATTENTE);
-
-    $form = $this->createForm(ConsultationType::class, $consultation);
-    $form->handleRequest($request);
-
-    if ($form->isSubmitted() && $form->isValid()) {
-        $em->persist($consultation);
-        $em->flush();
-        $this->addFlash('success', 'Votre demande de rendez-vous a été envoyée !');
-        return $this->redirectToRoute('app_patient_dashboard');
-    }
-
-    return $this->render('patient/prendre_rdv.html.twig', [
-        'medecin' => $medecin,
-        'form' => $form->createView()
-    ]);
-}
 }
