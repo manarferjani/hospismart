@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\MedicamentRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: MedicamentRepository::class)]
 class Medicament
@@ -15,18 +16,28 @@ class Medicament
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le nom du médicament est obligatoire')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'Le nom doit contenir au moins 2 caractères', maxMessage: 'Le nom ne doit pas dépasser 255 caractères')]
     private ?string $nom = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'La quantité est obligatoire')]
+    #[Assert\GreaterThanOrEqual(value: 0, message: 'La quantité doit être supérieure ou égale à 0')]
     private ?int $quantite = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'Le seuil d\'alerte est obligatoire')]
+    #[Assert\GreaterThanOrEqual(value: 0, message: 'Le seuil d\'alerte doit être supérieur ou égal à 0')]
     private ?int $seuil_alerte = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'Le prix unitaire est obligatoire')]
+    #[Assert\GreaterThan(value: 0, message: 'Le prix unitaire doit être supérieur à 0')]
     private ?float $prix_unitaire = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotBlank(message: 'La date de péremption est obligatoire')]
+    #[Assert\GreaterThan('today', message: 'La date de péremption doit être dans le futur')]
     private ?\DateTime $date_peremption = null;
 
     public function getId(): ?int

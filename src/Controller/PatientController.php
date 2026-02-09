@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+
 use App\Entity\Patient;
 use App\Form\PatientType;
 use App\Repository\PatientRepository;
@@ -78,4 +79,18 @@ final class PatientController extends AbstractController
 
         return $this->redirectToRoute('app_patient_index', [], Response::HTTP_SEE_OTHER);
     }
+
+    #[Route('/mes-coordonnees', name: 'app_patient_coordonnees', methods: ['GET'])]
+    public function coordonnees(PatientRepository $patientRepository): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+        $user = $this->getUser();
+        $patient = $patientRepository->findOneByUser($user);
+
+        return $this->render('front/patient_coordonnees.html.twig', [
+            'patient' => $patient,
+            'user' => $user,
+        ]);
+    }
+
 }

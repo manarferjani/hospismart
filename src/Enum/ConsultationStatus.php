@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Enum; // Vérifie bien cette ligne !
+namespace App\Enum;
 
 enum ConsultationStatus: string
 {
     case EN_ATTENTE = 'en_attente';
     case CONFIRME = 'confirme';
-    case ANNULE = 'annule';
-    case TERMINE = 'termine';
+    case EN_COURS = 'en_cours';
+    case TERMINEE = 'terminee';
+    case ANNULEE = 'annulee';
 }

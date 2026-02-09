@@ -1,0 +1,78 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Liste des Réclamations - Hospismart{% endblock %}
+
+{% block content %}
+<div class="back-filters">
+    <input type="text" placeholder="Titre, patient, email...">
+    <select><option>Toutes</option></select>
+    <select><option>Toutes</option></select>
+    <select><option>Tous</option></select>
+    <button type="button" class="btn-search">🔍 Chercher</button>
+    <a href="{{ path('app_dashboard') }}" class="btn-reset">↺ Réinitialiser</a>
+</div>
+
+<div class="back-table-wrap">
+    <div class="back-table-header">
+        <span class="title">📋 Liste des Réclamations</span>
+        <span>
+            <button type="button" style="background:#f1c40f;color:#000;border:none;padding:0.4rem 0.75rem;border-radius:6px;margin-right:0.5rem;">📅 Date</button>
+            <button type="button" style="background:#ecf0f1;color:#2c3e50;border:none;padding:0.4rem 0.75rem;border-radius:6px;">👤 Nom Patient</button>
+        </span>
+    </div>
+    <table class="back-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>TITRE</th>
+                <th>PATIENT</th>
+                <th>CATÉGORIE</th>
+                <th>PRIORITÉ</th>
+                <th>STATUT</th>
+                <th>ACTIONS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in consultations %}
+            <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.motif|slice(0, 30) }}{% if c.motif|length > 30 %}...{% endif %}</td>
+                <td>
+                    {% if c.patient and c.patient.user %}
+                        {{ c.patient.user.prenom }} {{ c.patient.user.nom }}<br>
+                        <small style="color:#7f8c8d;">{{ c.patient.user.email }}</small>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td><span class="badge badge-grey">Consultation</span></td>
+                <td><span class="badge badge-blue">Normale</span></td>
+                <td>
+                    {% if c.statut.value == 'terminee' %}
+                        <span class="badge badge-green">TRAITÉ</span>
+                    {% elseif c.statut.value == 'en_cours' %}
+                        <span class="badge badge-cyan">En cours</span>
+                    {% elseif c.statut.value == 'en_attente' %}
+                        <span class="badge badge-orange">En attente</span>
+                    {% else %}
+                        <span class="badge badge-grey">{{ c.statut.value }}</span>
+                    {% endif %}
+                    {% if c.dateHeure %}<br><small>{{ c.dateHeure|date('d/m/Y') }}</small>{% endif %}
+                </td>
+                <td>
+                    <div class="back-table-actions">
+                        <a href="#" class="action-view" title="Voir">👁</a>
+                        <a href="#" class="action-edit" title="Modifier">✎</a>
+                        <a href="#" class="action-delete" title="Supprimer">🗑</a>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align:center;padding:2rem;">Aucune réclamation.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

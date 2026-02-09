@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/front.css') }}">
+{% endblock %}
+
+{% block body %}
+<body class="front">
+    <header class="front-header">
+        <a href="{{ path('app_home') }}" class="front-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M11.5 2C6.81 2 3 5.81 3 10.5S6.81 19 11.5 19s8.5-3.81 8.5-8.5S16.19 2 11.5 2zm0 15c-3.59 0-6.5-2.91-6.5-6.5S7.91 4 11.5 4s6.5 2.91 6.5 6.5-2.91 6.5-6.5 6.5z"/><path d="M21 22l-4-4 4-4"/></svg>
+            Hospismart
+        </a>
+        <nav class="front-nav">
+            <a href="{{ path('app_home') }}" class="{{ app.request.get('_route') == 'app_home' ? 'active' : '' }}">Accueil</a>
+            {% if app.user %}
+                <a href="{{ path('app_patient_coordonnees') }}" class="{{ app.request.get('_route') == 'app_patient_coordonnees' ? 'active' : '' }}">Mon Compte</a>
+                <a href="{{ path('app_logout') }}" class="btn-logout">Déconnexion</a>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="btn-secondary">Se connecter</a>
+                <a href="{{ path('app_register') }}" class="btn-primary">Créer un compte</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main class="front-main">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash-{{ label }}" style="padding:0.75rem;margin-bottom:1rem;border-radius:8px;background:#dcfce7;color:#166534;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+{% endblock %}

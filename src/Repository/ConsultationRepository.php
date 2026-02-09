@@ -16,6 +16,7 @@ class ConsultationRepository extends ServiceEntityRepository
         parent::__construct($registry, Consultation::class);
     }
 
+
     //    /**
     //     * @return Consultation[] Returns an array of Consultation objects
     //     */
@@ -40,4 +41,5 @@ class ConsultationRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
 }

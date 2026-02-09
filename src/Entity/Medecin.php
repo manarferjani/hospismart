@@ -6,6 +6,7 @@ use App\Repository\MedecinRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: MedecinRepository::class)]
 class Medecin
@@ -16,22 +17,30 @@ class Medecin
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'La spécialité est obligatoire')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'La spécialité doit contenir au moins 3 caractères', maxMessage: 'La spécialité ne doit pas dépasser 255 caractères')]
     private ?string $specialite = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le matricule est obligatoire')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Le matricule doit contenir au moins 3 caractères')]
     private ?string $matricule = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Regex(pattern: '/^[0-9\s\+\-\(\)]+$/', message: 'Le numéro de téléphone n\'est pas valide')]
     private ?string $telephone = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank(message: 'Un utilisateur doit être associé')]
     private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Service::class, inversedBy: 'medecins')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank(message: 'Un service doit être associé')]
     private ?Service $service = null;
 
+<<<<<<< HEAD
     #[ORM\Column(length: 255, nullable: true)]
 private ?string $image = null;
 
@@ -45,6 +54,13 @@ public function setImage(?string $image): static
     $this->image = $image;
     return $this;
 }
+=======
+    /**
+     * @var Collection<int, Consultation>
+     */
+    #[ORM\OneToMany(targetEntity: Consultation::class, mappedBy: 'medecin')]
+    private Collection $consultations;
+>>>>>>> origin/wassim_user1
 
     /**
      * @var Collection<int, Disponibilite>
@@ -52,6 +68,7 @@ public function setImage(?string $image): static
     #[ORM\OneToMany(targetEntity: Disponibilite::class, mappedBy: 'medecin')]
     private Collection $disponibilites;
 
+<<<<<<< HEAD
     /**
      * @var Collection<int, RendezVous>
      */
@@ -62,6 +79,7 @@ public function setImage(?string $image): static
     {
         $this->disponibilites = new ArrayCollection();
         $this->rendezVouses = new ArrayCollection();
+
     }
 
     public function getService(): ?Service
@@ -129,6 +147,39 @@ public function setImage(?string $image): static
     }
 
     /**
+<<<<<<< HEAD
+=======
+     * @return Collection<int, Consultation>
+     */
+    public function getConsultations(): Collection
+    {
+        return $this->consultations;
+    }
+
+    public function addConsultation(Consultation $consultation): static
+    {
+        if (!$this->consultations->contains($consultation)) {
+            $this->consultations->add($consultation);
+            $consultation->setMedecin($this);
+        }
+
+        return $this;
+    }
+
+    public function removeConsultation(Consultation $consultation): static
+    {
+        if ($this->consultations->removeElement($consultation)) {
+            // set the owning side to null (unless already changed)
+            if ($consultation->getMedecin() === $this) {
+                $consultation->setMedecin(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+>>>>>>> origin/wassim_user1
      * @return Collection<int, Disponibilite>
      */
     public function getDisponibilites(): Collection
@@ -157,6 +208,7 @@ public function setImage(?string $image): static
 
         return $this;
     }
+<<<<<<< HEAD
 
     /**
      * @return Collection<int, RendezVous>
@@ -187,5 +239,7 @@ public function setImage(?string $image): static
 
         return $this;
     }
+=======
+>>>>>>> origin/wassim_user1
     
 }

@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PatientRepository::class)]
 class Patient
@@ -31,20 +32,26 @@ public function setImage(?string $image): static
 }
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\NotBlank(message: 'La date de naissance est obligatoire')]
+    #[Assert\LessThanOrEqual('today', message: 'La date de naissance ne peut pas être dans le futur')]
     private ?\DateTimeInterface $date_naissance = null;
 
     #[ORM\Column(length: 20)]
+    #[Assert\NotBlank(message: 'Le genre est obligatoire')]
     private ?string $genre = null;
 
     #[ORM\Column(length: 10, nullable: true)]
+    #[Assert\Choice(choices: ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'], message: 'Le groupe sanguin doit être un groupe valide')]
     private ?string $groupe_sanguin = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: 1000, maxMessage: 'L\'adresse ne doit pas dépasser 1000 caractères')]
     private ?string $adresse = null;
 
-    // Relation vers le compte Utilisateur
-    #[ORM\OneToOne(inversedBy: 'patient', cascade: ['persist', 'remove'])]
+    // Relation vers le compte Utilisateur (unidirectionnel : Patient → User)
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank(message: 'Un utilisateur doit être associé')]
     private ?User $user = null;
 
     // Relation vers les rendez-vous (Consultations)

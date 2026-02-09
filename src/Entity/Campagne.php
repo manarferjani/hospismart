@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\CampagneRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CampagneRepository::class)]
 class Campagne
@@ -15,21 +16,32 @@ class Campagne
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le titre de la campagne est obligatoire')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Le titre doit contenir au moins 3 caractères', maxMessage: 'Le titre ne doit pas dépasser 255 caractères')]
     private ?string $titre = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le thème est obligatoire')]
+    #[Assert\Length(min: 2, max: 255, minMessage: 'Le thème doit contenir au moins 2 caractères', maxMessage: 'Le thème ne doit pas dépasser 255 caractères')]
     private ?string $theme = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: 'La description est obligatoire')]
+    #[Assert\Length(min: 10, max: 5000, minMessage: 'La description doit contenir au moins 10 caractères', maxMessage: 'La description ne doit pas dépasser 5000 caractères')]
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'La date de début est obligatoire')]
+    #[Assert\GreaterThan('today', message: 'La date de début doit être dans le futur')]
     private ?\DateTime $date_debut = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'La date de fin est obligatoire')]
     private ?\DateTime $date_fin = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'Le budget est obligatoire')]
+    #[Assert\GreaterThan(value: 0, message: 'Le budget doit être supérieur à 0')]
     private ?float $budget = null;
 
     public function getId(): ?int

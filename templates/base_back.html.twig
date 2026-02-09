@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+{% endblock %}
+
+{% block body %}
+<body class="back">
+    <aside class="back-sidebar">
+        <div class="back-sidebar-header">
+            <a href="{{ path('app_dashboard') }}" class="back-sidebar-logo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                Hospismart
+            </a>
+            <div class="back-sidebar-role">
+                {% if is_granted('ROLE_ADMIN') %}Admin{% elseif is_granted('ROLE_MEDECIN') %}Médecin{% else %}Utilisateur{% endif %}
+            </div>
+        </div>
+        <nav class="back-sidebar-nav">
+            <a href="{{ path('app_dashboard') }}" class="{{ app.request.get('_route') == 'app_dashboard' ? 'active' : '' }}">
+                <span>📊</span> Dashboard
+            </a>
+            <a href="{{ path('app_dashboard_reclamations') }}" class="{{ app.request.get('_route') == 'app_dashboard_reclamations' ? 'active' : '' }}">
+                <span>📋</span> Réclamations
+            </a>
+            {% if is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('app_dashboard_utilisateurs_list') }}" class="{{ app.request.get('_route') in ['app_dashboard_utilisateurs_list','app_dashboard_utilisateurs_show','app_dashboard_utilisateurs_edit','app_dashboard_utilisateurs_new'] ? 'active' : '' }}">
+                <span>👥</span> Utilisateurs
+            </a>
+            {% endif %}
+            <a href="{{ path('app_dashboard') }}">
+                <span>💬</span> Réponses
+            </a>
+            <a href="{{ path('app_compte_edit') }}" class="{{ app.request.get('_route') == 'app_compte_edit' ? 'active' : '' }}">
+                <span>👤</span> Mon compte
+            </a>
+        </nav>
+        <div class="back-sidebar-footer">
+            <a href="{{ path('app_logout') }}">🚪 Déconnexion</a>
+        </div>
+    </aside>
+    <main class="back-main">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash flash-{{ label }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+{% endblock %}

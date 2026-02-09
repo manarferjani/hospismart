@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Patient;
+use App\Entity\User;
+
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -15,6 +17,7 @@ class PatientRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Patient::class);
     }
+
 
     //    /**
     //     * @return Patient[] Returns an array of Patient objects
@@ -40,4 +43,10 @@ class PatientRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function findOneByUser(User $user): ?Patient
+    {
+        return $this->findOneBy(['user' => $user], ['id' => 'DESC']);
+    }
+
 }
