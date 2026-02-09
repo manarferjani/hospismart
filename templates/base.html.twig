@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{% block title %}Hospismart{% endblock %}</title>
 
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
@@ -25,7 +26,7 @@
                 overflow-x: hidden;
             }
 
-            /* Animation du logo Pulsation en fond */
+            /* Animation du logo Pulsation (ECG) en fond */
             body::before {
                 content: "";
                 position: fixed;
@@ -58,7 +59,7 @@
     </head>
 
     <body>
-        {# Le bloc layout sera remplacé soit par la navbar, soit par la sidebar #}
+        {# Le bloc layout est le point d'entrée pour front_office.html.twig ou back_office.html.twig #}
         {% block layout %}{% endblock %}
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

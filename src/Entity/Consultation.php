@@ -51,6 +51,87 @@ class Consultation
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     private ?RendezVous $rendezVous = null;
 
+    // --- GETTERS ET SETTERS ---
+
     public function getId(): ?int
     {
-        return $this->id
+        return $this->id;
+    }
+
+    public function getDateHeure(): ?\DateTimeInterface
+    {
+        return $this->date_heure;
+    }
+
+    public function setDateHeure(\DateTimeInterface $date_heure): static
+    {
+        $this->date_heure = $date_heure;
+        return $this;
+    }
+
+    public function getStatut(): ConsultationStatus
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(ConsultationStatus $statut): static
+    {
+        $this->statut = $statut;
+        return $this;
+    }
+
+    public function getMotif(): ?string
+    {
+        return $this->motif;
+    }
+
+    public function setMotif(string $motif): static
+    {
+        $this->motif = $motif;
+        return $this;
+    }
+
+    public function getObservations(): ?string
+    {
+        return $this->observations;
+    }
+
+    public function setObservations(?string $observations): static
+    {
+        $this->observations = $observations;
+        return $this;
+    }
+
+    public function getPatient(): ?Patient
+    {
+        return $this->patient;
+    }
+
+    public function setPatient(?Patient $patient): static
+    {
+        $this->patient = $patient;
+        return $this;
+    }
+
+    public function getMedecin(): ?Medecin
+    {
+        return $this->medecin;
+    }
+
+    public function setMedecin(?Medecin $medecin): static
+    {
+        $this->medecin = $medecin;
+        return $this;
+    }
+
+    public function getRendezVous(): ?RendezVous
+    {
+        return $this->rendezVous;
+    }
+
+    public function setRendezVous(?RendezVous $rendezVous): static
+    {
+        $this->rendezVous = $rendezVous;
+        return $this;
+    }
+}

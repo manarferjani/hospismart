@@ -3,16 +3,12 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-
-use Doctrine\DBAL\Types\Types;
-
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-//#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_NOM', fields: ['nom'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -21,59 +17,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Assert\NotBlank(message: 'Le nom d\'utilisateur est obligatoire')]
-    #[Assert\Length(min: 3, max: 180, minMessage: 'Le nom doit contenir au moins 3 caractères', maxMessage: 'Le nom ne doit pas dépasser 180 caractères')]
+    #[Assert\NotBlank(message: "Le nom d'utilisateur est obligatoire")]
+    #[Assert\Length(min: 3, max: 180, minMessage: "Le nom doit contenir au moins 3 caractères")]
     private ?string $nom = null;
 
-
-    /**
-     * @var list<string> The user roles
-     */
-    #[ORM\Column]
-    private array $roles = [];
-
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
-    #[Assert\NotBlank(message: 'Le mot de passe est obligatoire')]
-    #[Assert\Length(min: 6, minMessage: 'Le mot de passe doit contenir au moins 6 caractères')]
-    private ?string $password = null;
-
-
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'Le prénom est obligatoire')]
-    #[Assert\Length(min: 2, max: 255, minMessage: 'Le prénom doit contenir au moins 2 caractères', maxMessage: 'Le prénom ne doit pas dépasser 255 caractères')]
+    #[Assert\NotBlank(message: "Le prénom est obligatoire")]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'L\'email est obligatoire')]
-    #[Assert\Email(message: 'L\'adresse email n\'est pas valide')]
+    #[Assert\NotBlank(message: "L'email est obligatoire")]
+    #[Assert\Email(message: "L'adresse email n'est pas valide")]
     private ?string $email = null;
 
-
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    #[Assert\Regex(pattern: '/^[0-9\s\+\-\(\)]+$/', message: "Le numéro de téléphone n'est pas valide")]
     private ?string $telephone = null;
 
     #[ORM\Column]
     private array $roles = [];
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: "Le mot de passe est obligatoire")]
+    #[Assert\Length(min: 6, minMessage: "Le mot de passe doit contenir au moins 6 caractères")]
     private ?string $password = null;
 
-    // Relation vers le profil Patient
-    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Patient::class, cascade: ['persist', 'remove'])]
     private ?Patient $patient = null;
 
-    // Relation vers le profil Medecin
-    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'user', targetEntity: Medecin::class, cascade: ['persist', 'remove'])]
     private ?Medecin $medecin = null;
-
-    
-#[ORM\Column(type: 'string', length: 20, nullable: true)]
-#[Assert\Regex(pattern: '/^[0-9\s\+\-\(\)]+$/', message: 'Le numéro de téléphone n\'est pas valide')]
-private ?string $telephone = null;
-
 
     public function getId(): ?int
     {
@@ -113,19 +86,22 @@ private ?string $telephone = null;
         return $this;
     }
 
-
-
-    /**
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
+    public function getTelephone(): ?string
     {
-        return (string) $this->nom;
+        return $this->telephone;
     }
 
-    /**
-     * @see UserInterface
-     */
+    public function setTelephone(?string $telephone): static
+    {
+        $this->telephone = $telephone;
+        return $this;
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email; // Souvent préférable d'utiliser l'email comme identifiant
+    }
+
     public function getRoles(): array
     {
         $roles = $this->roles;
@@ -139,9 +115,6 @@ private ?string $telephone = null;
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): ?string
     {
         return $this->password;
@@ -155,10 +128,9 @@ private ?string $telephone = null;
 
     public function eraseCredentials(): void
     {
-        // Si vous stockez des données temporaires sensibles sur l'utilisateur, effacez-les ici
     }
 
-    /* --- RELATIONS BIDIRECTIONNELLES --- */
+    /* --- RELATIONS --- */
 
     public function getPatient(): ?Patient
     {
@@ -167,6 +139,9 @@ private ?string $telephone = null;
 
     public function setPatient(?Patient $patient): static
     {
+        if ($patient === null && $this->patient !== null) {
+            $this->patient->setUser(null);
+        }
         if ($patient !== null && $patient->getUser() !== $this) {
             $patient->setUser($this);
         }
@@ -181,15 +156,13 @@ private ?string $telephone = null;
 
     public function setMedecin(?Medecin $medecin): static
     {
+        if ($medecin === null && $this->medecin !== null) {
+            $this->medecin->setUser(null);
+        }
         if ($medecin !== null && $medecin->getUser() !== $this) {
             $medecin->setUser($this);
         }
         $this->medecin = $medecin;
         return $this;
     }
-
-
-
-
 }
->>>>>>> origin/wassim_user1

@@ -16,15 +16,18 @@ class Disponibilite
 
     #[ORM\Column]
     #[Assert\NotBlank(message: 'La date de début est obligatoire')]
+    #[Assert\Type("\DateTimeInterface")]
     private ?\DateTime $date_debut = null;
 
     #[ORM\Column]
     #[Assert\NotBlank(message: 'La date de fin est obligatoire')]
+    #[Assert\Type("\DateTimeInterface")]
+    #[Assert\GreaterThan(propertyPath: "date_debut", message: "La date de fin doit être après la date de début")]
     private ?\DateTime $date_fin = null;
 
     #[ORM\Column]
-    #[Assert\NotBlank(message: 'L\'etat de réservation est obligatoire')]
-    private ?bool $est_reserve = null;
+    #[Assert\NotNull(message: "L'état de réservation est obligatoire")]
+    private ?bool $est_reserve = false;
 
     #[ORM\ManyToOne(inversedBy: 'disponibilites')]
     #[ORM\JoinColumn(nullable: false)]
@@ -44,7 +47,6 @@ class Disponibilite
     public function setDateDebut(\DateTime $date_debut): static
     {
         $this->date_debut = $date_debut;
-
         return $this;
     }
 
@@ -56,7 +58,6 @@ class Disponibilite
     public function setDateFin(\DateTime $date_fin): static
     {
         $this->date_fin = $date_fin;
-
         return $this;
     }
 
@@ -68,7 +69,6 @@ class Disponibilite
     public function setEstReserve(bool $est_reserve): static
     {
         $this->est_reserve = $est_reserve;
-
         return $this;
     }
 
@@ -80,7 +80,6 @@ class Disponibilite
     public function setMedecin(?Medecin $medecin): static
     {
         $this->medecin = $medecin;
-
         return $this;
     }
 }

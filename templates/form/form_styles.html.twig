@@ -1,0 +1,40 @@
+{% use "form_div_layout.html.twig" %}
+
+{# Form row - modern styling for Hospismart #}
+{% block form_row %}
+{% set attr = form.vars.attr|default({}) %}
+{% if help is not null %}
+    {% set attr = attr|merge({'aria-describedby': form.vars.id ~"_help"}) %}
+{% endif %}
+{% if form.vars.errors|length > 0 %}
+    {% set attr = attr|merge({class: (attr.class|default('')) ~ ' is-invalid'}) %}
+{% endif %}
+<div class="form-group-hospi mb-4">
+    {{ form_label(form) }}
+    {{ form_widget(form, { attr: attr }) }}
+    {{ form_help(form) }}
+    {{ form_errors(form) }}
+</div>
+{% endblock %}
+
+{% block form_label %}
+{% if label is not null %}
+    <label class="form-label fw-semibold text-dark mb-2" for="{{ form.vars.id }}">{{ label|trans }}</label>
+{% endif %}
+{% endblock %}
+
+{% block form_errors %}
+{% if form.vars.errors|length > 0 %}
+    <div class="invalid-feedback d-block mt-1">
+        {% for error in form.vars.errors %}
+            <span class="small"><i class="fa-solid fa-circle-exclamation me-1"></i>{{ error.message }}</span>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block form_help %}
+{% if form.vars.help is defined and form.vars.help is not null %}
+    <div class="form-text text-muted small mt-1" id="{{ form.vars.id }}_help">{{ form.vars.help|trans }}</div>
+{% endif %}
+{% endblock %}

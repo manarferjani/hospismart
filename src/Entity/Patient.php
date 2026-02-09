@@ -17,19 +17,8 @@ class Patient
     #[ORM\Column]
     private ?int $id = null;
 
-        #[ORM\Column(length: 255, nullable: true)]
-private ?string $image = null;
-
-public function getImage(): ?string
-{
-    return $this->image;
-}
-
-public function setImage(?string $image): static
-{
-    $this->image = $image;
-    return $this;
-}
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $image = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Assert\NotBlank(message: 'La date de naissance est obligatoire')]
@@ -48,13 +37,11 @@ public function setImage(?string $image): static
     #[Assert\Length(max: 1000, maxMessage: 'L\'adresse ne doit pas dépasser 1000 caractères')]
     private ?string $adresse = null;
 
-    // Relation vers le compte Utilisateur (unidirectionnel : Patient → User)
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'patient', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotBlank(message: 'Un utilisateur doit être associé')]
     private ?User $user = null;
 
-    // Relation vers les rendez-vous (Consultations)
     /**
      * @var Collection<int, Consultation>
      */
@@ -80,9 +67,22 @@ public function setImage(?string $image): static
         $this->notifications = new ArrayCollection();
     }
 
+    // --- Getters & Setters ---
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
+        return $this;
     }
 
     public function getDateNaissance(): ?\DateTimeInterface
@@ -140,14 +140,10 @@ public function setImage(?string $image): static
         return $this;
     }
 
-    /**
-     * @return Collection<int, Consultation>
-     */
-    public function getConsultations(): Collection
-    {
-        return $this->consultations;
-    }
+    // --- Collections Management ---
 
+    public function getConsultations(): Collection { return $this->consultations; }
+    
     public function addConsultation(Consultation $consultation): static
     {
         if (!$this->consultations->contains($consultation)) {
@@ -160,7 +156,6 @@ public function setImage(?string $image): static
     public function removeConsultation(Consultation $consultation): static
     {
         if ($this->consultations->removeElement($consultation)) {
-            // set the owning side to null (unless already changed)
             if ($consultation->getPatient() === $this) {
                 $consultation->setPatient(null);
             }
@@ -168,13 +163,7 @@ public function setImage(?string $image): static
         return $this;
     }
 
-    /**
-     * @return Collection<int, RendezVous>
-     */
-    public function getRendezVouses(): Collection
-    {
-        return $this->rendezVouses;
-    }
+    public function getRendezVouses(): Collection { return $this->rendezVouses; }
 
     public function addRendezVouse(RendezVous $rendezVouse): static
     {
@@ -182,29 +171,20 @@ public function setImage(?string $image): static
             $this->rendezVouses->add($rendezVouse);
             $rendezVouse->setPatient($this);
         }
-
         return $this;
     }
 
     public function removeRendezVouse(RendezVous $rendezVouse): static
     {
         if ($this->rendezVouses->removeElement($rendezVouse)) {
-            // set the owning side to null (unless already changed)
             if ($rendezVouse->getPatient() === $this) {
                 $rendezVouse->setPatient(null);
             }
         }
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Notification>
-     */
-    public function getNotifications(): Collection
-    {
-        return $this->notifications;
-    }
+    public function getNotifications(): Collection { return $this->notifications; }
 
     public function addNotification(Notification $notification): static
     {
@@ -212,19 +192,16 @@ public function setImage(?string $image): static
             $this->notifications->add($notification);
             $notification->setPatient($this);
         }
-
         return $this;
     }
 
     public function removeNotification(Notification $notification): static
     {
         if ($this->notifications->removeElement($notification)) {
-            // set the owning side to null (unless already changed)
             if ($notification->getPatient() === $this) {
                 $notification->setPatient(null);
             }
         }
-
         return $this;
     }
 }

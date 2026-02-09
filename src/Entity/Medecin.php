@@ -18,17 +18,18 @@ class Medecin
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'La spécialité est obligatoire')]
-    #[Assert\Length(min: 3, max: 255, minMessage: 'La spécialité doit contenir au moins 3 caractères', maxMessage: 'La spécialité ne doit pas dépasser 255 caractères')]
     private ?string $specialite = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le matricule est obligatoire')]
-    #[Assert\Length(min: 3, max: 255, minMessage: 'Le matricule doit contenir au moins 3 caractères')]
     private ?string $matricule = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Assert\Regex(pattern: '/^[0-9\s\+\-\(\)]+$/', message: 'Le numéro de téléphone n\'est pas valide')]
+    #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le numéro de téléphone est obligatoire')]
     private ?string $telephone = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $image = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
@@ -40,27 +41,11 @@ class Medecin
     #[Assert\NotBlank(message: 'Un service doit être associé')]
     private ?Service $service = null;
 
-<<<<<<< HEAD
-    #[ORM\Column(length: 255, nullable: true)]
-private ?string $image = null;
-
-public function getImage(): ?string
-{
-    return $this->image;
-}
-
-public function setImage(?string $image): static
-{
-    $this->image = $image;
-    return $this;
-}
-=======
     /**
      * @var Collection<int, Consultation>
      */
     #[ORM\OneToMany(targetEntity: Consultation::class, mappedBy: 'medecin')]
     private Collection $consultations;
->>>>>>> origin/wassim_user1
 
     /**
      * @var Collection<int, Disponibilite>
@@ -68,7 +53,6 @@ public function setImage(?string $image): static
     #[ORM\OneToMany(targetEntity: Disponibilite::class, mappedBy: 'medecin')]
     private Collection $disponibilites;
 
-<<<<<<< HEAD
     /**
      * @var Collection<int, RendezVous>
      */
@@ -77,20 +61,9 @@ public function setImage(?string $image): static
 
     public function __construct()
     {
+        $this->consultations = new ArrayCollection();
         $this->disponibilites = new ArrayCollection();
         $this->rendezVouses = new ArrayCollection();
-
-    }
-
-    public function getService(): ?Service
-    {
-        return $this->service;
-    }
-
-    public function setService(?Service $service): static
-    {
-        $this->service = $service;
-        return $this;
     }
 
     public function getId(): ?int
@@ -106,7 +79,6 @@ public function setImage(?string $image): static
     public function setSpecialite(string $specialite): static
     {
         $this->specialite = $specialite;
-
         return $this;
     }
 
@@ -118,7 +90,6 @@ public function setImage(?string $image): static
     public function setMatricule(string $matricule): static
     {
         $this->matricule = $matricule;
-
         return $this;
     }
 
@@ -130,7 +101,17 @@ public function setImage(?string $image): static
     public function setTelephone(string $telephone): static
     {
         $this->telephone = $telephone;
+        return $this;
+    }
 
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
         return $this;
     }
 
@@ -142,13 +123,21 @@ public function setImage(?string $image): static
     public function setUser(User $user): static
     {
         $this->user = $user;
+        return $this;
+    }
 
+    public function getService(): ?Service
+    {
+        return $this->service;
+    }
+
+    public function setService(?Service $service): static
+    {
+        $this->service = $service;
         return $this;
     }
 
     /**
-<<<<<<< HEAD
-=======
      * @return Collection<int, Consultation>
      */
     public function getConsultations(): Collection
@@ -156,59 +145,13 @@ public function setImage(?string $image): static
         return $this->consultations;
     }
 
-    public function addConsultation(Consultation $consultation): static
-    {
-        if (!$this->consultations->contains($consultation)) {
-            $this->consultations->add($consultation);
-            $consultation->setMedecin($this);
-        }
-
-        return $this;
-    }
-
-    public function removeConsultation(Consultation $consultation): static
-    {
-        if ($this->consultations->removeElement($consultation)) {
-            // set the owning side to null (unless already changed)
-            if ($consultation->getMedecin() === $this) {
-                $consultation->setMedecin(null);
-            }
-        }
-
-        return $this;
-    }
-
     /**
->>>>>>> origin/wassim_user1
      * @return Collection<int, Disponibilite>
      */
     public function getDisponibilites(): Collection
     {
         return $this->disponibilites;
     }
-
-    public function addDisponibilite(Disponibilite $disponibilite): static
-    {
-        if (!$this->disponibilites->contains($disponibilite)) {
-            $this->disponibilites->add($disponibilite);
-            $disponibilite->setMedecin($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDisponibilite(Disponibilite $disponibilite): static
-    {
-        if ($this->disponibilites->removeElement($disponibilite)) {
-            // set the owning side to null (unless already changed)
-            if ($disponibilite->getMedecin() === $this) {
-                $disponibilite->setMedecin(null);
-            }
-        }
-
-        return $this;
-    }
-<<<<<<< HEAD
 
     /**
      * @return Collection<int, RendezVous>
@@ -218,28 +161,61 @@ public function setImage(?string $image): static
         return $this->rendezVouses;
     }
 
+    // Logic for add/remove methods (standard Symfony)
+    public function addConsultation(Consultation $consultation): static
+    {
+        if (!$this->consultations->contains($consultation)) {
+            $this->consultations->add($consultation);
+            $consultation->setMedecin($this);
+        }
+        return $this;
+    }
+
+    public function removeConsultation(Consultation $consultation): static
+    {
+        if ($this->consultations->removeElement($consultation)) {
+            if ($consultation->getMedecin() === $this) {
+                $consultation->setMedecin(null);
+            }
+        }
+        return $this;
+    }
+
+    public function addDisponibilite(Disponibilite $disponibilite): static
+    {
+        if (!$this->disponibilites->contains($disponibilite)) {
+            $this->disponibilites->add($disponibilite);
+            $disponibilite->setMedecin($this);
+        }
+        return $this;
+    }
+
+    public function removeDisponibilite(Disponibilite $disponibilite): static
+    {
+        if ($this->disponibilites->removeElement($disponibilite)) {
+            if ($disponibilite->getMedecin() === $this) {
+                $disponibilite->setMedecin(null);
+            }
+        }
+        return $this;
+    }
+
     public function addRendezVouse(RendezVous $rendezVouse): static
     {
         if (!$this->rendezVouses->contains($rendezVouse)) {
             $this->rendezVouses->add($rendezVouse);
             $rendezVouse->setMedecin($this);
         }
-
         return $this;
     }
 
     public function removeRendezVouse(RendezVous $rendezVouse): static
     {
         if ($this->rendezVouses->removeElement($rendezVouse)) {
-            // set the owning side to null (unless already changed)
             if ($rendezVouse->getMedecin() === $this) {
                 $rendezVouse->setMedecin(null);
             }
         }
-
         return $this;
     }
-=======
->>>>>>> origin/wassim_user1
-    
 }

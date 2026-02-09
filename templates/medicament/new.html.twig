@@ -1,0 +1,61 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Nouveau médicament{% endblock %}
+
+{% block body %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_medicament_index') }}">Médicaments</a></li>
+            <li class="breadcrumb-item active">Nouveau</li>
+        </ol>
+    </nav>
+
+    <div class="card form-card-hospi shadow-sm">
+        <div class="card-header">
+            <i class="fa-solid fa-pills me-2"></i> Nouveau médicament
+        </div>
+        <div class="card-body">
+            {{ form_start(form, { attr: { class: 'form-hospi' } }) }}
+            
+            {# Afficher les erreurs globales du formulaire #}
+            {% if form.vars.errors|length > 0 %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong><i class="fa-solid fa-circle-exclamation me-2"></i>Erreurs détectées :</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for error in form.vars.errors %}
+                            <li>{{ error.message }}</li>
+                        {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+
+            <div class="row g-4">
+                <div class="col-12">
+                    {{ form_row(form.nom) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.quantite) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.seuilAlerte) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.prixUnitaire) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.datePeremption) }}
+                </div>
+            </div>
+            <div class="form-actions-hospi">
+                <button type="submit" class="btn btn-primary btn-hospi-primary">
+                    <i class="fa-solid fa-check me-2"></i> Enregistrer
+                </button>
+                <a href="{{ path('app_medicament_index') }}" class="btn btn-light btn-hospi-outline">
+                    <i class="fa-solid fa-times me-2"></i> Annuler
+                </a>
+            </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
