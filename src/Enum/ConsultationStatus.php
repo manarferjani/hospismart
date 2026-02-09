@@ -11,7 +11,7 @@ enum ConsultationStatus: string
     case ANNULEE = 'annulee';
 
     /**
-     * Optionnel : Pour afficher un label propre dans vos formulaires ou vues Twig
+     * Retourne un label lisible pour l'interface utilisateur
      */
     public function getLabel(): string
     {

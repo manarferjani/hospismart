@@ -1,5 +1,16 @@
+<<<<<<< HEAD
 # Enable CSRF protection for forms
 framework:
     form:
         csrf_protection: true
     csrf_protection: true
+=======
+# CSRF protection (Symfony 6.4: only "enabled" under framework.csrf_protection)
+framework:
+    form:
+        csrf_protection:
+            enabled: true
+
+    csrf_protection:
+        enabled: true
+>>>>>>> origin/Evenement-oussema

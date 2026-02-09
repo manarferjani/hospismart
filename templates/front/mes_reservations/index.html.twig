@@ -1,0 +1,65 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Mes Réservations - Hospismart{% endblock %}
+
+{% block body %}
+<div class="mb-4">
+    <h1 class="display-6"><i class="fa-solid fa-ticket text-primary"></i> Mes réservations</h1>
+    <p class="lead text-muted">Les événements auxquels vous êtes inscrit</p>
+</div>
+
+{% if reservations|length > 0 %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Événement</th>
+                    <th>Date / Lieu</th>
+                    <th>Rôle</th>
+                    <th>Confirmation</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reservations %}
+                    <tr>
+                        <td>
+                            <strong>{{ r.evenement.titre }}</strong>
+                            <br><span class="badge bg-secondary">{{ r.evenement.typeEvenement }}</span>
+                        </td>
+                        <td>
+                            <small>{{ r.evenement.dateDebut ? r.evenement.dateDebut|date('d/m/Y H:i') : '—' }}</small>
+                            <br><small class="text-muted">{{ r.evenement.lieu }}</small>
+                        </td>
+                        <td><span class="badge bg-info">{{ r.role }}</span></td>
+                        <td>
+                            {% if r.confirmePresence %}
+                                <span class="badge bg-success">Confirmé</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">En attente</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ path('app_mes_reservations_modifier', {'id': r.id}) }}" class="btn btn-sm btn-warning" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="post" action="{{ path('app_mes_reservations_supprimer', {'id': r.id}) }}" class="d-inline" onsubmit="return confirm('Annuler cette réservation ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ r.id) }}">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Annuler la réservation">
+                                    <i class="fas fa-trash"></i> Annuler
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info text-center py-5">
+        <i class="fa-solid fa-calendar-xmark fa-3x mb-3 text-info"></i>
+        <p class="mb-0">Vous n'avez aucune réservation pour le moment.</p>
+        <a href="{{ path('app_evenement_public') }}" class="btn btn-primary mt-3">Voir les événements</a>
+    </div>
+{% endif %}
+{% endblock %}
