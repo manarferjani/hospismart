@@ -53,6 +53,20 @@ class MedicamentRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Récupère tous les médicaments avec leur catégorie pour l'affichage public
+     * @return Medicament[]
+     */
+    public function findForPublic(): array
+    {
+        return $this->createQueryBuilder('m')
+            ->leftJoin('m.categorie', 'c')
+            ->addSelect('c')
+            ->orderBy('m.nom', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Medicament[] Returns an array of Medicament objects
     //     */

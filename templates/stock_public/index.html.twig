@@ -1,62 +1,174 @@
 {% extends 'front.html.twig' %}
 
-{% block title %}Consultation des stocks - Hospismart{% endblock %}
+{% block title %}Stock Médicaments - Hospismart OASIS{% endblock %}
 
 {% block body %}
-    <div class="card">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                <div>
-                    <h2 class="mb-1" id="stock" style="font-weight: 700;">
-                        <i class="fa-solid fa-pills me-2" style="color: #e94560;"></i>Stocks de médicaments
-                    </h2>
-                    <p class="text-muted mb-0">Liste publique des médicaments et leurs disponibilités</p>
-                </div>
-            </div>
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-primary mb-3">
+            <i class="fa-solid fa-prescription-bottle-medical me-2"></i> Stocks Pharmaceutiques
+        </h1>
+        <p class="lead text-muted">Consultez la disponibilité de nos médicaments en temps réel.</p>
+    </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>Nom</th>
-                            <th class="text-center">Quantité</th>
-                            <th class="text-center">Seuil d'alerte</th>
-                            <th class="text-end">Prix unitaire</th>
-                            <th>Péremption</th>
-                            <th>Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for medicament in medicaments %}
-                            <tr class="{{ medicament.quantite <= medicament.seuilAlerte ? 'table-stock-low' : '' }}">
-                                <td><strong>{{ medicament.nom }}</strong></td>
-                                <td class="text-center">
-                                    <strong style="font-size: 16px;">{{ medicament.quantite }}</strong>
-                                </td>
-                                <td class="text-center text-muted">{{ medicament.seuilAlerte }}</td>
-                                <td class="text-end">{{ medicament.prixUnitaire|number_format(2, ',', ' ') }} €</td>
-                                <td>{{ medicament.datePeremption ? medicament.datePeremption|date('d/m/Y') : '-' }}</td>
-                                <td>
-                                    {% if medicament.quantite <= medicament.seuilAlerte %}
-                                        <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i>Stock faible</span>
-                                    {% elseif medicament.quantite > medicament.seuilAlerte * 3 %}
-                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Disponible</span>
-                                    {% else %}
-                                        <span class="badge bg-info text-white"><i class="fas fa-info-circle me-1"></i>Normal</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% else %}
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-5">
-                                    <i class="fa-solid fa-pills d-block mb-2" style="font-size: 40px; opacity: 0.3;"></i>
-                                    <strong>Aucun médicament enregistré</strong>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    {# Barre de Recherche et Filtres #}
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0" style="border-radius: 20px;">
+                <div class="card-body p-2">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-0 ps-3"><i class="fa-solid fa-search text-muted"></i></span>
+                                <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Rechercher un médicament...">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <select id="categoryFilter" class="form-select border-0 shadow-none" style="background-color: #f8f9fa; border-radius: 10px;">
+                                <option value="">Toutes les catégories</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 text-end">
+                             <span class="badge bg-light text-dark rounded-pill px-3 py-2 border">
+                                <span id="countMed">{{ medicaments|length }}</span> résultats
+                             </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    {# Grille des Médicaments #}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="medGrid">
+        {% for medicament in medicaments %}
+            <div class="col med-item" data-name="{{ medicament.nom|lower }}" data-category="{{ medicament.categorie ? medicament.categorie.id : '' }}">
+                <div class="card h-100 border-0 shadow-sm hover-shadow transition-all" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-body p-4 position-relative">
+                        {# Badge Statut #}
+                        <div class="position-absolute top-0 end-0 m-3">
+                            {% if medicament.quantite <= medicament.seuilAlerte %}
+                                <span class="badge bg-danger shadow-sm rounded-pill"><i class="fas fa-exclamation-circle me-1"></i>Critique</span>
+                            {% elseif medicament.quantite < medicament.seuilAlerte * 2 %}
+                                <span class="badge bg-warning text-dark shadow-sm rounded-pill"><i class="fas fa-exclamation-triangle me-1"></i>Faible</span>
+                            {% else %}
+                                <span class="badge bg-success shadow-sm rounded-pill"><i class="fas fa-check-circle me-1"></i>Dispo</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <i class="fa-solid fa-pills text-primary fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title fw-bold mb-0 text-dark">{{ medicament.nom }}</h5>
+                                <small class="text-muted">
+                                    {% if medicament.categorie %}
+                                        {{ medicament.categorie.nom }}
+                                    {% else %}
+                                        Non classé
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mt-4">
+                            <div class="col-6">
+                                <div class="p-2 rounded bg-light text-center">
+                                    <small class="d-block text-muted text-uppercase" style="font-size: 10px; letter-spacing: 1px;">Quantité</small>
+                                    <span class="fw-bold fs-5 {{ medicament.quantite <= medicament.seuilAlerte ? 'text-danger' : 'text-dark' }}">{{ medicament.quantite }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 rounded bg-light text-center">
+                                    <small class="d-block text-muted text-uppercase" style="font-size: 10px; letter-spacing: 1px;">Prix</small>
+                                    <span class="fw-bold fs-5">{{ medicament.prixUnitaire|number_format(2, ',', ' ') }} €</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 p-3 pt-0">
+                         <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted" style="font-size: 11px;">
+                                <i class="fa-regular fa-calendar me-1"></i> Exp: {{ medicament.datePeremption|date('d/m/Y') }}
+                            </small>
+                            {# <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Détails</button> #}
+                         </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <i class="fa-solid fa-box-open fa-3x text-muted mb-3 opacity-25"></i>
+                <h4 class="text-muted">Aucun médicament disponible.</h4>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# Empty State pour la recherche (caché par défaut) #}
+    <div id="noResults" class="text-center py-5 d-none">
+        <i class="fa-solid fa-magnifying-glass fa-3x text-muted mb-3 opacity-25"></i>
+        <h4 class="text-muted">Aucun résultat trouvé.</h4>
+        <button class="btn btn-link text-decoration-none" onclick="resetFilters()">Réinitialiser la recherche</button>
+    </div>
+
+    <style>
+        .hover-shadow:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+        .transition-all { transition: all 0.3s ease; }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const categoryFilter = document.getElementById('categoryFilter');
+        const items = document.querySelectorAll('.med-item');
+        const noResults = document.getElementById('noResults');
+        const countMed = document.getElementById('countMed');
+
+        function filterItems() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const categoryId = categoryFilter.value;
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                const name = item.dataset.name;
+                const category = item.dataset.category;
+                
+                const matchesSearch = name.includes(searchTerm);
+                const matchesCategory = categoryId === '' || category === categoryId;
+
+                if (matchesSearch && matchesCategory) {
+                    item.classList.remove('d-none');
+                    visibleCount++;
+                } else {
+                    item.classList.add('d-none');
+                }
+            });
+
+            countMed.textContent = visibleCount;
+            
+            if (visibleCount === 0) {
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
+            }
+        }
+
+        searchInput.addEventListener('input', filterItems);
+        categoryFilter.addEventListener('change', filterItems);
+        
+        window.resetFilters = function() {
+            searchInput.value = '';
+            categoryFilter.value = '';
+            filterItems();
+        }
+    });
+</script>
 {% endblock %}
