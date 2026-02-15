@@ -33,6 +33,32 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
+    /**
+     * Liste des utilisateurs avec recherche par nom, filtre par rôle, tri par nom.
+     * @param string|null $nom Recherche (LIKE sur nom, prenom, email)
+     * @param string|null $role ROLE_ADMIN, ROLE_MEDECIN, ROLE_PATIENT ou null pour tous
+     * @param string $sortOrder ASC ou DESC
+     * @return User[]
+     */
+    public function findWithFilters(?string $nom, ?string $role, string $sortOrder = 'ASC'): array
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->orderBy('u.nom', $sortOrder === 'DESC' ? 'DESC' : 'ASC');
+
+        if ($nom !== null && $nom !== '') {
+            $qb->andWhere('u.nom LIKE :nom OR u.prenom LIKE :nom OR u.email LIKE :nom')
+                ->setParameter('nom', '%' . $nom . '%');
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        if ($role !== null && $role !== '') {
+            $results = array_filter($results, fn (User $u) => \in_array($role, $u->getRoles(), true));
+        }
+
+        return $results;
+    }
+
     //    /**
     //     * @return User[] Returns an array of User objects
     //     */

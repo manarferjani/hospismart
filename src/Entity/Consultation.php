@@ -2,10 +2,11 @@
 
 namespace App\Entity;
 
-use App\Enum\ConsultationStatus; // Import de l'Enum
+use App\Enum\ConsultationStatus;
 use App\Repository\ConsultationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ConsultationRepository::class)]
 class Consultation
@@ -16,37 +17,47 @@ class Consultation
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Assert\NotBlank(message: 'La date et heure de consultation sont obligatoires')]
     private ?\DateTimeInterface $date_heure = null;
 
-    // Utilisation de l'Enum pour le statut
     #[ORM\Column(type: 'string', length: 255, enumType: ConsultationStatus::class)]
+    #[Assert\NotBlank(message: 'Le statut de consultation est obligatoire')]
     private ConsultationStatus $statut = ConsultationStatus::EN_ATTENTE;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank(message: 'Le motif de consultation est obligatoire')]
+    #[Assert\Length(
+        min: 5,
+        max: 1000,
+        minMessage: 'Le motif doit contenir au moins 5 caractères',
+        maxMessage: 'Le motif ne doit pas dépasser 1000 caractères'
+    )]
     private ?string $motif = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)] // Nullable car on remplit après la séance
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Assert\Length(max: 2000, maxMessage: 'Les observations ne doivent pas dépasser 2000 caractères')]
     private ?string $observations = null;
 
-    // Correction : inversedBy doit pointer vers la collection dans l'entité Patient
-    #[ORM\ManyToOne(inversedBy: 'consultations')]
+    // Correction : Cible l'entité User
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Patient $patient = null;
+    #[Assert\NotNull(message: 'Un patient doit être associé')]
+    private ?User $patient = null;
 
-    // AJOUT : La relation avec le médecin
-    #[ORM\ManyToOne(inversedBy: 'consultations')]
+    // Correction : Cible l'entité User
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Medecin $medecin = null;
+    #[Assert\NotNull(message: 'Un médecin doit être associé')]
+    private ?User $medecin = null;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    private ?RendezVous $rendezVous = null;
 
-    public function getDateHeure(): ?\DateTimeInterface
-    {
-        return $this->date_heure;
-    }
+    // --- GETTERS ET SETTERS ---
+
+    public function getId(): ?int { return $this->id; }
+
+    public function getDateHeure(): ?\DateTimeInterface { return $this->date_heure; }
 
     public function setDateHeure(\DateTimeInterface $date_heure): static
     {
@@ -54,10 +65,7 @@ class Consultation
         return $this;
     }
 
-    public function getStatut(): ConsultationStatus
-    {
-        return $this->statut;
-    }
+    public function getStatut(): ConsultationStatus { return $this->statut; }
 
     public function setStatut(ConsultationStatus $statut): static
     {
@@ -65,10 +73,7 @@ class Consultation
         return $this;
     }
 
-    public function getMotif(): ?string
-    {
-        return $this->motif;
-    }
+    public function getMotif(): ?string { return $this->motif; }
 
     public function setMotif(string $motif): static
     {
@@ -76,10 +81,7 @@ class Consultation
         return $this;
     }
 
-    public function getObservations(): ?string
-    {
-        return $this->observations;
-    }
+    public function getObservations(): ?string { return $this->observations; }
 
     public function setObservations(?string $observations): static
     {
@@ -87,25 +89,28 @@ class Consultation
         return $this;
     }
 
-    public function getPatient(): ?Patient
-    {
-        return $this->patient;
-    }
+    // Mise à jour des types en User
+    public function getPatient(): ?User { return $this->patient; }
 
-    public function setPatient(?Patient $patient): static
+    public function setPatient(?User $patient): static
     {
         $this->patient = $patient;
         return $this;
     }
 
-    public function getMedecin(): ?Medecin
-    {
-        return $this->medecin;
-    }
+    public function getMedecin(): ?User { return $this->medecin; }
 
-    public function setMedecin(?Medecin $medecin): static
+    public function setMedecin(?User $medecin): static
     {
         $this->medecin = $medecin;
+        return $this;
+    }
+
+    public function getRendezVous(): ?RendezVous { return $this->rendezVous; }
+
+    public function setRendezVous(?RendezVous $rendezVous): static
+    {
+        $this->rendezVous = $rendezVous;
         return $this;
     }
 }

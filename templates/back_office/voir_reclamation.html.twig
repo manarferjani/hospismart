@@ -1,0 +1,127 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Réclamation #{{ reclamation.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .badge-priority {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: white;
+        display: inline-block;
+        margin-left: 0.5rem;
+    }
+    
+    .badge-priority-basse {
+        background: rgba(40, 167, 69, 0.9);
+    }
+    
+    .badge-priority-normale {
+        background: rgba(13, 110, 253, 0.9);
+    }
+    
+    .badge-priority-haute {
+        background: rgba(255, 193, 7, 0.9);
+    }
+    
+    .badge-priority-urgente {
+        background: rgba(220, 53, 69, 0.9);
+    }
+</style>
+
+<div class="d-flex justify-content-between mb-4">
+    <a href="{{ path('back_office_dashboard') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Retour</a>
+    <div style="gap: 0.5rem; display: flex;">
+        <a href="{{ path('back_office_repondre_reclamation', {'id': reclamation.id}) }}" class="btn btn-success"><i class="bi bi-reply"></i> Répondre</a>
+        <a href="{{ path('back_office_export_reclamation_pdf', {'id': reclamation.id}) }}" class="btn btn-primary" target="_blank"><i class="bi bi-file-pdf"></i> PDF</a>
+        <a href="{{ path('back_office_export_reclamation_excel', {'id': reclamation.id}) }}" class="btn" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); color: white;"><i class="bi bi-file-earmark-spreadsheet"></i> Excel</a>
+        <form method="post" action="{{ path('back_office_supprimer_reclamation', {'id': reclamation.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Supprimer</button>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">{{ reclamation.titre }}</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Patient:</strong> {{ reclamation.nomPatient }}</p>
+                <p><strong>Email:</strong> {{ reclamation.email }}</p>
+                <p><strong>Catégorie:</strong> {{ reclamation.categorie ?? 'Non spécifiée' }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Date:</strong> {{ reclamation.dateCreation|date('d/m/Y H:i') }}</p>
+                <p><strong>Statut:</strong> <span class="badge {% if reclamation.statut == 'En attente' %}badge-en-attente{% elseif reclamation.statut == 'En cours' %}badge-en-cours{% else %}badge-traite{% endif %}">{{ reclamation.statut }}</span><span class="badge-priority badge-priority-{{ reclamation.priorite|lower }}">{{ reclamation.priorite }}</span></p>
+            </div>
+        </div>
+        <hr>
+        <h5>Description</h5>
+        <div class="bg-light p-3 rounded">{{ reclamation.description|nl2br }}</div>
+        
+        {% if reclamation.reponses|length > 0 %}
+            <hr>
+            <h5><i class="bi bi-chat-dots"></i> Réponses</h5>
+            {% for reponse in reclamation.reponses %}
+                <div class="card border-success mb-3">
+                    <div class="card-header bg-success text-white">
+                        {{ reponse.adminNom }} <small class="float-end">{{ reponse.dateReponse|date('d/m/Y H:i') }}</small>
+                    </div>
+                    <div class="card-body">{{ reponse.contenu|nl2br }}</div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if auditLogs|length > 0 %}
+            <hr>
+            <h5><i class="bi bi-clock-history me-2"></i> Historique des modifications</h5>
+            <div class="timeline" style="position: relative; padding-left: 2rem; margin-top: 1.5rem;">
+                {% for log in auditLogs %}
+                <div class="timeline-item" style="margin-bottom: 1.5rem; position: relative;">
+                    <!-- Timeline dot -->
+                    <div style="position: absolute; left: -2.5rem; width: 1rem; height: 1rem; background: {% if log.action == 'created' %}#198754{% elseif log.action == 'updated' %}#0d6efd{% elseif log.action == 'responded' %}#28a745{% elseif log.action == 'deleted' %}#dc3545{% else %}#6f42c1{% endif %}; border-radius: 50%; border: 3px solid white; top: 0;"></div>
+                    
+                    <div class="card shadow-sm">
+                        <div class="card-header" style="background: {% if log.action == 'created' %}#e7f3ee{% elseif log.action == 'updated' %}#e7f1ff{% elseif log.action == 'responded' %}#e8f5e9{% elseif log.action == 'deleted' %}#ffebee{% else %}#f3e5f5{% endif %}; border: 1px solid {% if log.action == 'created' %}#28a745{% elseif log.action == 'updated' %}#0d6efd{% elseif log.action == 'responded' %}#198754{% elseif log.action == 'deleted' %}#dc3545{% else %}#6f42c1{% endif %}; padding: 0.75rem 1rem;">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ log.description }}</strong>
+                                    {% if log.fieldName %}
+                                        <br><small class="text-muted">Champ: <code>{{ log.fieldName }}</code></small>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">{{ log.createdAt|date('d/m/Y H:i') }}</small>
+                            </div>
+                        </div>
+                        {% if log.fieldName %}
+                        <div class="card-body" style="padding: 0.75rem 1rem; font-size: 0.9rem;">
+                            {% if log.oldValue %}
+                                <div style="margin-bottom: 0.5rem;">
+                                    <strong>Ancienne valeur:</strong><br>
+                                    <code style="background: #fff3cd; padding: 0.25rem 0.5rem; border-radius: 3px; display: inline-block; max-width: 100%; word-wrap: break-word;">{{ log.oldValue }}</code>
+                                </div>
+                            {% endif %}
+                            {% if log.newValue %}
+                                <div>
+                                    <strong>Nouvelle valeur:</strong><br>
+                                    <code style="background: #d4edda; padding: 0.25rem 0.5rem; border-radius: 3px; display: inline-block; max-width: 100%; word-wrap: break-word;">{{ log.newValue }}</code>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="card-footer" style="background: transparent; padding: 0.5rem 1rem; font-size: 0.85rem; color: #6f7d8f;">
+                            Par: <strong>{{ log.changedBy }}</strong>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

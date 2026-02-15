@@ -1,0 +1,406 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Réclamation #{{ reclamation.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem 0;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-minimal {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-back {
+        background: #f0f0f0;
+        color: #333;
+        border: 1px solid #d0d0d0;
+    }
+
+    .btn-back:hover {
+        background: #e0e0e0;
+        color: #333;
+        text-decoration: none;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+        color: #1a1a1a;
+        border: none;
+    }
+
+    .btn-edit:hover {
+        background: linear-gradient(135deg, #ffb300 0%, #ffa500 100%);
+        color: #1a1a1a;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+    }
+
+    .btn-delete:hover {
+        background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+        color: white;
+        text-decoration: none;
+        transform: translateY(-2px);
+    }
+
+    .alert-custom {
+        border-radius: 8px;
+        border: none;
+        border-left: 4px solid;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #d1f0d5 0%, #c2ead8 100%);
+        color: #198754;
+        border-left-color: #198754;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        color: #dc3545;
+        border-left-color: #dc3545;
+    }
+
+    .alert-warning {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+        color: #997404;
+        border-left-color: #ffc107;
+    }
+
+    .detail-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border: none;
+    }
+
+    .detail-card-header {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: white;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .detail-card-header h4 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.3rem;
+    }
+
+    .badge-status {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .badge-en-attente {
+        background: linear-gradient(135deg, rgba(255, 193, 7, 0.8) 0%, rgba(255, 179, 0, 0.8) 100%);
+        color: #1a1a1a;
+    }
+
+    .badge-en-cours {
+        background: linear-gradient(135deg, rgba(13, 202, 240, 0.8) 0%, rgba(11, 172, 218, 0.8) 100%);
+        color: white;
+    }
+
+    .badge-traite {
+        background: linear-gradient(135deg, rgba(25, 135, 84, 0.8) 0%, rgba(21, 115, 71, 0.8) 100%);
+        color: white;
+    }
+
+    .badge-priority {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+
+    .badge-priority-basse {
+        background: rgba(40, 167, 69, 0.8);
+        color: white;
+    }
+
+    .badge-priority-normale {
+        background: rgba(13, 110, 253, 0.8);
+        color: white;
+    }
+
+    .badge-priority-haute {
+        background: rgba(253, 126, 20, 0.8);
+        color: white;
+    }
+
+    .badge-priority-urgente {
+        background: rgba(220, 53, 69, 0.8);
+        color: white;
+    }
+
+    .detail-card-body {
+        padding: 2rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-label i {
+        color: #0d6efd;
+    }
+
+    .info-value {
+        color: #666;
+        word-break: break-word;
+    }
+
+    .description-section {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f0f7ff 0%, #e3f0ff 100%);
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+        margin-bottom: 2rem;
+    }
+
+    .description-section h5 {
+        font-weight: 700;
+        color: #0d6efd;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .description-text {
+        color: #333;
+        line-height: 1.8;
+    }
+
+    .responses-section {
+        margin-top: 2rem;
+    }
+
+    .responses-section h5 {
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .response-card {
+        border-radius: 8px;
+        overflow: hidden;
+        border: none;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .response-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .response-header {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .response-header-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+    }
+
+    .response-date {
+        font-size: 0.85rem;
+        opacity: 0.9;
+    }
+
+    .response-body {
+        padding: 1.5rem;
+        color: #333;
+        line-height: 1.8;
+    }
+
+    .no-response-alert {
+        padding: 1.25rem;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+        border: 1px solid #ffc107;
+        border-left: 4px solid #ffc107;
+        color: #997404;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .no-response-alert i {
+        font-size: 1.2rem;
+    }
+</style>
+
+{% for flash_message in app.flashes('success') %}
+    <div class="alert alert-success alert-custom alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>{{ flash_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+{% endfor %}
+
+{% for flash_message in app.flashes('error') %}
+    <div class="alert alert-danger alert-custom alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-circle me-2"></i>{{ flash_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+{% endfor %}
+
+<div class="page-header">
+    <a href="{{ path('front_office_mes_reclamations', {'email': reclamation.email}) }}" class="btn-minimal btn-back">
+        <i class="bi bi-arrow-left"></i> Retour
+    </a>
+    <div class="button-group">
+        {% if reclamation.statut != 'Traité' and reclamation.reponses|length == 0 %}
+            <a href="{{ path('front_office_modifier_reclamation', {'id': reclamation.id}) }}" class="btn-minimal btn-edit">
+                <i class="bi bi-pencil"></i> Modifier
+            </a>
+        {% elseif reclamation.reponses|length > 0 %}
+            <button class="btn-minimal btn-edit" disabled style="opacity: 0.5; cursor: not-allowed;" title="Vous ne pouvez pas modifier une réclamation qui a reçu une réponse">
+                <i class="bi bi-pencil"></i> Modifier
+            </button>
+        {% endif %}
+        <form method="post" action="{{ path('front_office_supprimer_reclamation', {'id': reclamation.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+            <button type="submit" class="btn-minimal btn-delete"><i class="bi bi-trash"></i> Supprimer</button>
+        </form>
+    </div>
+</div>
+
+<div class="detail-card">
+    <div class="detail-card-header">
+        <h4>{{ reclamation.titre }}</h4>
+        <div>
+            <span class="badge-status {% if reclamation.statut == 'En attente' %}badge-en-attente{% elseif reclamation.statut == 'En cours' %}badge-en-cours{% else %}badge-traite{% endif %}">
+                {{ reclamation.statut }}
+            </span>
+            <span class="badge-priority badge-priority-{{ reclamation.priorite|lower }}">
+                {{ reclamation.priorite }}
+            </span>
+        </div>
+    </div>
+    <div class="detail-card-body">
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-person"></i> Patient</span>
+                <span class="info-value">{{ reclamation.nomPatient }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-envelope"></i> Email</span>
+                <span class="info-value">{{ reclamation.email }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-calendar"></i> Date</span>
+                <span class="info-value">{{ reclamation.dateCreation|date('d/m/Y à H:i') }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label"><i class="bi bi-tag"></i> Catégorie</span>
+                <span class="info-value">{{ reclamation.categorie ?? 'Non spécifiée' }}</span>
+            </div>
+        </div>
+        
+        <div class="description-section">
+            <h5><i class="bi bi-file-text"></i> Description</h5>
+            <div class="description-text">{{ reclamation.description|nl2br }}</div>
+        </div>
+        
+        {% if reclamation.reponses|length > 0 %}
+            <div class="alert alert-success alert-custom alert-dismissible fade show" role="alert" style="margin-top: 1.5rem;">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <strong>Réclamation traitée!</strong> Une réponse a été apportée à votre demande. Consultez-la ci-dessous.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            
+            <div class="responses-section">
+                <h5><i class="bi bi-chat-dots-fill"></i> Réponses ({{ reclamation.reponses|length }})</h5>
+                {% for reponse in reclamation.reponses %}
+                    <div class="response-card">
+                        <div class="response-header">
+                            <div class="response-header-left">
+                                <i class="bi bi-person-badge"></i>
+                                <span>{{ reponse.adminNom }}</span>
+                            </div>
+                            <span class="response-date">{{ reponse.dateReponse|date('d/m/Y H:i') }}</span>
+                        </div>
+                        <div class="response-body">{{ reponse.contenu|nl2br }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-response-alert">
+                <i class="bi bi-hourglass-split"></i>
+                <span>En attente de réponse de la part de l'administration.</span>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

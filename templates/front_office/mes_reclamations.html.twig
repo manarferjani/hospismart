@@ -1,0 +1,392 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Mes Réclamations{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .page-header h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .search-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        background: linear-gradient(135deg, #f0f7ff 0%, #e3f0ff 100%);
+        border: none;
+        margin-bottom: 2.5rem;
+    }
+
+    .search-card .card-body {
+        padding: 2rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.75rem;
+    }
+
+    .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        outline: none;
+    }
+
+    .btn-search {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        border: none;
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-search:hover {
+        background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(13, 110, 253, 0.4);
+        color: white;
+    }
+
+    .reclamation-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: none;
+        height: 100%;
+    }
+
+    .reclamation-card.treated {
+        border-left: 5px solid #198754;
+    }
+
+    .reclamation-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: white;
+        border-bottom: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .card-header-custom h5 {
+        font-weight: 600;
+        margin: 0;
+        color: white;
+        font-size: 1.05rem;
+    }
+
+    .badge-status {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-en-attente {
+        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+        color: #1a1a1a;
+    }
+
+    .badge-en-cours {
+        background: linear-gradient(135deg, #0dcaf0 0%, #0bacda 100%);
+        color: white;
+    }
+
+    .badge-traite {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        color: white;
+    }
+
+    .badge-priority {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        border-radius: 5px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+
+    .badge-priority-basse {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .badge-priority-normale {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: white;
+    }
+
+    .badge-priority-haute {
+        background: linear-gradient(135deg, #fd7e14 0%, #fc7604 100%);
+        color: white;
+    }
+
+    .badge-priority-urgente {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .card-body-custom {
+        padding: 1.5rem;
+    }
+
+    .meta-info {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .meta-info i {
+        color: #0d6efd;
+    }
+
+    .description-text {
+        color: #333;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+
+    .response-badge {
+        padding: 0.75rem;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #d1f0d5 0%, #c2ead8 100%);
+        border-left: 4px solid #198754;
+        margin-top: 1rem;
+    }
+
+    .response-badge i {
+        color: #198754;
+        margin-right: 0.5rem;
+    }
+
+    .response-badge small {
+        color: #198754;
+        font-weight: 600;
+    }
+
+    .card-footer-custom {
+        padding: 1.25rem 1.5rem;
+        background: #f9f9f9;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .btn-card {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .btn-view {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        color: white;
+        border: none;
+    }
+
+    .btn-view:hover {
+        background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+        color: #1a1a1a;
+        border: none;
+    }
+
+    .btn-edit:hover {
+        background: linear-gradient(135deg, #ffb300 0%, #ffa500 100%);
+        color: #1a1a1a;
+        transform: translateY(-2px);
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+    }
+
+    .btn-delete:hover {
+        background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .alert-custom {
+        border-radius: 8px;
+        border: none;
+        border-left: 4px solid #0d6efd;
+    }
+
+    .alert-custom.alert-success {
+        background: linear-gradient(135deg, #d1f0d5 0%, #c2ead8 100%);
+        color: #198754;
+        border-left-color: #198754;
+    }
+
+    .alert-custom.alert-danger {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        color: #dc3545;
+        border-left-color: #dc3545;
+    }
+
+    .alert-custom.alert-info {
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        color: #0c5460;
+        border-left-color: #0dcaf0;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 12px;
+        border: 2px dashed #d0d0d0;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #0d6efd;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        color: #666;
+        font-size: 1.05rem;
+    }
+</style>
+
+<div class="page-header">
+    <h2><i class="bi bi-list-check me-2"></i>Mes Réclamations</h2>
+</div>
+
+{% for flash_message in app.flashes('success') %}
+    <div class="alert alert-success alert-custom alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>{{ flash_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+{% endfor %}
+
+{% for flash_message in app.flashes('error') %}
+    <div class="alert alert-danger alert-custom alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-circle me-2"></i>{{ flash_message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+{% endfor %}
+
+<div class="search-card">
+    <div class="card-body">
+        <form method="post" class="row g-3 align-items-end">
+            <div class="col-lg-8">
+                <label for="email" class="form-label"><i class="bi bi-envelope me-2"></i>Rechercher par email</label>
+                <input type="text" class="form-control" id="email" name="email" value="{{ email }}" placeholder="votre@email.com">
+            </div>
+            <div class="col-lg-4">
+                <button type="submit" class="btn btn-search w-100"><i class="bi bi-search me-2"></i>Rechercher</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if email %}
+    {% if reclamations|length > 0 %}
+        <div class="row g-4">
+            {% for reclamation in reclamations %}
+                <div class="col-md-6 col-lg-6">
+                    <div class="card reclamation-card {% if reclamation.reponses|length > 0 %}treated{% endif %}">
+                        <div class="card-header-custom">
+                            <h5>{{ reclamation.titre }}</h5>
+                            <div>
+                                <span class="badge-status {% if reclamation.statut == 'En attente' %}badge-en-attente{% elseif reclamation.statut == 'En cours' %}badge-en-cours{% else %}badge-traite{% endif %}">
+                                    {{ reclamation.statut }}
+                                </span>
+                                <span class="badge-priority badge-priority-{{ reclamation.priorite|lower }}">
+                                    {{ reclamation.priorite }}
+                                </span>
+                                {% if reclamation.reponses|length > 0 %}
+                                    <span class="badge bg-success" style="font-size: 0.75rem; margin-left: 5px;">
+                                        <i class="fas fa-check-circle"></i> Réponse reçue
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body-custom">
+                            <div class="meta-info">
+                                <span><i class="bi bi-calendar"></i> {{ reclamation.dateCreation|date('d/m/Y H:i') }}</span>
+                                {% if reclamation.categorie %}<span><i class="bi bi-tag"></i> {{ reclamation.categorie }}</span>{% endif %}
+                            </div>
+                            <p class="description-text">{{ reclamation.description|slice(0, 100) }}{% if reclamation.description|length > 100 %}...{% endif %}</p>
+                            {% if reclamation.reponses|length > 0 %}
+                                <div class="response-badge">
+                                    <i class="bi bi-check-circle"></i><small>Réponse reçue</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer-custom">
+                            <a href="{{ path('front_office_detail_reclamation', {'id': reclamation.id}) }}" class="btn-card btn-view">
+                                <i class="bi bi-eye"></i> Voir
+                            </a>
+                            {% if reclamation.statut != 'Traité' and reclamation.reponses|length == 0 %}
+                                <a href="{{ path('front_office_modifier_reclamation', {'id': reclamation.id}) }}" class="btn-card btn-edit">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </a>
+                            {% elseif reclamation.reponses|length > 0 %}
+                                <button class="btn-card btn-edit" disabled style="opacity: 0.5; cursor: not-allowed;" title="Vous ne pouvez pas modifier une réclamation qui a reçu une réponse">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </button>
+                            {% endif %}
+                            <form method="post" action="{{ path('front_office_supprimer_reclamation', {'id': reclamation.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                                <button type="submit" class="btn-card btn-delete"><i class="bi bi-trash"></i> Supprimer</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <p>Aucune réclamation trouvée pour cet email.</p>
+        </div>
+    {% endif %}
+{% endif %}
+{% endblock %}

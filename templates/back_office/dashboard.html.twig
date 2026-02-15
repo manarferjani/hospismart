@@ -1,0 +1,307 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Dashboard Admin - Hospismart{% endblock %}
+
+{% block content %}
+<style>
+    /* --- Styles Généraux du Dashboard --- */
+    .page-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .page-header h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    /* --- Cartes de Statistiques --- */
+    .card-stats {
+        border: none;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+    .card-stats:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .card-stats i {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .card-stats h3 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin: 5px 0;
+    }
+
+    .card-stats p {
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-bottom: 0;
+        opacity: 0.9;
+    }
+
+    /* --- Formulaire de Recherche --- */
+    .search-card {
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+    }
+
+    .search-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    /* --- Tableau --- */
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .table thead th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    /* --- Badges Priorité --- */
+    .badge-priority {
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: white;
+        text-transform: uppercase;
+    }
+    .badge-priority-basse { background: #10b981; }
+    .badge-priority-normale { background: #3b82f6; }
+    .badge-priority-haute { background: #f59e0b; }
+    .badge-priority-urgente { background: #ef4444; }
+
+    .btn-export {
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: 0.2s;
+        text-decoration: none;
+        color: white;
+    }
+</style>
+
+<div class="container-fluid py-2">
+    
+    <div class="page-header">
+        <h2><i class="bi bi-speedometer2 me-2"></i>Tableau de Bord</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ path('back_office_export_pdf') }}" class="btn btn-export bg-danger" target="_blank">
+                <i class="bi bi-file-pdf me-1"></i> PDF
+            </a>
+            <a href="{{ path('back_office_export_excel') }}" class="btn btn-export bg-success">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Excel
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <a href="{{ path('back_office_dashboard', {'filterStatut': 'total'}) }}" class="text-decoration-none">
+                <div class="card card-stats bg-primary p-3 shadow-sm {% if filterStatut == 'total' %}border border-3 border-dark{% endif %}">
+                    <i class="bi bi-inbox"></i>
+                    <h3>{{ stats.total }}</h3>
+                    <p>Total Réclamations</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('back_office_dashboard', {'filterStatut': 'En attente'}) }}" class="text-decoration-none">
+                <div class="card card-stats bg-warning text-dark p-3 shadow-sm {% if filterStatut == 'En attente' %}border border-3 border-dark{% endif %}">
+                    <i class="bi bi-hourglass-split"></i>
+                    <h3>{{ stats.en_attente }}</h3>
+                    <p>En Attente</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('back_office_dashboard', {'filterStatut': 'En cours'}) }}" class="text-decoration-none">
+                <div class="card card-stats bg-info p-3 shadow-sm {% if filterStatut == 'En cours' %}border border-3 border-dark{% endif %}">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <h3>{{ stats.en_cours }}</h3>
+                    <p>En Cours</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('back_office_dashboard', {'filterStatut': 'Traité'}) }}" class="text-decoration-none">
+                <div class="card card-stats bg-success p-3 shadow-sm {% if filterStatut == 'Traité' %}border border-3 border-dark{% endif %}">
+                    <i class="bi bi-check-circle"></i>
+                    <h3>{{ stats.traite }}</h3>
+                    <p>Traitées</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-3">
+            <div class="card card-stats bg-danger p-3 shadow-sm">
+                <i class="bi bi-exclamation-triangle"></i>
+                <h3>{{ stats.priorite_urgente }}</h3>
+                <p>Urgences</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-stats p-3 shadow-sm" style="background: #fd7e14;">
+                <i class="bi bi-exclamation-circle"></i>
+                <h3>{{ stats.priorite_haute }}</h3>
+                <p>Priorité Haute</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-stats bg-secondary p-3 shadow-sm">
+                <i class="bi bi-list-task"></i>
+                <h3>{{ stats.non_traitees }}</h3>
+                <p>Non Traitées</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-stats bg-dark p-3 shadow-sm">
+                <i class="bi bi-percent"></i>
+                <h3>{{ stats.taux_reponse }}%</h3>
+                <p>Taux de Réponse</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="search-card card p-4">
+        <form method="GET" class="search-form">
+            <div class="form-group">
+                <label class="form-label fw-bold small"><i class="bi bi-search me-1"></i> Rechercher</label>
+                <input type="text" name="searchQuery" class="form-control" placeholder="Titre, patient..." value="{{ searchQuery ?? '' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label fw-bold small"><i class="bi bi-tag me-1"></i> Catégorie</label>
+                <select name="filterCategorie" class="form-select">
+                    <option value="">Toutes</option>
+                    <option value="Service médical" {% if filterCategorie == 'Service médical' %}selected{% endif %}>Service médical</option>
+                    <option value="Accueil" {% if filterCategorie == 'Accueil' %}selected{% endif %}>Accueil</option>
+                    <option value="Facturation" {% if filterCategorie == 'Facturation' %}selected{% endif %}>Facturation</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label fw-bold small"><i class="bi bi-flag me-1"></i> Priorité</label>
+                <select name="filterPriorite" class="form-select">
+                    <option value="">Toutes</option>
+                    <option value="Basse" {% if filterPriorite == 'Basse' %}selected{% endif %}>Basse</option>
+                    <option value="Normale" {% if filterPriorite == 'Normale' %}selected{% endif %}>Normale</option>
+                    <option value="Haute" {% if filterPriorite == 'Haute' %}selected{% endif %}>Haute</option>
+                    <option value="Urgente" {% if filterPriorite == 'Urgente' %}selected{% endif %}>Urgente</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary w-100 fw-bold">
+                    <i class="bi bi-filter me-1"></i> Filtrer
+                </button>
+            </div>
+            <div>
+                <a href="{{ path('back_office_dashboard') }}" class="btn btn-outline-secondary w-100 fw-bold">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
+            <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-table me-2"></i>Dernières Réclamations</h5>
+            <div class="btn-group">
+                <a href="{{ path('back_office_dashboard', {'sortBy': 'date', 'sortOrder': sortOrder == 'DESC' ? 'ASC' : 'DESC'}) }}" class="btn btn-sm btn-outline-secondary">
+                    Trier par Date <i class="bi bi-arrow-down-up ms-1"></i>
+                </a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Titre</th>
+                        <th>Patient</th>
+                        <th>Catégorie</th>
+                        <th>Priorité</th>
+                        <th>Statut</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reclamation in reclamations %}
+                    <tr>
+                        <td class="fw-bold">#{{ reclamation.id }}</td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ reclamation.titre|slice(0, 25) }}...</div>
+                            <small class="text-muted">{{ reclamation.dateCreation|date('d/m/Y H:i') }}</small>
+                        </td>
+                        <td>
+                            <div class="fw-bold">{{ reclamation.nomPatient }}</div>
+                            <small class="text-muted">{{ reclamation.email }}</small>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ reclamation.categorie }}</span></td>
+                        <td>
+                            <span class="badge-priority badge-priority-{{ reclamation.priorite|lower }}">
+                                {{ reclamation.priorite }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if reclamation.statut == 'En attente' %}bg-warning text-dark{% elseif reclamation.statut == 'En cours' %}bg-primary{% else %}bg-success{% endif %}">
+                                {{ reclamation.statut }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <a href="{{ path('back_office_voir_reclamation', {'id': reclamation.id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                                <a href="{{ path('back_office_repondre_reclamation', {'id': reclamation.id}) }}" class="btn btn-sm btn-outline-success"><i class="bi bi-reply"></i></a>
+                                <form method="post" action="{{ path('back_office_supprimer_reclamation', {'id': reclamation.id}) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Aucune réclamation trouvée.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

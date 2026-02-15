@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\EquipementRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EquipementRepository::class)]
 class Equipement
@@ -14,19 +15,28 @@ class Equipement
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le nom de l\'equipement est obligatoire')]
+    #[Assert\Length(min: 2, max: 255)]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'La référence est obligatoire')]
+    #[Assert\Length(min: 2, max: 255)]
     private ?string $reference = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'L\'etat est obligatoire')]
+    #[Assert\Choice(choices: ['Bon', 'Moyen', 'Mauvais', 'Défaillant'])]
     private ?string $etat = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'La relation est obligatoire')]
+    #[Assert\Length(min: 2, max: 255)]
     private ?string $relation = null;
 
     #[ORM\ManyToOne(inversedBy: 'equipements')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotBlank(message: 'Un service doit être associé')]
     private ?Service $service = null;
 
     public function getId(): ?int
@@ -42,7 +52,6 @@ class Equipement
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
-
         return $this;
     }
 
@@ -54,7 +63,6 @@ class Equipement
     public function setReference(string $reference): static
     {
         $this->reference = $reference;
-
         return $this;
     }
 
@@ -66,7 +74,6 @@ class Equipement
     public function setEtat(string $etat): static
     {
         $this->etat = $etat;
-
         return $this;
     }
 
@@ -78,7 +85,6 @@ class Equipement
     public function setRelation(string $relation): static
     {
         $this->relation = $relation;
-
         return $this;
     }
 
@@ -90,7 +96,6 @@ class Equipement
     public function setService(?Service $service): static
     {
         $this->service = $service;
-
         return $this;
     }
 }

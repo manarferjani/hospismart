@@ -1,0 +1,269 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Modifier Réclamation #{{ reclamation.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .back-button {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        background: #f0f0f0;
+        color: #333;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+        font-weight: 600;
+    }
+
+    .back-button:hover {
+        background: #e0e0e0;
+        color: #333;
+    }
+
+    .form-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border: none;
+    }
+
+    .form-card-header {
+        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+        color: #1a1a1a;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .form-card-header h4 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.3rem;
+    }
+
+    .form-card-header i {
+        font-size: 1.5rem;
+    }
+
+    .form-card-body {
+        padding: 2rem;
+    }
+
+    .info-alert {
+        padding: 1rem;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        border: 1px solid #0dcaf0;
+        border-left: 4px solid #0dcaf0;
+        color: #0c5460;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .info-alert i {
+        color: #0dcaf0;
+        font-size: 1.1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .form-control,
+    .form-select {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #ffc107;
+        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.1);
+        outline: none;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 150px;
+    }
+
+    .invalid-feedback {
+        display: block;
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        font-weight: 500;
+    }
+
+    .form-group.is-invalid .form-control,
+    .form-group.is-invalid .form-select {
+        border-color: #dc3545;
+        background-image: none;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-submit {
+        padding: 0.85rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+        color: #1a1a1a;
+        border: none;
+        flex: 1;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+    }
+
+    .btn-submit:hover {
+        background: linear-gradient(135deg, #ffb300 0%, #ffa500 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(255, 193, 7, 0.4);
+        color: #1a1a1a;
+    }
+
+    .btn-cancel {
+        padding: 0.85rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        background: #f0f0f0;
+        color: #333;
+        border: 1px solid #d0d0d0;
+        flex: 1;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-cancel:hover {
+        background: #e0e0e0;
+        color: #333;
+        text-decoration: none;
+    }
+</style>
+
+<div class="page-header">
+    <a href="{{ path('front_office_detail_reclamation', {'id': reclamation.id}) }}" class="back-button">
+        <i class="bi bi-arrow-left"></i> Retour
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="form-card">
+            <div class="form-card-header">
+                <i class="bi bi-pencil-square"></i>
+                <h4>Modifier ma Réclamation</h4>
+            </div>
+            <div class="form-card-body">
+                <div class="info-alert">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Vous pouvez modifier votre réclamation tant qu'elle n'a pas été traitée.</span>
+                </div>
+                
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    <div class="form-group">
+                        {{ form_label(form.nomPatient) }}
+                        {{ form_widget(form.nomPatient, {'attr': {'class': 'form-control ' ~ (form.nomPatient.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
+                        {% if form.nomPatient.vars.errors|length > 0 %}
+                            {% for error in form.nomPatient.vars.errors %}
+                                <div class="invalid-feedback">{{ error.message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.email) }}
+                        {{ form_widget(form.email, {'attr': {'class': 'form-control ' ~ (form.email.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
+                        {% if form.email.vars.errors|length > 0 %}
+                            {% for error in form.email.vars.errors %}
+                                <div class="invalid-feedback">{{ error.message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.categorie) }}
+                        {{ form_widget(form.categorie, {'attr': {'class': 'form-select ' ~ (form.categorie.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
+                        {% if form.categorie.vars.errors|length > 0 %}
+                            {% for error in form.categorie.vars.errors %}
+                                <div class="invalid-feedback">{{ error.message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.titre) }}
+                        {{ form_widget(form.titre, {'attr': {'class': 'form-control ' ~ (form.titre.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
+                        {% if form.titre.vars.errors|length > 0 %}
+                            {% for error in form.titre.vars.errors %}
+                                <div class="invalid-feedback">{{ error.message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.priorite) }}
+                        {{ form_widget(form.priorite, {'attr': {'class': 'form-select ' ~ (form.priorite.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
+                        {% if form.priorite.vars.errors|length > 0 %}
+                            {% for error in form.priorite.vars.errors %}
+                                <div class="invalid-feedback">{{ error.message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.description) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control ' ~ (form.description.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
+                        {% if form.description.vars.errors|length > 0 %}
+                            {% for error in form.description.vars.errors %}
+                                <div class="invalid-feedback">{{ error.message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-submit">
+                            <i class="bi bi-check-circle me-2"></i>Enregistrer les modifications
+                        </button>
+                        <a href="{{ path('front_office_detail_reclamation', {'id': reclamation.id}) }}" class="btn-cancel">
+                            <i class="bi bi-x-circle me-2"></i>Annuler
+                        </a>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

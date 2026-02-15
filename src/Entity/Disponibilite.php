@@ -3,7 +3,9 @@
 namespace App\Entity;
 
 use App\Repository\DisponibiliteRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DisponibiliteRepository::class)]
 class Disponibilite
@@ -13,45 +15,49 @@ class Disponibilite
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?\DateTime $date_debut = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Assert\NotBlank(message: 'La date de début est obligatoire')]
+    private ?\DateTimeInterface $date_debut = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Assert\NotBlank(message: 'La date de fin est obligatoire')]
+    #[Assert\GreaterThan(propertyPath: "date_debut", message: "La date de fin doit être après la date de début")]
+    private ?\DateTimeInterface $date_fin = null;
 
     #[ORM\Column]
-    private ?\DateTime $date_fin = null;
+    #[Assert\NotNull(message: "L'état de réservation est obligatoire")]
+    private ?bool $est_reserve = false;
 
-    #[ORM\Column]
-    private ?bool $est_reserve = null;
-
-    #[ORM\ManyToOne(inversedBy: 'disponibilites')]
+    // Correction : On pointe vers User et on lie avec la propriété 'disponibilites' dans User.php
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'disponibilites')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Medecin $medecin = null;
+    #[Assert\NotNull(message: 'Un médecin doit être associé')]
+    private ?User $medecin = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getDateDebut(): ?\DateTime
+    public function getDateDebut(): ?\DateTimeInterface
     {
         return $this->date_debut;
     }
 
-    public function setDateDebut(\DateTime $date_debut): static
+    public function setDateDebut(\DateTimeInterface $date_debut): static
     {
         $this->date_debut = $date_debut;
-
         return $this;
     }
 
-    public function getDateFin(): ?\DateTime
+    public function getDateFin(): ?\DateTimeInterface
     {
         return $this->date_fin;
     }
 
-    public function setDateFin(\DateTime $date_fin): static
+    public function setDateFin(\DateTimeInterface $date_fin): static
     {
         $this->date_fin = $date_fin;
-
         return $this;
     }
 
@@ -63,19 +69,18 @@ class Disponibilite
     public function setEstReserve(bool $est_reserve): static
     {
         $this->est_reserve = $est_reserve;
-
         return $this;
     }
 
-    public function getMedecin(): ?Medecin
+    // Le getter et setter utilisent désormais la classe User
+    public function getMedecin(): ?User
     {
         return $this->medecin;
     }
 
-    public function setMedecin(?Medecin $medecin): static
+    public function setMedecin(?User $medecin): static
     {
         $this->medecin = $medecin;
-
         return $this;
     }
 }

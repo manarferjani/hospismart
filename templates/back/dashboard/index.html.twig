@@ -1,0 +1,192 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Tableau de bord - Hospismart{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    /* --- Styles du Dashboard (Grille et Cartes) --- */
+    .back-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    
+    .back-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .back-card {
+        border-radius: 15px;
+        padding: 25px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .back-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    /* Couleurs Thématiques */
+    .back-card.blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .back-card.yellow { background: linear-gradient(135deg, #f1c40f, #f39c12); }
+    .back-card.cyan { background: linear-gradient(135deg, #1abc9c, #16a085); }
+    .back-card.green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    .back-card.red { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .back-card.orange { background: linear-gradient(135deg, #e67e22, #d35400); }
+    .back-card.dark { background: linear-gradient(135deg, #34495e, #2c3e50); }
+
+    .back-card-value { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 5px; }
+    .back-card-label { font-size: 14px; opacity: 0.8; font-weight: 500; }
+    .back-card-icon { font-size: 35px; opacity: 0.4; }
+
+    /* Filtres */
+    .back-filters {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        margin-bottom: 30px;
+    }
+
+    .back-filters input, .back-filters select {
+        border: 1px solid #e2e8f0;
+        padding: 10px 15px;
+        border-radius: 8px;
+        outline: none;
+    }
+
+    .btn-search { background: #0d6efd; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-reset { color: #64748b; text-decoration: none; font-size: 14px; }
+    
+    .btn-pdf { background: #fee2e2; color: #dc2626; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: 600; }
+    .btn-excel { background: #dcfce7; color: #16a34a; padding: 8px 15px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-left: 10px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="back-page-header">
+    <h1 class="back-page-title">📊 Tableau de Bord</h1>
+    <div class="back-page-actions">
+        <a href="#" class="btn-pdf">📥 PDF</a>
+        <a href="#" class="btn-excel">📊 Excel</a>
+    </div>
+</div>
+
+<div class="back-cards">
+    <div class="back-card blue">
+        <div>
+            <div class="back-card-value">{{ total_consultations }}</div>
+            <div class="back-card-label">Total Consultations</div>
+        </div>
+        <div class="back-card-icon">📋</div>
+    </div>
+    <div class="back-card yellow">
+        <div>
+            <div class="back-card-value">{{ en_attente }}</div>
+            <div class="back-card-label">En Attente</div>
+        </div>
+        <div class="back-card-icon">⏳</div>
+    </div>
+    <div class="back-card cyan">
+        <div>
+            <div class="back-card-value">{{ en_cours }}</div>
+            <div class="back-card-label">En Cours</div>
+        </div>
+        <div class="back-card-icon">🔄</div>
+    </div>
+    <div class="back-card green">
+        <div>
+            <div class="back-card-value">{{ traites }}</div>
+            <div class="back-card-label">Traitées</div>
+        </div>
+        <div class="back-card-icon">✓</div>
+    </div>
+    <div class="back-card red">
+        <div>
+            <div class="back-card-value">{{ stockFaible }}</div>
+            <div class="back-card-label">Stocks Faibles</div>
+        </div>
+        <div class="back-card-icon">⚠</div>
+    </div>
+    <div class="back-card orange">
+        <div>
+            <div class="back-card-value">{{ totalMedicaments }}</div>
+            <div class="back-card-label">Médicaments</div>
+        </div>
+        <div class="back-card-icon">💊</div>
+    </div>
+    <div class="back-card dark">
+        <div>
+            <div class="back-card-value">{{ non_traitees }}</div>
+            <div class="back-card-label">Non Traitées</div>
+        </div>
+        <div class="back-card-icon">!</div>
+    </div>
+    <div class="back-card green">
+        <div>
+            <div class="back-card-value">{{ taux_reponse }}%</div>
+            <div class="back-card-label">Taux de Réponse</div>
+        </div>
+        <div class="back-card-icon">%</div>
+    </div>
+</div>
+
+<form method="GET" action="{{ path('app_dashboard_reclamations') }}" class="back-filters">
+    <input type="text" name="searchQuery" placeholder="Rechercher..." style="flex-grow: 1;">
+    <select name="filterStatut">
+        <option value="">Tous les statuts</option>
+        <option value="EN_ATTENTE">En Attente</option>
+        <option value="EN_COURS">En Cours</option>
+        <option value="TERMINEE">Terminée</option>
+    </select>
+    <button type="submit" class="btn-search">🔍 Chercher</button>
+    <a href="{{ path('app_dashboard') }}" class="btn-reset">↺ Reset</a>
+</form>
+
+<div class="card shadow-sm border-0" style="border-radius: 15px;">
+    <div class="card-body">
+        <h5 class="card-title mb-4">📦 Derniers Mouvements de Stock</h5>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Médicament</th>
+                        <th>Type</th>
+                        <th>Quantité</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mouvement in recentMouvements %}
+                        <tr>
+                            <td>{{ mouvement.dateMouvement|date('d/m/Y H:i') }}</td>
+                            <td><strong>{{ mouvement.medicament.nom }}</strong></td>
+                            <td>
+                                <span class="badge {{ mouvement.type == 'ENTREE' ? 'bg-success' : 'bg-danger' }}">
+                                    {{ mouvement.type }}
+                                </span>
+                            </td>
+                            <td>{{ mouvement.quantite }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="4" class="text-center">Aucun mouvement récent</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

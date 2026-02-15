@@ -2,6 +2,7 @@
 
 {% block stylesheets %}
 {{ parent() }}
+<link rel="stylesheet" href="{{ asset('css/front.css') }}">
 <style>
     :root {
         --primary-color: #0d6efd;
@@ -35,10 +36,14 @@
         padding: 8px 20px; font-weight: 600; text-decoration: none; transition: 0.3s;
     }
     .btn-logout:hover { background-color: var(--primary-color); color: white; }
-    
+
     .dropdown-menu { border-radius: 15px; border: none; }
     .navbar-custom { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); }
     .front-main { min-height: 80vh; }
+
+    .notification-bell { color: #555; transition: color 0.3s ease; cursor: pointer; }
+    .notification-bell:hover { color: var(--primary-color); }
+    
     .footer-oasis { border-top: 1px solid #dee2e6; padding: 2rem 0; margin-top: 3rem; color: #6c757d; font-size: 0.875rem; }
 </style>
 {% endblock %}
@@ -46,7 +51,7 @@
 {% block layout %}
     <header class="navbar navbar-expand-lg navbar-dark navbar-custom shadow-sm">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ path('app_stock_public') }}">
+            <a class="navbar-brand d-flex align-items-center" href="{{ path('app_home') }}">
                 <div class="bg-primary text-white rounded-3 p-2 me-3 d-inline-flex shadow-sm">
                     <i class="fa-solid fa-heart-pulse"></i>
                 </div>
@@ -59,18 +64,103 @@
 
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
-                    {# <li class="nav-item">
-                        <a class="nav-link {{ app.request.get('_route') == 'app_home' ? 'active' : '' }}" href="{{ path('app_home') }}">Accueil</a>
-                    </li> #}
                     <li class="nav-item">
-                        <a class="nav-link {{ app.request.get('_route') == 'app_stock_public' ? 'active' : '' }}" href="{{ path('app_stock_public') }}">Médicaments</a>
+                        <a class="nav-link {{ app.request.get('_route') == 'app_home' ? 'active' : '' }}" href="{{ path('app_home') }}">Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ app.request.get('_route') == 'app_stock_public' ? 'active' : '' }}" href="{{ path('app_stock_public') }}">Stocks médicaments</a>
+                    </li>
+                    
+                    {# On affiche ce lien uniquement si l'utilisateur est un patient #}
+                    {% if app.user and is_granted('ROLE_USER') and not is_granted('ROLE_ADMIN') %}
+                        <li class="nav-item">
+                            <a class="nav-link {{ app.request.get('_route') == 'app_medecin_recherche' ? 'active' : '' }}" href="{{ path('app_medecin_recherche') }}">Services</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ app.request.get('_route') == 'app_mes_rendezvous' ? 'active' : '' }}" href="{{ path('app_mes_rendezvous') }}">Mes rendez-vous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="nav-item">
+                        <a class="nav-link {{ app.request.get('_route') in ['app_evenement_public', 'app_evenement_inscription'] ? 'active' : '' }}" href="{{ path('app_evenement_public') }}">Événements</a>
                     </li>
                 </ul>
             </div>
 
             <div class="d-flex align-items-center">
+                {# Système de Notification Patient #}
+                {% if app.user and app.user.type == 'PATIENT' %}
+                <div class="dropdown me-3">
+                    <a class="nav-link p-0 position-relative notification-bell" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-bell fs-5"></i>
+                        
+                        {% set unread_count = 0 %}
+                        {% for notif in app.user.notifications %}
+                            {% if not notif.isRead %}{% set unread_count = unread_count + 1 %}{% endif %}
+                        {% endfor %}
+                        
+                        {% if unread_count > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                                {{ unread_count }}
+                            </span>
+                        {% endif %}
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end shadow mt-3" style="width: 300px;">
+                        <li class="dropdown-header d-flex justify-content-between">
+                            <span>Notifications</span>
+                            {% if unread_count > 0 %}<span class="badge bg-primary">{{ unread_count }}</span>{% endif %}
+                        </li>
+                        
+                        {% if app.user.notifications|length > 0 %}
+                            {% for notif in app.user.notifications|sort((a, b) => b.createdAt <=> a.createdAt)|slice(0, 5) %}
+                                <li class="p-3 border-bottom {{ not notif.isRead ? 'bg-light' : '' }}">
+                                    <small class="d-block {{ not notif.isRead ? 'fw-bold' : '' }}">{{ notif.content }}</small>
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ notif.createdAt|date('d/m H:i') }}</small>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="p-4 text-center text-muted small">Aucune notification</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+
                 <div class="d-none d-lg-block">
-                     <a href="{{ path('app_dashboard') }}" class="btn-logout">Espace Pro (Admin)</a>
+                    {% if app.user %}
+                        <div class="dropdown d-inline-block">
+                            {# Le bouton avec le prénom #}
+                            <a class="btn-logout dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                {{ app.user.prenom }}
+                            </a>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow mt-2">
+                                {# Puisque seuls les patients voient cette navbar, on affiche "Mon Compte" #}
+                                <li>
+                                    <a class="dropdown-item small" href="{{ path('app_patient_coordonnees') }}">
+                                        <i class="fa-solid fa-user-circle me-2"></i>Mon Compte
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                {# Lien de déconnexion #}
+                                <li>
+                                    <a class="dropdown-item small text-danger" href="{{ path('app_logout') }}">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i>Déconnexion
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    {% else %}
+                        {# BOUTONS POUR VISITEURS NON CONNECTÉS #}
+                        <div class="d-flex gap-2">
+                            <a href="{{ path('app_login') }}" class="btn-logout">
+                                Connexion
+                            </a>
+                            <a href="{{ path('app_register') }}" class="btn btn-primary px-4 shadow-sm" style="border-radius: 50px; font-weight: 600;">
+                                <i class="fa-solid fa-user-plus me-2"></i>Inscription
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

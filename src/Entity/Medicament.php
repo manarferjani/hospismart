@@ -19,7 +19,12 @@ class Medicament
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le nom du médicament est obligatoire.')]
-    #[Assert\Length(min: 3, minMessage: 'Le nom doit contenir au moins {{ limit }} caractères.')]
+    #[Assert\Length(
+        min: 3, 
+        max: 255, 
+        minMessage: 'Le nom doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le nom ne doit pas dépasser 255 caractères.'
+    )]
     private ?string $nom = null;
 
     #[ORM\Column]
@@ -39,6 +44,7 @@ class Medicament
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Assert\NotBlank(message: 'La date de péremption est obligatoire.')]
+    #[Assert\GreaterThan('today', message: 'La date de péremption doit être dans le futur.')]
     private ?\DateTime $date_peremption = null;
 
     /**
@@ -74,7 +80,6 @@ class Medicament
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
-
         return $this;
     }
 
@@ -86,7 +91,6 @@ class Medicament
     public function setQuantite(?int $quantite): static
     {
         $this->quantite = $quantite;
-
         return $this;
     }
 
@@ -98,7 +102,6 @@ class Medicament
     public function setSeuilAlerte(?int $seuil_alerte): static
     {
         $this->seuil_alerte = $seuil_alerte;
-
         return $this;
     }
 
@@ -110,7 +113,6 @@ class Medicament
     public function setPrixUnitaire(?float $prix_unitaire): static
     {
         $this->prix_unitaire = $prix_unitaire;
-
         return $this;
     }
 
@@ -122,7 +124,6 @@ class Medicament
     public function setDatePeremption(?\DateTime $date_peremption): static
     {
         $this->date_peremption = $date_peremption;
-
         return $this;
     }
 
@@ -140,22 +141,18 @@ class Medicament
             $this->mouvements->add($mouvement);
             $mouvement->setMedicament($this);
         }
-
         return $this;
     }
 
     public function removeMouvement(MouvementStock $mouvement): static
     {
         if ($this->mouvements->removeElement($mouvement)) {
-            // set the owning side to null (unless already changed)
             if ($mouvement->getMedicament() === $this) {
                 $mouvement->setMedicament(null);
             }
         }
-
         return $this;
     }
-
     public function getCategorie(): ?Categorie
     {
         return $this->categorie;
