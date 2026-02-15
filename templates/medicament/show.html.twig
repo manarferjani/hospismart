@@ -9,35 +9,112 @@
             <li class="breadcrumb-item active">{{ medicament.nom }}</li>
         </ol>
     </nav>
-    <div class="content-header">
-        <div class="container-fluid">
-            <h1 class="m-0">Fiche médicament</h1>
+
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <h1><i class="fa-solid fa-capsules me-2" style="color: var(--accent);"></i>{{ medicament.nom }}</h1>
+            <div class="d-flex gap-2">
+                <a href="{{ path('app_medicament_edit', {id: medicament.id}) }}" class="btn btn-primary">
+                    <i class="fa-solid fa-pen"></i> Modifier
+                </a>
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fa-solid fa-trash"></i> Supprimer
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ medicament.nom }}</h3>
-            <div class="card-tools">
-                <a href="{{ path('app_medicament_edit', {id: medicament.id}) }}" class="btn btn-sm btn-primary">Modifier</a>
-                {{ include('medicament/_delete_form.html.twig') }}
+    <div class="row g-4">
+        {# Infos principales #}
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fa-solid fa-info-circle me-2"></i>Informations</h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <tbody>
+                            <tr><th style="width: 200px; background: #f8f9fb;">Identifiant</th><td><span class="text-muted">#{{ medicament.id }}</span></td></tr>
+                            <tr><th style="background: #f8f9fb;">Nom</th><td><strong>{{ medicament.nom }}</strong></td></tr>
+                            <tr>
+                                <th style="background: #f8f9fb;">Catégorie</th>
+                                <td>
+                                    {% if medicament.categorie %}
+                                        <a href="{{ path('app_categorie_show', {id: medicament.categorie.id}) }}" class="text-decoration-none text-dark">
+                                            <i class="fa-solid fa-tag me-1 text-muted"></i>{{ medicament.categorie.nom }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">Non classé</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th style="background: #f8f9fb;">Quantité en stock</th>
+                                <td>
+                                    <strong style="font-size: 18px;">{{ medicament.quantite }}</strong>
+                                    {% if medicament.quantite <= medicament.seuilAlerte %}
+                                        <span class="badge bg-warning text-dark ms-2"><i class="fas fa-exclamation-triangle me-1"></i>Stock faible</span>
+                                    {% else %}
+                                        <span class="badge bg-success ms-2"><i class="fas fa-check-circle me-1"></i>OK</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr><th style="background: #f8f9fb;">Seuil d'alerte</th><td>{{ medicament.seuilAlerte }} unités</td></tr>
+                            <tr><th style="background: #f8f9fb;">Prix unitaire</th><td><strong>{{ medicament.prixUnitaire|number_format(2, ',', ' ') }} €</strong></td></tr>
+                            <tr><th style="background: #f8f9fb;">Date de péremption</th><td>{{ medicament.datePeremption ? medicament.datePeremption|date('d/m/Y') : '-' }}</td></tr>
+                            <tr><th style="background: #f8f9fb;">Valeur en stock</th><td><strong>{{ (medicament.quantite * medicament.prixUnitaire)|number_format(2, ',', ' ') }} €</strong></td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="card-body">
-            <table class="table table-bordered">
-                <tbody>
-                    <tr><th>Id</th><td>{{ medicament.id }}</td></tr>
-                    <tr><th>Nom</th><td>{{ medicament.nom }}</td></tr>
-                    <tr><th>Quantité</th><td>{{ medicament.quantite }}</td></tr>
-                    <tr><th>Seuil alerte</th><td>{{ medicament.seuilAlerte }}</td></tr>
-                    <tr><th>Prix unitaire</th><td>{{ medicament.prixUnitaire|number_format(2, ',', ' ') }} €</td></tr>
-                    <tr><th>Date péremption</th><td>{{ medicament.datePeremption ? medicament.datePeremption|date('d/m/Y') : '' }}</td></tr>
-                </tbody>
-            </table>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="{{ path('app_medicament_index') }}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Retour à la liste</a>
-                <a href="{{ path('app_mouvement_stock_new', { medicament: medicament.id }) }}" class="btn btn-success"><i class="fa-solid fa-arrows-rotate"></i> Créer un mouvement pour ce médicament</a>
+
+        {# Actions rapides #}
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fa-solid fa-bolt me-2"></i>Actions rapides</h3>
+                </div>
+                <div class="card-body d-grid gap-3">
+                    <a href="{{ path('app_mouvement_stock_new', { medicament: medicament.id }) }}" class="btn btn-success">
+                        <i class="fa-solid fa-arrow-down"></i> Entrée de stock
+                    </a>
+                    <a href="{{ path('app_mouvement_stock_new', { medicament: medicament.id }) }}" class="btn btn-outline-primary">
+                        <i class="fa-solid fa-arrow-up"></i> Sortie de stock
+                    </a>
+                    <a href="{{ path('app_medicament_edit', {id: medicament.id}) }}" class="btn btn-light">
+                        <i class="fa-solid fa-pen"></i> Modifier la fiche
+                    </a>
+                    <a href="{{ path('app_medicament_index') }}" class="btn btn-light">
+                        <i class="fa-solid fa-arrow-left"></i> Retour à la liste
+                    </a>
+                </div>
             </div>
         </div>
     </div>
+
+    {# Delete Modal #}
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-exclamation-triangle me-2"></i>Confirmer la suppression</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-1"><strong>Supprimer « {{ medicament.nom }} » ?</strong></p>
+                    <p class="text-muted small mb-0">Cette action supprimera également tous les mouvements de stock associés.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-danger" onclick="document.getElementById('deleteForm').submit();">
+                        <i class="fa-solid fa-trash me-1"></i> Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form id="deleteForm" method="POST" action="{{ path('app_medicament_delete', {id: medicament.id}) }}" style="display:none;">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ medicament.id) }}">
+    </form>
 {% endblock %}

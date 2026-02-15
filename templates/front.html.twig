@@ -1,51 +1,161 @@
 {% extends 'base.html.twig' %}
 
 {% block stylesheets %}
-{{ parent() }}
-<style>
-    .navbar { background: transparent !important; padding: 20px 0; }
-    .nav-link { color: #555 !important; font-weight: 500; margin: 0 10px; }
-    .nav-link.active { color: var(--primary-color) !important; font-weight: 600; }
-    .btn-logout {
-        background-color: white; color: var(--primary-color);
-        border: 2px solid var(--primary-color); border-radius: 50px;
-        padding: 8px 20px; font-weight: 600; text-decoration: none; transition: 0.3s;
-    }
-    .btn-logout:hover { background-color: var(--primary-color); color: white; }
-</style>
+    {{ parent() }}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #e94560;
+            --accent-hover: #ff6b81;
+            --bg-dark: #1a1a2e;
+        }
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: #f0f2f5; }
+
+        /* Navbar */
+        .navbar-hospi {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 16px 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: none;
+        }
+        .navbar-hospi .navbar-brand {
+            display: flex; align-items: center; gap: 12px;
+            font-size: 22px; font-weight: 700; color: #fff;
+            text-decoration: none;
+        }
+        .navbar-hospi .brand-icon {
+            width: 40px; height: 40px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: #fff;
+            box-shadow: 0 4px 12px rgba(233,69,96,0.4);
+        }
+        .navbar-hospi .nav-link {
+            color: rgba(255,255,255,0.7) !important;
+            font-weight: 500; font-size: 15px;
+            padding: 8px 18px !important;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .navbar-hospi .nav-link:hover, .navbar-hospi .nav-link.active {
+            color: #fff !important;
+            background: rgba(255,255,255,0.1);
+        }
+        .navbar-hospi .btn-pro {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: #fff; border: none;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(233,69,96,0.3);
+            transition: all 0.3s;
+        }
+        .navbar-hospi .btn-pro:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(233,69,96,0.45);
+            color: #fff;
+        }
+
+        /* Hero */
+        .hero-section {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            padding: 60px 0 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -40px; left: 0; right: 0;
+            height: 80px;
+            background: #f0f2f5;
+            border-radius: 50% 50% 0 0;
+        }
+        .hero-section h1 { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
+        .hero-section p { font-size: 18px; opacity: 0.7; max-width: 600px; margin: 0 auto; }
+
+        /* Content */
+        .content-section { padding: 0 0 60px; margin-top: -30px; position: relative; z-index: 2; }
+
+        .card {
+            border: none; border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.3s;
+        }
+        .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+
+        .table thead th {
+            background: #f8f9fb;
+            border-bottom: 2px solid #e9ecef;
+            color: #6c757d;
+            font-weight: 600; font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 14px 16px;
+        }
+        .table tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+        }
+        .badge { font-weight: 600; padding: 5px 12px; border-radius: 20px; }
+        .table-stock-low { background: #fff3cd !important; }
+
+        /* Footer */
+        .footer-hospi {
+            background: var(--bg-dark);
+            color: rgba(255,255,255,0.4);
+            text-align: center;
+            padding: 24px 0;
+            font-size: 13px;
+        }
+    </style>
 {% endblock %}
 
 {% block layout %}
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{{ path('app_stock_public') }}">
-                <div class="bg-primary text-white rounded-3 p-2 me-3 d-inline-flex shadow-sm">
-                    <i class="fa-solid fa-heart-pulse"></i>
-                </div>
-                <strong>Hospismart</strong>
-            </a>
-
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link {{ app.request.attributes.get('_route') == 'app_stock_public' ? 'active' : '' }}" href="{{ path('app_stock_public') }}">Accueil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ path('app_stock_public') }}#stock">Stock médicaments</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ path('app_medicament_index') }}"><i class="fa-solid fa-lock me-1"></i> Espace pro</a></li>
-                </ul>
-            </div>
-
-            <div class="d-none d-lg-block">
-                <a href="{{ path('app_medicament_index') }}" class="btn-logout me-2">Espace pro</a>
-                <a href="#" class="btn-logout">Déconnexion</a>
-            </div>
+<nav class="navbar navbar-expand-lg navbar-hospi">
+    <div class="container">
+        <a class="navbar-brand" href="{{ path('app_stock_public') }}">
+            <span class="brand-icon"><i class="fa-solid fa-heart-pulse"></i></span>
+            HospiSmart
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: rgba(255,255,255,0.2);">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item"><a class="nav-link" href="{{ path('app_stock_public') }}"><i class="fas fa-home me-1"></i> Accueil</a></li>
+                <li class="nav-item"><a class="nav-link active" href="{{ path('app_stock_public') }}#stock"><i class="fas fa-pills me-1"></i> Stocks</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contact"><i class="fas fa-envelope me-1"></i> Contact</a></li>
+                <li class="nav-item ms-2">
+                    <a class="btn btn-pro" href="{{ path('app_dashboard') }}">
+                        <i class="fas fa-lock me-1"></i> Espace Pro
+                    </a>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <main class="container py-4">
+<section class="hero-section">
+    <div class="container">
+        <h1><i class="fa-solid fa-heart-pulse me-2"></i>HospiSmart</h1>
+        <p>Plateforme intelligente de gestion hospitalière — Consultez les stocks de médicaments</p>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="container">
         {% block body %}{% endblock %}
-    </main>
+    </div>
+</section>
+
+<footer class="footer-hospi" id="contact">
+    <div class="container">
+        <p class="mb-0">&copy; {{ 'now'|date('Y') }} HospiSmart — Projet OASIS | PIDEV 3A</p>
+    </div>
+</footer>
 {% endblock %}

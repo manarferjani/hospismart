@@ -1,29 +1,27 @@
 {% extends 'back.html.twig' %}
 
-{% block title %}Modifier {{ medicament.nom }}{% endblock %}
+{% block title %}Modifier {{ categorie.nom }}{% endblock %}
 
 {% block body %}
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ path('app_medicament_index') }}">Médicaments</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('app_medicament_show', {id: medicament.id}) }}">{{ medicament.nom }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_categorie_index') }}">Catégories</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_categorie_show', {id: categorie.id}) }}">{{ categorie.nom }}</a></li>
             <li class="breadcrumb-item active">Modifier</li>
         </ol>
     </nav>
 
     <div class="card form-card-hospi shadow-sm">
         <div class="card-header">
-            <i class="fa-solid fa-pen-to-square me-2"></i> Modifier le médicament
+            <i class="fa-solid fa-pen-to-square me-2"></i> Modifier la catégorie
         </div>
         <div class="card-body">
             {{ form_start(form, { attr: { class: 'form-hospi', novalidate: 'novalidate' } }) }}
-            {# Rendu explicite du champ CSRF pour debug/compatibilité #}
             {{ form_widget(form._token) }}
-            
-            {# Afficher les erreurs globales du formulaire #}
+
             {% if form.vars.errors|length > 0 %}
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <strong><i class="fa-solid fa-circle-exclamation me-2"></i>Erreurs détectées :</strong>
+                    <strong><i class="fa-solid fa-circle-exclamation me-2"></i>Erreurs :</strong>
                     <ul class="mb-0 mt-2">
                         {% for error in form.vars.errors %}
                             <li>{{ error.message }}</li>
@@ -37,31 +35,23 @@
                 <div class="col-12">
                     {{ form_row(form.nom) }}
                 </div>
-                <div class="col-md-6">
-                    {{ form_row(form.quantite) }}
+                <div class="col-12">
+                    {{ form_row(form.description) }}
                 </div>
-                <div class="col-md-6">
-                    {{ form_row(form.seuilAlerte) }}
-                </div>
-                <div class="col-md-6">
-                    {{ form_row(form.prixUnitaire) }}
-                </div>
-                <div class="col-md-6">
-                    {{ form_row(form.datePeremption) }}
-                </div>
-                <div class="col-md-6">
-                    {{ form_row(form.categorie) }}
+                <div class="col-12">
+                    {{ form_row(form.medicaments) }}
                 </div>
             </div>
             <div class="form-actions-hospi">
                 <button type="submit" class="btn btn-primary btn-hospi-primary">
                     <i class="fa-solid fa-check me-2"></i> Mettre à jour
                 </button>
-                <a href="{{ path('app_medicament_show', {id: medicament.id}) }}" class="btn btn-light btn-hospi-outline">Voir la fiche</a>
-                <a href="{{ path('app_medicament_index') }}" class="btn btn-light btn-hospi-outline">
+                <a href="{{ path('app_categorie_show', {id: categorie.id}) }}" class="btn btn-light btn-hospi-outline">
+                    Voir la fiche
+                </a>
+                <a href="{{ path('app_categorie_index') }}" class="btn btn-light btn-hospi-outline">
                     <i class="fa-solid fa-arrow-left me-2"></i> Retour
                 </a>
-                <span class="ms-auto">{{ include('medicament/_delete_form.html.twig') }}</span>
             </div>
             {{ form_end(form) }}
         </div>
