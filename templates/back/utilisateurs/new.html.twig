@@ -1,167 +1,243 @@
-{% extends 'base_back.html.twig' %}
+{% extends 'back.html.twig' %}
 
 {% block title %}Nouvel utilisateur - Hospismart{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .form-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 30px;
+        margin-bottom: 25px;
+        border-top: 4px solid #3b82f6;
+    }
+
+    .form-card h3 {
+        font-size: 1.2rem;
+        color: #1e293b;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .form-group { margin-bottom: 15px; }
+
+    .form-label {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 14px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        padding: 10px 15px;
+        width: 100%;
+        transition: 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+    .btn-save {
+        background: #27ae60;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .btn-save:hover { background: #219150; transform: translateY(-2px); }
+
+    .btn-cancel {
+        background: #f1f5f9;
+        color: #64748b;
+        padding: 12px 30px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .field-error { color: #dc2626; font-size: 12px; margin-top: 5px; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="back-page-header">
-    <h1 class="back-page-title">➕ Ajouter un utilisateur</h1>
-    <a href="{{ path('app_dashboard_utilisateurs_list') }}" class="btn" style="background:#95a5a6;color:#fff;">← Liste</a>
+<div class="page-header">
+    <div>
+        <h1 class="m-0 fw-bold" style="font-size: 24px;">➕ Ajouter un utilisateur</h1>
+        <small class="text-muted">Créez un profil pour un patient, un médecin ou un administrateur.</small>
+    </div>
+    <a href="{{ path('app_dashboard_utilisateurs_list') }}" class="btn-cancel">
+        <i class="fa-solid fa-arrow-left me-2"></i>Retour
+    </a>
 </div>
 
 {% if errors %}
-    <div class="alert alert-danger" style="padding: 15px; margin-bottom: 20px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;">
-        <strong>Erreur(s) de validation :</strong>
-        <ul style="margin: 10px 0 0 20px;">
-            {% for err in errors %}
-                <li>{{ err }}</li>
-            {% endfor %}
+    <div class="alert alert-danger border-0 shadow-sm mb-4" style="border-radius: 12px;">
+        <i class="fa-solid fa-circle-exclamation me-2"></i><strong>Erreurs de validation :</strong>
+        <ul class="mb-0 mt-2">
+            {% for err in errors %}<li>{{ err }}</li>{% endfor %}
         </ul>
     </div>
 {% endif %}
 
-<form method="post" action="{{ path('app_dashboard_utilisateurs_new') }}" class="back-form js-form-validate" data-password-minlength="6">
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token('new_user') }}">
-    <div class="back-form-card">
-        <h3>Compte</h3>
-        <div class="back-form-grid">
-            <div class="form-group">
-                <label for="nom">Nom d'utilisateur *</label>
-                <input type="text" id="nom" name="nom" value="{{ (formData.nom is defined) ? formData.nom : '' }}" required data-required-msg="Le nom d'utilisateur est obligatoire." data-minlength="3" data-minlength-msg="Le nom doit contenir au moins 3 caractères." data-maxlength="180" maxlength="180">
-                <span class="field-error" aria-live="polite"></span>
-            </div>
-            <div class="form-group">
-                <label for="prenom">Prénom *</label>
-                <input type="text" id="prenom" name="prenom" value="{{ (formData.prenom is defined) ? formData.prenom : '' }}" required data-required-msg="Le prénom est obligatoire." data-minlength="2" data-minlength-msg="Le prénom doit contenir au moins 2 caractères." data-maxlength="255" maxlength="255">
-                <span class="field-error" aria-live="polite"></span>
-            </div>
-            <div class="form-group">
-                <label for="email">Email *</label>
-                <input type="email" id="email" name="email" value="{{ (formData.email is defined) ? formData.email : '' }}" required data-required-msg="L'email est obligatoire." data-email-msg="Email invalide." data-maxlength="255">
-                <span class="field-error" aria-live="polite"></span>
-            </div>
-            <div class="form-group">
-                <label for="telephone">Téléphone</label>
-                <input type="text" id="telephone" name="telephone" value="{{ (formData.telephone is defined) ? formData.telephone : '' }}" data-maxlength="20" maxlength="20" pattern="[0-9+\s\-\.\(\)]*" data-pattern-msg="Caractères invalides.">
-                <span class="field-error" aria-live="polite"></span>
-            </div>
-            <div class="form-group">
-                <label for="password">Mot de passe *</label>
-                <input type="password" id="password" name="password" required data-required-msg="Le mot de passe est obligatoire." data-minlength="6" data-minlength-msg="Minimum 6 caractères.">
-                <span class="field-error" aria-live="polite"></span>
-            </div>
-            <div class="form-group">
-                <label for="role">Rôle *</label>
-                <select id="role" name="role" required>
-                    <option value="ROLE_PATIENT" {{ (formData.role ?? 'ROLE_PATIENT') == 'ROLE_PATIENT' ? 'selected' : '' }}>Patient</option>
-                    <option value="ROLE_MEDECIN" {{ (formData.role ?? '') == 'ROLE_MEDECIN' ? 'selected' : '' }}>Médecin</option>
-                    <option value="ROLE_ADMIN" {{ (formData.role ?? '') == 'ROLE_ADMIN' ? 'selected' : '' }}>Admin</option>
-                </select>
+<div class="form-container">
+    <form method="post" action="{{ path('app_dashboard_utilisateurs_new') }}" class="js-form-validate" data-password-minlength="6">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token('new_user') }}">
+
+        <div class="form-card">
+            <h3><i class="fa-solid fa-user-gear text-primary"></i> Informations du compte</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="nom">Nom *</label>
+                    <input type="text" id="nom" name="nom" class="form-control" value="{{ formData.nom ?? '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="prenom">Prénom *</label>
+                    <input type="text" id="prenom" name="prenom" class="form-control" value="{{ formData.prenom ?? '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email *</label>
+                    <input type="email" id="email" name="email" class="form-control" value="{{ formData.email ?? '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="telephone">Téléphone</label>
+                    <input type="text" id="telephone" name="telephone" class="form-control" value="{{ formData.telephone ?? '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Mot de passe *</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="role">Rôle assigné *</label>
+                    <select id="role" name="role" class="form-select" required>
+                        <option value="ROLE_PATIENT" {{ (formData.role ?? 'ROLE_PATIENT') == 'ROLE_PATIENT' ? 'selected' : '' }}>Patient</option>
+                        <option value="ROLE_MEDECIN" {{ (formData.role ?? '') == 'ROLE_MEDECIN' ? 'selected' : '' }}>Médecin</option>
+                        <option value="ROLE_ADMIN" {{ (formData.role ?? '') == 'ROLE_ADMIN' ? 'selected' : '' }}>Administrateur</option>
+                    </select>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="patient-fields" class="back-form-card">
-        <h3>Profil patient</h3>
-        <div class="back-form-grid">
-            <div class="form-group">
-                <label for="genre">Genre *</label>
-                <select id="genre" name="genre" data-required-msg="Le genre est obligatoire.">
-                    <option value="">-- Sélectionner --</option>
-                    <option value="Homme" {{ (formData.genre is defined) and (formData.genre == 'Homme') ? 'selected' : '' }}>Homme</option>
-                    <option value="Femme" {{ (formData.genre is defined) and (formData.genre == 'Femme') ? 'selected' : '' }}>Femme</option>
-                    <option value="Autre" {{ (formData.genre is defined) and (formData.genre == 'Autre') ? 'selected' : '' }}>Autre</option>
-                </select>
-                <span class="field-error" aria-live="polite"></span>
-            </div>
-            <div class="form-group">
-                <label for="date_naissance">Date de naissance *</label>
-                <input type="date" id="date_naissance" name="date_naissance" value="{{ (formData.dateNaissance is defined) ? formData.dateNaissance : '' }}" data-required-msg="La date de naissance est obligatoire.">
-                <span class="field-error" aria-live="polite"></span>
-            </div>
-            <div class="form-group">
-                <label for="groupe_sanguin">Groupe sanguin</label>
-                <input type="text" id="groupe_sanguin" name="groupe_sanguin" value="{{ (formData.groupeSanguin is defined) ? formData.groupeSanguin : '' }}" maxlength="10" placeholder="ex: O+">
-            </div>
-            <div class="form-group" style="grid-column:1/-1;">
-                <label for="adresse">Adresse</label>
-                <input type="text" id="adresse" name="adresse" value="{{ (formData.adresse is defined) ? formData.adresse : '' }}" data-maxlength="1000" maxlength="1000">
+        <div id="patient-fields" class="form-card">
+            <h3><i class="fa-solid fa-hospital-user text-success"></i> Profil Patient</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="genre">Genre *</label>
+                    <select id="genre" name="genre" class="form-select">
+                        <option value="">-- Sélectionner --</option>
+                        <option value="Homme" {{ (formData.genre ?? '') == 'Homme' ? 'selected' : '' }}>Homme</option>
+                        <option value="Femme" {{ (formData.genre ?? '') == 'Femme' ? 'selected' : '' }}>Femme</option>
+                        <option value="Autre" {{ (formData.genre ?? '') == 'Autre' ? 'selected' : '' }}>Autre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="date_naissance">Date de naissance *</label>
+                    <input type="date" id="date_naissance" name="date_naissance" class="form-control" value="{{ formData.dateNaissance ?? '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="groupe_sanguin">Groupe sanguin</label>
+                    <input type="text" id="groupe_sanguin" name="groupe_sanguin" class="form-control" value="{{ formData.groupeSanguin ?? '' }}" placeholder="ex: AB+">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label class="form-label" for="adresse">Adresse complète</label>
+                    <input type="text" id="adresse" name="adresse" class="form-control" value="{{ formData.adresse ?? '' }}">
+                </div>
             </div>
         </div>
-    </div>
 
-    <div id="medecin-fields" class="back-form-card" style="display:none;">
-        <h3>Profil médecin</h3>
-        <div class="back-form-grid">
-            <div class="form-group">
-                <label for="specialite">Spécialité *</label>
-                <input type="text" id="specialite" name="specialite" value="{{ (formData.specialite is defined) ? formData.specialite : 'Généraliste' }}" data-required-msg="La spécialité est obligatoire." data-minlength="3" data-minlength-msg="La spécialité doit contenir au moins 3 caractères." data-maxlength="255" maxlength="255">
-                <span class="field-error" aria-live="polite"></span>
-            </div>
-            <div class="form-group">
-                <label for="matricule">Matricule *</label>
-                <input type="text" id="matricule" name="matricule" value="{{ (formData.matricule is defined) ? formData.matricule : '' }}" data-required-msg="Le matricule est obligatoire." data-minlength="3" data-minlength-msg="Le matricule doit contenir au moins 3 caractères." data-maxlength="255" maxlength="255" placeholder="Auto si vide">
-                <span class="field-error" aria-live="polite"></span>
+        <div id="medecin-fields" class="form-card" style="display:none; border-top-color: #10b981;">
+            <h3><i class="fa-solid fa-user-md text-success"></i> Profil Médecin</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="specialite">Spécialité *</label>
+                    <input type="text" id="specialite" name="specialite" class="form-control" value="{{ formData.specialite ?? 'Généraliste' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="matricule">Numéro de matricule *</label>
+                    <input type="text" id="matricule" name="matricule" class="form-control" value="{{ formData.matricule ?? '' }}" placeholder="Ex: MED-2024-001">
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="back-form-actions">
-        <button type="submit" class="btn-save">Créer l'utilisateur</button>
-        <a href="{{ path('app_dashboard_utilisateurs_list') }}" class="btn-cancel">Annuler</a>
-    </div>
-</form>
+        <div class="d-flex justify-content-end gap-3 mt-4 mb-5">
+            <a href="{{ path('app_dashboard_utilisateurs_list') }}" class="btn-cancel">Annuler</a>
+            <button type="submit" class="btn-save shadow-sm">
+                <i class="fa-solid fa-user-plus me-2"></i>Créer l'utilisateur
+            </button>
+        </div>
+    </form>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var roleSelect = document.getElementById('role');
-    var patientFields = document.getElementById('patient-fields');
-    var medecinFields = document.getElementById('medecin-fields');
+    const roleSelect = document.getElementById('role');
+    const patientFields = document.getElementById('patient-fields');
+    const medecinFields = document.getElementById('medecin-fields');
     
-    var genreSelect = document.getElementById('genre');
-    var dateInput = document.getElementById('date_naissance');
-    var specialiteInput = document.getElementById('specialite');
-    var matriculeInput = document.getElementById('matricule');
+    const genreSelect = document.getElementById('genre');
+    const dateInput = document.getElementById('date_naissance');
+    const specialiteInput = document.getElementById('specialite');
+    const matriculeInput = document.getElementById('matricule');
     
     function updateFields() {
-        var selectedRole = roleSelect.value;
+        const selectedRole = roleSelect.value;
         
-        // Afficher/masquer les sections
+        // Reset display
+        patientFields.style.display = 'none';
+        medecinFields.style.display = 'none';
+        
+        // Remove all required
+        [genreSelect, dateInput, specialiteInput, matriculeInput].forEach(el => el.removeAttribute('required'));
+
         if (selectedRole === 'ROLE_PATIENT') {
             patientFields.style.display = 'block';
-            medecinFields.style.display = 'none';
-            
-            // Rendre genre et date de naissance requis
             genreSelect.setAttribute('required', 'required');
             dateInput.setAttribute('required', 'required');
-            specialiteInput.removeAttribute('required');
-            matriculeInput.removeAttribute('required');
         } else if (selectedRole === 'ROLE_MEDECIN') {
-            patientFields.style.display = 'none';
             medecinFields.style.display = 'block';
-            
-            // Rendre spécialité et matricule requis
-            genreSelect.removeAttribute('required');
-            dateInput.removeAttribute('required');
             specialiteInput.setAttribute('required', 'required');
             matriculeInput.setAttribute('required', 'required');
-        } else {
-            // Admin
-            patientFields.style.display = 'none';
-            medecinFields.style.display = 'none';
-            
-            // Aucun champ supplémentaire requis
-            genreSelect.removeAttribute('required');
-            dateInput.removeAttribute('required');
-            specialiteInput.removeAttribute('required');
-            matriculeInput.removeAttribute('required');
         }
     }
     
-    // Écouter les changements du rôle
     roleSelect.addEventListener('change', updateFields);
-    
-    // Initialiser au chargement
-    updateFields();
+    updateFields(); // Init
 });
 </script>
 {% endblock %}

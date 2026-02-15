@@ -1,4 +1,4 @@
-{% extends 'base_front.html.twig' %}
+{% extends 'front.html.twig' %}
 
 {% block title %}Mon compte - Hospismart{% endblock %}
 
@@ -74,24 +74,24 @@
     <h2 style="margin-top:1.5rem;">Profil médecin</h2>
     <div class="form-group">
         <label for="specialite">Spécialité *</label>
-        <input type="text" id="specialite" name="specialite" value="{{ medecin.specialite }}" required data-required-msg="La spécialité est obligatoire." data-minlength="3" data-minlength-msg="La spécialité doit contenir au moins 3 caractères." data-maxlength="255" data-maxlength-msg="La spécialité ne doit pas dépasser 255 caractères." maxlength="255">
+        <input type="text" id="specialite" name="specialite" value="{{ user.specialite }}" required data-required-msg="La spécialité est obligatoire." data-minlength="3" data-minlength-msg="La spécialité doit contenir au moins 3 caractères." data-maxlength="255" data-maxlength-msg="La spécialité ne doit pas dépasser 255 caractères." maxlength="255">
         <span class="field-error" aria-live="polite"></span>
     </div>
     <div class="form-group">
         <label for="matricule">Matricule *</label>
-        <input type="text" id="matricule" name="matricule" value="{{ medecin.matricule }}" required data-required-msg="Le matricule est obligatoire." data-minlength="3" data-minlength-msg="Le matricule doit contenir au moins 3 caractères." data-maxlength="255" data-maxlength-msg="Le matricule ne doit pas dépasser 255 caractères." maxlength="255">
+        <input type="text" id="matricule" name="matricule" value="{{ user.matricule }}" required data-required-msg="Le matricule est obligatoire." data-minlength="3" data-minlength-msg="Le matricule doit contenir au moins 3 caractères." data-maxlength="255" data-maxlength-msg="Le matricule ne doit pas dépasser 255 caractères." maxlength="255">
         <span class="field-error" aria-live="polite"></span>
     </div>
     <div class="form-group">
         <label for="medecin_telephone">Téléphone</label>
-        <input type="text" id="medecin_telephone" name="medecin_telephone" value="{{ medecin.telephone }}" data-maxlength="255" maxlength="255">
+        <input type="text" id="medecin_telephone" name="medecin_telephone" value="{{ user.telephone }}" data-maxlength="255" maxlength="255">
     </div>
     <div class="form-group">
         <label for="service">Service *</label>
         <select id="service" name="service" required data-required-msg="Le service est obligatoire.">
             <option value="">-- Sélectionner --</option>
             {% for s in services %}
-            <option value="{{ s.id }}" {{ medecin.service and medecin.service.id == s.id ? 'selected' : '' }}>{{ s.nom }}</option>
+            <option value="{{ s.id }}" {{ user.service and user.service.id == s.id ? 'selected' : '' }}>{{ s.nom }}</option>
             {% endfor %}
         </select>
         <span class="field-error" aria-live="polite"></span>

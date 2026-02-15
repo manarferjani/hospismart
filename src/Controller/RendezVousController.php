@@ -4,16 +4,16 @@ namespace App\Controller;
 
 use App\Entity\RendezVous;
 use App\Entity\Disponibilite;
-use App\Enum\RendezVousStatut;
+use App\Entity\User; // On utilise User à la place de Patient
 use App\Form\RendezVousType;
-use App\Repository\MedecinRepository;
+use App\Repository\UserRepository; // Import du UserRepository
 use App\Repository\DisponibiliteRepository;
+use App\Repository\MedecinRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use App\Repository\PatientRepository;
 
 class RendezVousController extends AbstractController
 {
@@ -22,11 +22,10 @@ public function afficherDispos(int $id, MedecinRepository $medecinRepo, Disponib
 {
     $medecin = $medecinRepo->find($id);
 
-    // On ajoute 'est_reserve' => false dans les critères
     $dispos = $dispoRepo->findBy(
         [
             'medecin' => $medecin, 
-            'est_reserve' => false  // <--- On ne prend que les libres
+            'est_reserve' => false  
         ],
         ['date_debut' => 'ASC']
     );
@@ -57,8 +56,8 @@ public function afficherDispos(int $id, MedecinRepository $medecinRepo, Disponib
         
         // On lie le patient connecté
         $user = $this->getUser();
-        if ($user && method_exists($user, 'getPatient')) {
-            $rdv->setPatient($user->getPatient());
+        if ($user) {
+            $rdv->setPatient($user); // On passe l'objet User directement
         }
 
         $form = $this->createForm(RendezVousType::class, $rdv);
@@ -130,60 +129,31 @@ public function annuler(RendezVous $rdv, EntityManagerInterface $em): Response
 
     return $this->redirectToRoute('app_home'); // Ou vers la page "Mes Rendez-vous"
 }
-/*#[Route('/mes-rendezvous', name: 'app_mes_rendezvous')]
-public function mesRendezVous(): Response
-{
-    // On récupère le patient lié à l'utilisateur connecté
-    $user = $this->getUser();
-    
-    if (!$user) {
-        return $this->redirectToRoute('app_login');
-    }
-
-    $patient = $user->getPatient();
-    
-    // On récupère ses rendez-vous triés par date
-    $rendezvous = $patient->getRendezVouses();
-
-    return $this->render('rendezvous/mes_rendezvous.html.twig', [
-        'rendezvous' => $rendezvous,
-    ]);
-}*/
 
 
-
-/*#[Route('/mes-rendezvous', name: 'app_mes_rendezvous')]
-public function mesRendezVous(PatientRepository $patientRepo): Response
-{
-    // ÉTAPE DE TEST : On récupère manuellement le patient ID 1 
-    // (Vérifiez dans votre base de données si l'ID 1 existe, sinon mettez un autre ID)
-    $patient = $patientRepo->find(1);
-
-    // Si vous n'avez aucun patient en base, on crée une sécurité
-    if (!$patient) {
-        return new Response("Erreur : Aucun patient trouvé en base de données pour le test. Créez-en un ou vérifiez l'ID.");
-    }
-
-    // On récupère ses rendez-vous
-    $rendezvous = $patient->getRendezVouses();
-
-    return $this->render('rendezvous/mes_rendezvous.html.twig', [
-        'rendezvous' => $rendezvous,
-    ]);
-}*/
 #[Route('/mes-rendezvous', name: 'app_mes_rendezvous')]
-public function mesRendezVous(PatientRepository $patientRepo): Response
-{
-    // On teste avec l'ID 7 car il existe dans votre table SQL
-    $patient = $patientRepo->find(7); 
+    public function mesRendezVous(UserRepository $userRepo): Response
+    {
+        // On récupère l'utilisateur connecté
+        /** @var User $user */
+        $user = $this->getUser();
 
-    if (!$patient) {
-        return new Response("Erreur : Le patient 37 n'existe pas dans la table 'patient'. 
-                             Vérifiez que vous avez bien créé le profil Patient pour l'User correspondant.");
+        if (!$user) {
+            $this->addFlash('danger', 'Vous devez être connecté pour voir vos rendez-vous.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Sécurité : on s'assure que c'est un patient
+        if ($user->getType() !== 'PATIENT') {
+            $this->addFlash('warning', 'Cette page est réservée aux patients.');
+            return $this->redirectToRoute('app_home');
+        }
+
+        // On récupère ses rendez-vous (si la relation est bien configurée dans l'entité User)
+        $rendezvous = $user->getRendezVousPatient();
+
+        return $this->render('rendezvous/mes_rendezvous.html.twig', [
+            'rendezvous' => $rendezvous,
+        ]);
     }
-
-    return $this->render('rendezvous/mes_rendezvous.html.twig', [
-        'rendezvous' => $patient->getRendezVouses(),
-    ]);
-}
 }

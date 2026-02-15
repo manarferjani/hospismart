@@ -1,4 +1,4 @@
-{% extends 'base_back.html.twig' %}
+{% extends 'back.html.twig' %}
 
 {% block title %}{{ user.prenom }} {{ user.nom }} - Hospismart{% endblock %}
 
@@ -43,10 +43,10 @@
 <div class="back-form-card">
     <h3>Profil médecin</h3>
     <table class="back-detail-table">
-        <tr><td><strong>Spécialité</strong></td><td>{{ medecin.specialite }}</td></tr>
-        <tr><td><strong>Matricule</strong></td><td>{{ medecin.matricule }}</td></tr>
-        <tr><td><strong>Téléphone</strong></td><td>{{ medecin.telephone }}</td></tr>
-        <tr><td><strong>Service</strong></td><td>{{ medecin.service ? medecin.service.nom : '—' }}</td></tr>
+        <tr><td><strong>Spécialité</strong></td><td>{{ user.specialite }}</td></tr>
+        <tr><td><strong>Matricule</strong></td><td>{{ user.matricule }}</td></tr>
+        <tr><td><strong>Téléphone</strong></td><td>{{ user.telephone }}</td></tr>
+        <tr><td><strong>Service</strong></td><td>{{ user.service ? user.service.nom : '—' }}</td></tr>
     </table>
 </div>
 {% endif %}

@@ -56,14 +56,14 @@ class CompteController extends AbstractController
             }
 
             if ($medecin) {
-                $medecin->setSpecialite($request->request->get('specialite', $medecin->getSpecialite()));
-                $medecin->setMatricule($request->request->get('matricule', $medecin->getMatricule()));
-                $medecin->setTelephone($request->request->get('medecin_telephone', $medecin->getTelephone()));
+                $user->setSpecialite($request->request->get('specialite', $user->getSpecialite()));
+                $user->setMatricule($request->request->get('matricule', $user->getMatricule()));
+                $user->setTelephone($request->request->get('medecin_telephone', $user->getTelephone()));
                 $serviceId = $request->request->get('service');
                 if ($serviceId) {
                     $service = $serviceRepository->find($serviceId);
                     if ($service) {
-                        $medecin->setService($service);
+                        $user->setService($service);
                     }
                 }
             }

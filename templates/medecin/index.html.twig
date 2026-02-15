@@ -18,13 +18,13 @@
         <tbody>
         {% for medecin in medecins %}
             <tr>
-                <td>{{ medecin.id }}</td>
-                <td>{{ medecin.specialite }}</td>
-                <td>{{ medecin.matricule }}</td>
-                <td>{{ medecin.telephone }}</td>
+                <td>{{ user.id }}</td>
+                <td>{{ user.specialite }}</td>
+                <td>{{ musern.matricule }}</td>
+                <td>{{ user.telephone }}</td>
                 <td>
-                    <a href="{{ path('app_medecin_show', {'id': medecin.id}) }}">show</a>
-                    <a href="{{ path('app_medecin_edit', {'id': medecin.id}) }}">edit</a>
+                    <a href="{{ path('app_medecin_show', {'id': user.id}) }}">show</a>
+                    <a href="{{ path('app_medecin_edit', {'id': user.id}) }}">edit</a>
                 </td>
             </tr>
         {% else %}

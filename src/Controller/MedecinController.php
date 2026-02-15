@@ -2,7 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Medecin;
+use App\Entity\User;
+use App\Repository\UserRepository;
 use App\Entity\Notification;
 use App\Entity\Disponibilite;
 use App\Entity\Patient;
@@ -12,7 +13,7 @@ use App\Enum\RendezVousStatut;
 use App\Form\MedecinType;
 use App\Repository\MedecinRepository;
 use App\Repository\RendezVousRepository;
-use App\Repository\PatientRepository; // Import ajouté
+use App\Repository\PatientRepository; 
 use App\Repository\ServiceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,33 +27,36 @@ final class MedecinController extends AbstractController
     /**
      * MÉTHODE PRIVÉE : Centralise la récupération du médecin
      */
-    private function getConnectedMedecin(MedecinRepository $medecinRepo): ?Medecin
-    {
-        return $this->getUser()?->getMedecin() ?: $medecinRepo->findAll()[0] ?? null;
-    }
+    private function getConnectedMedecin(): ?User
+        {
+            /** @var User $user */
+            $user = $this->getUser();
+            // On vérifie que l'utilisateur est bien un médecin
+            return ($user && $user->getType() === 'MEDECIN') ? $user : null;
+        }
 
     /**
      * DASHBOARD
      */
     #[Route('/dashboard', name: 'app_medecin_dashboard', methods: ['GET'])]
-    public function dashboard(RendezVousRepository $rdvRepo, MedecinRepository $medecinRepo, PatientRepository $patientRepo): Response
+    public function dashboard(RendezVousRepository $rdvRepo, UserRepository $userRepo): Response
     {
-        $medecin = $this->getConnectedMedecin($medecinRepo);
-        
+        $medecin = $this->getConnectedMedecin();
+        if (!$medecin) return $this->redirectToRoute('app_login');
+
         // 1. Prochain RDV
         $prochainRdv = $rdvRepo->findOneBy(
             ['medecin' => $medecin, 'statut' => 'CONFIRME'],
             ['datetime' => 'ASC']
         );
 
-        // 2. Notifications (En attente)
+        // 2. Notifications (Demandes en attente)
         $notifsEnAttente = $rdvRepo->findBy(
             ['medecin' => $medecin, 'statut' => 'EN_ATTENTE'],
             ['datetime' => 'DESC']
         );
 
-        // 3. Calcul du Taux d'Occupation (RDV de TOUTE la journée d'aujourd'hui)
-        $capaciteMaxQuotidienne = 15;
+        // 3. Statistiques du jour
         $aujourdhuiDebut = new \DateTime('today 00:00:00');
         $aujourdhuiFin = new \DateTime('today 23:59:59');
 
@@ -68,12 +72,7 @@ final class MedecinController extends AbstractController
             ->getQuery()
             ->getSingleScalarResult();
 
-        // Calcul sécurisé du taux
-        $tauxOccupation = ($rdvConfirmesAujourdhui / $capaciteMaxQuotidienne) * 100;
-        if ($tauxOccupation > 100) $tauxOccupation = 100;
-
-        // 4. Définition de la variable manquante
-        $totalPatients = count($patientRepo->findAll());
+        $tauxOccupation = min(100, ($rdvConfirmesAujourdhui / 15) * 100);
 
         return $this->render('medecin/dashboard.html.twig', [
             'medecin' => $medecin,
@@ -82,7 +81,7 @@ final class MedecinController extends AbstractController
             'rdv_du_jour' => $rdvConfirmesAujourdhui,
             'demandes_attente' => count($notifsEnAttente),
             'notifications_list' => $notifsEnAttente,
-            'total_patients' => $totalPatients, // <--- La variable est bien définie maintenant
+            'total_patients' => count($userRepo->findBy(['type' => 'PATIENT'])),
             'taux_occupation' => round($tauxOccupation)
         ]);
     }
@@ -91,19 +90,19 @@ final class MedecinController extends AbstractController
      * MES RENDEZ-VOUS
      */
     #[Route('/demandes-rendezvous', name: 'app_medecin_demandes_rdv', methods: ['GET'])]
-    public function demandesRendezVous(RendezVousRepository $rdvRepo, MedecinRepository $medecinRepo): Response
-    {
-        $medecin = $this->getConnectedMedecin($medecinRepo);
-        if (!$medecin) { return $this->redirectToRoute('app_medecin_index'); }
+    public function demandesRendezVous(RendezVousRepository $rdvRepo): Response
+        {
+            $medecin = $this->getConnectedMedecin();
+            if (!$medecin) return $this->redirectToRoute('app_login');
 
-        $demandes = $rdvRepo->findBy(['medecin' => $medecin], ['datetime' => 'DESC']);
+            $demandes = $rdvRepo->findBy(['medecin' => $medecin], ['datetime' => 'DESC']);
 
-        return $this->render('medecin/mesRendezvous.html.twig', [
-            'demandes' => $demandes,
-            'medecin' => $medecin,
-            'totalRDV' => count($demandes)
-        ]);
-    }
+            return $this->render('medecin/mesRendezvous.html.twig', [
+                'demandes' => $demandes,
+                'medecin' => $medecin,
+                'totalRDV' => count($demandes)
+            ]);
+        }
 
     /**
      * MES PATIENTS (Correction Route et Données)
@@ -137,90 +136,48 @@ final class MedecinController extends AbstractController
      * GESTION DES DISPONIBILITÉS
      */
     #[Route('/mes-dispos/gestion', name: 'app_medecin_dispo_index')]
-    public function mesDispos(EntityManagerInterface $em, Request $request, MedecinRepository $medecinRepo, RendezVousRepository $rdvRepo): Response
-    {
-        $medecin = $this->getConnectedMedecin($medecinRepo);
-        if (!$medecin) { return new Response("Erreur : Aucun médecin en base."); }
+    public function mesDispos(EntityManagerInterface $em, Request $request, RendezVousRepository $rdvRepo): Response
+        {
+            $medecin = $this->getConnectedMedecin();
+            if (!$medecin) return $this->redirectToRoute('app_login');
 
-        $dispo = new \App\Entity\Disponibilite();
-        $dispo->setMedecin($medecin);
-        $dispo->setEstReserve(false);
+            $dispo = new Disponibilite();
+            $dispo->setMedecin($medecin);
+            $dispo->setEstReserve(false);
 
-        $form = $this->createForm(\App\Form\DisponibiliteType::class, $dispo);
-        $form->handleRequest($request);
+            $form = $this->createForm(\App\Form\DisponibiliteType::class, $dispo);
+            $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            $maintenant = new \DateTime();
-            if ($dispo->getDateDebut() < $maintenant) {
-                $this->addFlash('danger', 'Impossible de créer un créneau dans le passé !');
+            if ($form->isSubmitted() && $form->isValid()) {
+                if ($dispo->getDateDebut() < new \DateTime()) {
+                    $this->addFlash('danger', 'Date passée impossible.');
+                } else {
+                    $em->persist($dispo);
+                    $em->flush();
+                    $this->addFlash('success', 'Créneau ajouté.');
+                }
                 return $this->redirectToRoute('app_medecin_dispo_index');
             }
-            $em->persist($dispo);
-            $em->flush();
-            $this->addFlash('success', 'Nouveau créneau ajouté !');
-            return $this->redirectToRoute('app_medecin_dispo_index');
-        }
 
-        return $this->render('medecin/dispo.html.twig', [
-            'form' => $form->createView(),
-            // Remplacer l'ancien findBy par ceci :
-            'dispos' => $em->getRepository(\App\Entity\Disponibilite::class)
-                ->createQueryBuilder('d')
-                ->where('d.medecin = :medecin')
-                ->andWhere('d.date_fin >= :maintenant') // On garde ce qui finit aujourd'hui ou plus tard
-                ->setParameter('medecin', $medecin)
-                ->setParameter('maintenant', new \DateTime())
-                ->orderBy('d.date_debut', 'ASC')
-                ->getQuery()
-                ->getResult(),
-            'medecin' => $medecin,
-            'nbDemandesEnAttente' => count($rdvRepo->findBy(['medecin' => $medecin, 'statut' => 'EN_ATTENTE'])),
-        ]);
-    }
+            $dispos = $em->getRepository(Disponibilite::class)->findBy(['medecin' => $medecin], ['date_debut' => 'ASC']);
 
-    /**
-     * RECHERCHE MÉDECIN (Côté Patient)
-     */
-#[Route('/recherche-patient', name: 'app_medecin_recherche', methods: ['GET'])]
-public function recherche(MedecinRepository $medecinRepository, ServiceRepository $serviceRepository, Request $request): Response
-{
-    $nomRecherche = $request->query->get('nom');
-
-    if ($nomRecherche) {
-        // On cherche les médecins qui correspondent au nom
-        $medecins = $medecinRepository->findByNomLike($nomRecherche);
-
-        // SI ON TROUVE EXACTEMENT UN MÉDECIN : Redirection directe
-        if (count($medecins) === 1) {
-            return $this->redirectToRoute('app_medecin_show', [
-                'id' => $medecins[0]->getId()
+            return $this->render('medecin/dispo.html.twig', [
+                'form' => $form->createView(),
+                'dispos' => $dispos,
+                'medecin' => $medecin,
+                'nbDemandesEnAttente' => count($rdvRepo->findBy(['medecin' => $medecin, 'statut' => 'EN_ATTENTE'])),
             ]);
         }
-        
-        // Si plusieurs médecins portent le même nom, on les affiche dans la liste
-    } else {
-        $medecins = $medecinRepository->findAll();
-    }
 
-    // Si aucun résultat ou plusieurs résultats, on reste sur la page de recherche classique
-    return $this->render('patient/recherche_medecin.html.twig', [
-        'medecins' => $medecins,
-        'services' => $serviceRepository->findAll(),
-    ]);
-}
+
 
     #[Route('/medecin/profil/{id}', name: 'app_medecin_show', methods: ['GET'])]
-public function show(Medecin $medecin): Response
-{
-    // Symfony cherche automatiquement le Medecin ayant cet ID
-    // S'il ne le trouve pas, il renverra une erreur 404
-    
-    return $this->render('medecin/show.html.twig', [
-        'medecin' => $medecin,
-    ]);
-}
-/**
+    public function show(User $medecin): Response
+        {
+            if ($medecin->getType() !== 'MEDECIN') throw $this->createNotFoundException();
+            return $this->render('medecin/show.html.twig', ['medecin' => $medecin]);
+        }
+    /**
      * FILTRE PAR SERVICE
      */
     #[Route('/recherche-patient/service/{id}', name: 'app_medecins_par_service', methods: ['GET'])]
@@ -236,34 +193,33 @@ public function show(Medecin $medecin): Response
         ]);
     }
     #[Route('/medecin/patient/{id}', name: 'app_medecin_patient_show')]
-public function showPatient(Patient $patient): Response
-{
-    return $this->render('medecin/patient_show.html.twig', [
-        'patient' => $patient,
-    ]);
-}
+    public function showPatient(User $patient): Response
+    {
+        if ($patient->getType() !== 'PATIENT') throw $this->createNotFoundException();
+        return $this->render('medecin/patient_show.html.twig', ['patient' => $patient]);
+    }
 
 /**
  * ACTIONS RDV (ACCEPTR)
  */
 #[Route('/rendezvous/{id}/accepter', name: 'app_medecin_rdv_accepter', methods: ['POST'])]
 public function accepterRendezVous(RendezVous $rendezVous, Request $request, EntityManagerInterface $em): Response
-{
-    if ($this->isCsrfTokenValid('accepter' . $rendezVous->getId(), $request->request->get('_token'))) {
-        $rendezVous->setStatut(RendezVousStatut::CONFIRME->value);
+    {
+        if ($this->isCsrfTokenValid('accepter' . $rendezVous->getId(), $request->request->get('_token'))) {
+            $rendezVous->setStatut(RendezVousStatut::CONFIRME->value);
 
-        $notification = new Notification();
-        $notification->setPatient($rendezVous->getPatient());
-        $notification->setMessage("✅ Votre RDV du " . $rendezVous->getDatetime()->format('d/m à H:i') . " est confirmé par le Dr. " . $rendezVous->getMedecin()->getNom());
-        $notification->setCreatedAt(new \DateTimeImmutable());
-        $notification->setIsRead(false);
-        
-        $em->persist($notification);
-        $em->flush();
-        $this->addFlash('success', 'Rendez-vous confirmé.');
+            $notification = new Notification();
+            $notification->setUser($rendezVous->getPatient()); // User de type PATIENT
+            $notification->setContent("✅ RDV confirmé pour le " . $rendezVous->getDatetime()->format('d/m à H:i'));
+            $notification->setCreatedAt(new \DateTimeImmutable());
+            $notification->setIsRead(false);
+            
+            $em->persist($notification);
+            $em->flush();
+            $this->addFlash('success', 'Rendez-vous confirmé.');
+        }
+        return $this->redirect($request->headers->get('referer') ?: $this->generateUrl('app_medecin_demandes_rdv'));
     }
-    return $this->redirect($request->headers->get('referer') ?: $this->generateUrl('app_medecin_demandes_rdv'));
-}
 
 /**
  * ACTIONS RDV (REFUSER)
@@ -279,7 +235,7 @@ public function refuserRendezVous(RendezVous $rendezVous, Request $request, Enti
 
         $notification = new Notification();
         $notification->setPatient($rendezVous->getPatient());
-        $notification->setMessage("❌ Votre demande de RDV du " . $rendezVous->getDatetime()->format('d/m') . " a été refusée.");
+        $notification->setContent("❌ Votre demande de RDV du " . $rendezVous->getDatetime()->format('d/m') . " a été refusée.");
         $notification->setCreatedAt(new \DateTimeImmutable());
         $notification->setIsRead(false);
         
@@ -301,7 +257,7 @@ public function annulerRdv(Request $request, RendezVous $rdv, EntityManagerInter
 
         $notification = new Notification();
         $notification->setPatient($rdv->getPatient());
-        $notification->setMessage("⚠️ Le Dr. " . $rdv->getMedecin()->getNom() . " a annulé le RDV du " . $rdv->getDatetime()->format('d/m') . ".");
+        $notification->setContent("⚠️ Le Dr. " . $rdv->getMedecin()->getNom() . " a annulé le RDV du " . $rdv->getDatetime()->format('d/m') . ".");
         $notification->setCreatedAt(new \DateTimeImmutable());
         $notification->setIsRead(false);
         
@@ -314,14 +270,13 @@ public function annulerRdv(Request $request, RendezVous $rdv, EntityManagerInter
 
 #[Route('/medecin/disponibilite/{id}/delete', name: 'app_medecin_dispo_delete', methods: ['POST'])]
 public function deleteDisponibilite(
-    int $id, // On demande l'ID au lieu de l'objet directement
+    int $id, 
     Request $request, 
     EntityManagerInterface $em
 ): Response {
-    // On cherche l'objet nous-mêmes
+  
     $dispo = $em->getRepository(Disponibilite::class)->find($id);
 
-    // Si l'objet n'existe pas, on redirige avec un message propre au lieu de crasher
     if (!$dispo) {
         $this->addFlash('danger', 'Ce créneau n\'existe plus ou a déjà été supprimé.');
         return $this->redirectToRoute('app_medecin_dispo_index');

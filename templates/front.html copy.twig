@@ -2,7 +2,6 @@
 
 {% block stylesheets %}
 {{ parent() }}
-<link rel="stylesheet" href="{{ asset('css/front.css') }}">
 <style>
     :root {
         --primary-color: #0d6efd;
@@ -64,24 +63,12 @@
                     <li class="nav-item">
                         <a class="nav-link {{ app.request.get('_route') == 'app_home' ? 'active' : '' }}" href="{{ path('app_home') }}">Accueil</a>
                     </li>
-                    {# On affiche ce lien uniquement si l'utilisateur est un patient #}
-                    {% if app.user and is_granted('ROLE_USER') and not is_granted('ROLE_ADMIN') %}
-                        <li class="nav-item">
-                            <a class="nav-link {{ app.request.get('_route') == 'app_medecin_recherche' ? 'active' : '' }}" href="{{ path('app_medecin_recherche') }}">Services</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ app.request.get('_route') == 'app_mes_rendezvous' ? 'active' : '' }}" href="{{ path('app_mes_rendezvous') }}">Mes rendez-vous</a>
-                        </li>
-                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link {{ app.request.get('_route') == 'app_mes_rendezvous' ? 'active' : '' }}" href="{{ path('app_mes_rendezvous') }}">Mes rendez-vous</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link {{ app.request.get('_route') in ['app_evenement_public', 'app_evenement_inscription'] ? 'active' : '' }}" href="{{ path('app_evenement_public') }}">Événements</a>
                     </li>
-                    {# Ce lien s'affiche pour l'admin OU pour un utilisateur identifié comme médecin #}
-                    {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MEDECIN') %}
-                        <li class="nav-item">
-                            <a class="nav-link {{ app.request.get('_route') == 'app_stock_public' ? 'active' : '' }}" href="{{ path('app_stock_public') }}">Stocks médicaments</a>
-                        </li>
-                    {% endif %}
                     {% if app.user %}
 
                     {% endif %}
@@ -90,15 +77,12 @@
 
             <div class="d-flex align-items-center">
                 {# Système de Notification Patient #}
-
-                {% if app.user and app.user.type == 'PATIENT' %}
+                {% if app.user and app.user.patient %}
                 <div class="dropdown me-3">
                     <a class="nav-link p-0 position-relative notification-bell" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fa-solid fa-bell fs-5"></i>
-                        
                         {% set unread_count = 0 %}
-                        {# On accède directement à app.user.notifications #}
-                        {% for notif in app.user.notifications %}
+                        {% for notif in app.user.patient.notifications %}
                             {% if not notif.isRead %}{% set unread_count = unread_count + 1 %}{% endif %}
                         {% endfor %}
                         
@@ -114,10 +98,8 @@
                             <span>Notifications</span>
                             {% if unread_count > 0 %}<span class="badge bg-primary">{{ unread_count }}</span>{% endif %}
                         </li>
-                        
-                        {# On utilise app.user.notifications directement ici aussi #}
-                        {% if app.user.notifications|length > 0 %}
-                            {% for notif in app.user.notifications|sort((a, b) => b.createdAt <=> a.createdAt)|slice(0, 5) %}
+                        {% if app.user.patient.notifications|length > 0 %}
+                            {% for notif in app.user.patient.notifications|sort((a, b) => b.createdAt <=> a.createdAt)|slice(0, 5) %}
                                 <li class="p-3 border-bottom {{ not notif.isRead ? 'bg-light' : '' }}">
                                     <small class="d-block {{ not notif.isRead ? 'fw-bold' : '' }}">{{ notif.content }}</small>
                                     <small class="text-muted" style="font-size: 0.7rem;">{{ notif.createdAt|date('d/m H:i') }}</small>
@@ -133,43 +115,19 @@
                 <div class="d-none d-lg-block">
                     {% if app.user %}
                         <div class="dropdown d-inline-block">
-                            {# Le bouton avec le prénom #}
                             <a class="btn-logout dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 {{ app.user.prenom }}
                             </a>
-
-                            {# --- ICI TU METS TON BLOC --- #}
                             <ul class="dropdown-menu dropdown-menu-end shadow mt-2">
-                                
-                                {# Puisque seuls les patients voient cette navbar, on affiche "Mon Compte" #}
-                                <li>
-                                    <a class="dropdown-item small" href="{{ path('app_patient_coordonnees') }}">
-                                        <i class="fa-solid fa-user-circle me-2"></i>Mon Compte
-                                    </a>
-                                </li>
-                                
-                                <li><hr class="dropdown-divider"></li>
-
-                                {# Lien de déconnexion #}
-                                <li>
-                                    <a class="dropdown-item small text-danger" href="{{ path('app_logout') }}">
-                                        <i class="fa-solid fa-right-from-bracket me-2"></i>Déconnexion
-                                    </a>
-                                </li>
+                                {% if is_granted('ROLE_ADMIN') or app.user.medecin %}
+                                    <li><a class="dropdown-item small" href="{{ path('app_dashboard') }}"><i class="fa-solid fa-gauge me-2"></i>Administration</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                <li><a class="dropdown-item small text-danger" href="{{ path('app_logout') }}"><i class="fa-solid fa-right-from-bracket me-2"></i>Déconnexion</a></li>
                             </ul>
-                            {# -------------------------- #}
-
                         </div>
                     {% else %}
-                        {# BOUTONS POUR VISITEURS NON CONNECTÉS #}
-        <div class="d-flex gap-2">
-            <a href="{{ path('app_login') }}" class="btn-logout">
-                Connexion
-            </a>
-            <a href="{{ path('app_register') }}" class="btn btn-primary px-4 shadow-sm" style="border-radius: 50px; font-weight: 600;">
-                <i class="fa-solid fa-user-plus me-2"></i>Inscription
-            </a>
-        </div>
+                        <a href="{{ path('app_login') }}" class="btn-logout">Connexion</a>
                     {% endif %}
                 </div>
             </div>
@@ -189,9 +147,4 @@
 
         {% block body %}{% endblock %}
     </main>
-    <footer class="footer-oasis text-center">
-        <div class="container">
-            <p class="mb-1">Hospismart &copy; {{ 'now'|date('Y') }} - OASIS</p>
-        </div>
-    </footer>
 {% endblock %}

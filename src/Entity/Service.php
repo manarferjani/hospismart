@@ -18,22 +18,10 @@ class Service
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Le nom du service est obligatoire')]
-    #[Assert\Length(
-        min: 2, 
-        max: 255, 
-        minMessage: 'Le nom doit contenir au moins 2 caractères', 
-        maxMessage: 'Le nom ne doit pas dépasser 255 caractères'
-    )]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'La description est obligatoire')]
-    #[Assert\Length(
-        min: 5, 
-        max: 255, 
-        minMessage: 'La description doit contenir au moins 5 caractères', 
-        maxMessage: 'La description ne doit pas dépasser 255 caractères'
-    )]
     private ?string $description = null;
 
     /**
@@ -43,9 +31,10 @@ class Service
     private Collection $equipements;
 
     /**
-     * @var Collection<int, Medecin>
+     * Relation vers User (filtrée logiquement pour les médecins)
+     * @var Collection<int, User>
      */
-    #[ORM\OneToMany(targetEntity: Medecin::class, mappedBy: 'service')]
+    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'service_entity')]
     private Collection $medecins;
 
     public function __construct()
@@ -54,15 +43,9 @@ class Service
         $this->medecins = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function getNom(): ?string
-    {
-        return $this->nom;
-    }
+    public function getNom(): ?string { return $this->nom; }
 
     public function setNom(string $nom): static
     {
@@ -70,10 +53,7 @@ class Service
         return $this;
     }
 
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
+    public function getDescription(): ?string { return $this->description; }
 
     public function setDescription(?string $description): static
     {
@@ -84,52 +64,40 @@ class Service
     /**
      * @return Collection<int, Equipement>
      */
-    public function getEquipements(): Collection
-    {
-        return $this->equipements;
-    }
-
-    public function addEquipement(Equipement $equipement): static
-    {
-        if (!$this->equipements->contains($equipement)) {
-            $this->equipements->add($equipement);
-            $equipement->setService($this);
-        }
-        return $this;
-    }
-
-    public function removeEquipement(Equipement $equipement): static
-    {
-        if ($this->equipements->removeElement($equipement)) {
-            if ($equipement->getService() === $this) {
-                $equipement->setService(null);
-            }
-        }
-        return $this;
-    }
+    public function getEquipements(): Collection { return $this->equipements; }
 
     /**
-     * @return Collection<int, Medecin>
+     * Retourne uniquement les utilisateurs de type MEDECIN
+     * @return Collection<int, User>
      */
     public function getMedecins(): Collection
     {
-        return $this->medecins;
+        return $this->medecins->filter(function(User $user) {
+            return $user->getType() === 'MEDECIN';
+        });
     }
 
-    public function addMedecin(Medecin $medecin): static
+    /**
+     * Ajoute un médecin au service après vérification de son type
+     */
+    public function addMedecin(User $user): static
     {
-        if (!$this->medecins->contains($medecin)) {
-            $this->medecins->add($medecin);
-            $medecin->setService($this);
+        if ($user->getType() !== 'MEDECIN') {
+            throw new \InvalidArgumentException("L'utilisateur doit être de type MEDECIN pour rejoindre un service.");
+        }
+
+        if (!$this->medecins->contains($user)) {
+            $this->medecins->add($user);
+            $user->setServiceEntity($this);
         }
         return $this;
     }
 
-    public function removeMedecin(Medecin $medecin): static
+    public function removeMedecin(User $user): static
     {
-        if ($this->medecins->removeElement($medecin)) {
-            if ($medecin->getService() === $this) {
-                $medecin->setService(null);
+        if ($this->medecins->removeElement($user)) {
+            if ($user->getServiceEntity() === $this) {
+                $user->setServiceEntity(null);
             }
         }
         return $this;

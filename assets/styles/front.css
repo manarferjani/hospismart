@@ -20,8 +20,8 @@ body.front {
     min-height: 100vh;
 }
 
-/* Header */
-.front-header {
+
+/*.front-header {
     background: var(--front-card);
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     padding: 0.75rem 2rem;
@@ -31,7 +31,7 @@ body.front {
     position: sticky;
     top: 0;
     z-index: 100;
-}
+}*/
 
 .front-logo {
     display: flex;

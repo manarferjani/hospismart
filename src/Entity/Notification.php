@@ -20,61 +20,54 @@ class Notification
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    private ?bool $isRead = null;
+    private ?bool $isRead = false; // Initialisé à false par défaut
 
-    #[ORM\ManyToOne(inversedBy: 'notifications')]
-    private ?Patient $patient = null;
+    // On utilise 'user' au lieu de 'patient' car tout le monde reçoit des notifications
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'notifications')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
-    public function getId(): ?int
+    public function __construct()
     {
-        return $this->id;
+        $this->createdAt = new \DateTimeImmutable();
+        $this->isRead = false;
     }
 
-    public function getContent(): ?string
-    {
-        return $this->content;
-    }
+    public function getId(): ?int { return $this->id; }
+
+    public function getContent(): ?string { return $this->content; }
 
     public function setContent(string $content): static
     {
         $this->content = $content;
-
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
+    public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
 
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
-    public function isRead(): ?bool
-    {
-        return $this->isRead;
-    }
+    public function isRead(): ?bool { return $this->isRead; }
 
     public function setIsRead(bool $isRead): static
     {
         $this->isRead = $isRead;
-
         return $this;
     }
 
-    public function getPatient(): ?Patient
+    // Changement de Patient vers User
+    public function getUser(): ?User
     {
-        return $this->patient;
+        return $this->user;
     }
 
-    public function setPatient(?Patient $patient): static
+    public function setUser(?User $user): static
     {
-        $this->patient = $patient;
-
+        $this->user = $user;
         return $this;
     }
 }

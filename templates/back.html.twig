@@ -6,9 +6,20 @@
     :root {
         --primary-color: #0d6efd;
         --dark-sidebar: #1e293b;
+        --success-color: #198754;
+    }
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #f8fafc; 
     }
 
-    .admin-wrapper { display: flex; min-height: 100vh; }
+    .admin-wrapper { 
+        display: flex; 
+        min-height: 100vh; 
+        background: #f8fafc;
+    }
     
     .sidebar {
         width: 280px;
@@ -20,12 +31,25 @@
         height: 100vh;
         display: flex;
         flex-direction: column;
+        z-index: 1001;
+        flex-shrink: 0;
     }
 
-    .sidebar-brand { font-size: 22px; font-weight: 700; margin-bottom: 30px; display: flex; align-items: center; }
-    .sidebar-brand i { color: var(--primary-color); margin-right: 15px; }
+    .sidebar-brand { font-size: 22px; font-weight: 700; margin-bottom: 30px; display: flex; align-items: center; color: white; text-decoration: none; }
+    .sidebar-brand i, .sidebar-brand svg { color: var(--primary-color); margin-right: 15px; }
 
-    /* Profil Utilisateur dans Sidebar */
+    /* Rôle Badge */
+    .role-badge {
+        font-size: 10px;
+        background: rgba(255,255,255,0.1);
+        padding: 2px 8px;
+        border-radius: 10px;
+        text-transform: uppercase;
+        margin-left: 10px;
+        color: var(--primary-color);
+    }
+
+    /* Profil Sidebar */
     .sidebar-profile {
         text-align: center;
         padding: 15px 10px 25px 10px;
@@ -40,16 +64,16 @@
     .sidebar-profile.active-profile { background: rgba(13, 110, 253, 0.1); border-bottom: 1px solid var(--primary-color); }
 
     .profile-img {
-        width: 80px; height: 80px;
+        width: 70px; height: 70px;
         border-radius: 50%;
         border: 3px solid rgba(255,255,255,0.1);
         margin-bottom: 10px;
         object-fit: cover;
     }
-    .profile-name { font-size: 16px; font-weight: 600; display: block; color: #fff; }
-    .profile-spec { font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; display: block; }
+    .profile-name { font-size: 15px; font-weight: 600; display: block; color: #fff; }
+    .profile-spec { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; display: block; }
 
-    .sidebar-menu { list-style: none; padding: 0; }
+    .sidebar-menu { list-style: none; padding: 0; flex-grow: 1; }
     .sidebar-menu li { margin-bottom: 5px; }
     .sidebar-menu a {
         color: rgba(255,255,255,0.7);
@@ -65,45 +89,36 @@
         color: white;
         font-weight: 600;
     }
-    .sidebar-menu i { width: 25px; margin-right: 10px; font-size: 18px; }
+    .sidebar-menu i, .sidebar-menu span { width: 25px; margin-right: 10px; font-size: 18px; text-align: center; }
 
-    .main-content { flex: 1; padding: 40px; position: relative; background: #f8fafc; }
-    .logout-box { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
-
-    /* Section Headers in Sidebar */
-    .menu-header { 
-        font-size: 11px; 
-        text-transform: uppercase; 
-        color: rgba(255,255,255,0.3); 
-        margin: 20px 0 10px 15px; 
-        letter-spacing: 1px;
+    .main-content { 
+        flex: 1; 
+        padding: 40px; 
+        background: #f8fafc; 
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
     }
+    .menu-header { font-size: 11px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin: 20px 0 10px 15px; letter-spacing: 1px; }
 
-    /* Système de Notification */
+    /* Notifications */
     .notif-container { position: absolute; top: 40px; right: 40px; z-index: 1000; }
-    .notification-bell { color: #555; cursor: pointer; position: relative; transition: 0.3s; }
-    .notification-bell:hover { color: var(--primary-color); }
+    .notification-bell { color: #555; cursor: pointer; position: relative; }
     .bell-badge {
         position: absolute; top: -5px; right: -5px;
         background-color: #dc3545; color: white;
-        border-radius: 50%; padding: 2px 5px;
-        font-size: 10px; font-weight: bold; line-height: 1;
+        border-radius: 50%; padding: 2px 5px; font-size: 10px;
     }
     .notif-dropdown {
-        position: absolute; right: 0; top: 45px; width: 320px;
-        background: white; border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        display: none; border: 1px solid #eee; overflow: hidden;
+        position: absolute; right: 0; top: 45px; width: 300px;
+        background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        display: none; border: 1px solid #eee;
     }
-    .notif-dropdown.active { display: block; animation: fadeIn 0.2s ease; }
-    .notif-header { padding: 15px; background: #f8fafc; border-bottom: 1px solid #eee; font-weight: 700; color: #333; }
+    .notif-dropdown.active { display: block; }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
         .admin-wrapper { flex-direction: column; }
-        .sidebar { width: 100%; height: auto; position: relative; padding: 15px; }
-        .notif-container { top: 15px; right: 15px; }
+        .sidebar { width: 100%; height: auto; position: relative; }
     }
 </style>
 {% endblock %}
@@ -111,46 +126,73 @@
 {% block layout %}
 <div class="admin-wrapper">
     <aside class="sidebar">
-        <div class="sidebar-brand">
-            <i class="fa-solid fa-heart-pulse"></i> Hospismart 
-            <small class="ms-2 text-muted" style="font-size: 10px;">OASIS</small>
-        </div>
+        <a href="{{ path('app_dashboard') }}" class="sidebar-brand">
+            <i class="fa-solid fa-heart-pulse"></i> Hospismart
+            <span class="role-badge">
+                {% if is_granted('ROLE_ADMIN') %}Admin{% elseif is_granted('ROLE_MEDECIN') %}Médecin{% else %}Staff{% endif %}
+            </span>
+        </a>
 
-        {# Profil si Médecin #}
-        {% if medecin is defined %}
+        {# Section Profil Dynamique #}
+        {% if is_granted('ROLE_MEDECIN') %}
             <a href="{{ path('app_medecin_profil') }}" class="sidebar-profile {{ app.request.get('_route') == 'app_medecin_profil' ? 'active-profile' : '' }}">
-                {% if medecin.image %}
-                    <img src="{{ asset('/images/medecins/' ~ medecin.image) }}" class="profile-img shadow-sm">
-                {% else %}
-                    <img src="https://ui-avatars.com/api/?name={{ medecin.user.nom|default('D') }}+{{ medecin.user.prenom|default('R') }}&background=0d6efd&color=fff" class="profile-img">
-                {% endif %}
-                <span class="profile-name">Dr. {{ medecin.user.nom|default('Nom') }}</span>
-                <span class="profile-spec">{{ medecin.specialite|default('Médecin') }}</span>
+                <img src="{{ app.user.image ? asset('/images/users/' ~ app.user.image) : 'https://ui-avatars.com/api/?name=' ~ app.user.nom ~ '+' ~ app.user.prenom ~ '&background=0d6efd&color=fff' }}" class="profile-img shadow-sm">
+                <span class="profile-name">Dr. {{ app.user.nom }}</span>
+                <span class="profile-spec">{{ app.user.specialite|default('Médecin') }}</span>
             </a>
+        {% elseif is_granted('ROLE_ADMIN') %}
+             <div class="sidebar-profile">
+                <img src="https://ui-avatars.com/api/?name=Admin+Smart&background=1e293b&color=fff" class="profile-img">
+                <span class="profile-name">{{ app.user.nom }} {{ app.user.prenom }}</span>
+                <span class="profile-spec">Administrateur</span>
+            </div>
         {% endif %}
 
         <nav class="sidebar-nav">
             <ul class="sidebar-menu">
-                {# Menu Général / Dashboard #}
-                <li><a href="{{ medecin is defined ? path('app_medecin_dashboard') : path('app_dashboard') }}" class="{{ app.request.get('_route') in ['app_dashboard', 'app_medecin_dashboard'] ? 'active' : '' }}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                {# Menu Commun #}
+                {#<div class="menu-header">Général</div>#}
+                
+                {# Menu Admin #}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <div class="menu-header">Administration</div>
+                    <li><a href="{{ path('app_dashboard') }}" class="{{ app.request.get('_route') == 'app_dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                    <li><a href="{{ path('app_dashboard_utilisateurs_list') }}" class="{{ app.request.get('_route') starts with 'app_dashboard_utilisateurs' ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Utilisateurs</a></li>
+                    <li><a href="{{ path('app_dashboard_reclamations') }}" class="{{ app.request.get('_route') == 'app_dashboard_reclamations' ? 'active' : '' }}"><i class="fa-solid fa-circle-exclamation"></i> Réclamations</a></li>
+                    <li><a href="{{ path('app_medicament_index') }}" class="{{ app.request.get('_route') starts with 'app_medicament' ? 'active' : '' }}"><i class="fa-solid fa-pills"></i> Médicaments</a></li>
+                {% endif %}
 
-                {# Section Médicale (si applicable) #}
-                {% if medecin is defined %}
+                {# Menu Médecin #}
+                {% if is_granted('ROLE_MEDECIN') %}
                     <div class="menu-header">Ma Clinique</div>
+                    <li><a href="{{ path('app_medecin_dashboard') }}" class="{{ app.request.get('_route') == 'app_medecin_dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
                     <li><a href="{{ path('app_medecin_demandes_rdv') }}" class="{{ app.request.get('_route') == 'app_medecin_demandes_rdv' ? 'active' : '' }}"><i class="fa-solid fa-calendar-check"></i> Mes RDV</a></li>
                     <li><a href="{{ path('app_medecin_dispo_index') }}" class="{{ app.request.get('_route') == 'app_medecin_dispo_index' ? 'active' : '' }}"><i class="fa-solid fa-clock"></i> Mes Créneaux</a></li>
                 {% endif %}
 
-                {# Section Logistique & Événements #}
-                <div class="menu-header">Gestion</div>
-                <li><a href="{{ path('app_medicament_index') }}" class="{{ app.request.get('_route') starts with 'app_medicament' ? 'active' : '' }}"><i class="fa-solid fa-pills"></i> Médicaments</a></li>
-                <li><a href="{{ path('app_evenement_index') }}" class="{{ app.request.get('_route') starts with 'app_evenement' ? 'active' : '' }}"><i class="fa-solid fa-calendar-star"></i> Événements</a></li>
-                <li><a href="{{ path('app_participant_evenement_index') }}" class="{{ app.request.get('_route') == 'app_participant_evenement_index' ? 'active' : '' }}"><i class="fa-solid fa-users-gear"></i> Participants</a></li>
+                {# Menu Logistique #}
+                <div class="menu-header">
+                    <i class="fa-solid fa-star-of-life me-2" style="font-size: 10px;"></i> Événements
+                </div>
+                <li>
+                    <a href="{{ path('app_evenement_index') }}" class="{{ app.request.get('_route') starts with 'app_evenement' ? 'active' : '' }}">
+                        <i class="fa-solid fa-calendar-check"></i> Événements
+                    </a>
+                </li>
             </ul>
         </nav>
 
         <div class="logout-box">
             <ul class="sidebar-menu">
+                {# Cette condition restreint l'affichage à l'ADMIN uniquement #}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <li>
+                        <a href="{{ path('app_compte_edit') }}" class="{{ app.request.get('_route') == 'app_compte_edit' ? 'active' : '' }}">
+                            <i class="fa-solid fa-user-gear"></i> Mon compte
+                        </a>
+                    </li>
+                {% endif %}
+
                 <li><a href="{{ path('app_home') }}" class="text-info"><i class="fa-solid fa-globe"></i> Voir le site</a></li>
                 <li><a href="{{ path('app_logout') }}" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
             </ul>
@@ -158,8 +200,8 @@
     </aside>
 
     <main class="main-content">
-        {# Barre de notifications (Médecin) #}
-        {% if medecin is defined %}
+        {# Barre de notifications (si médecin) #}
+        {% if is_granted('ROLE_MEDECIN') %}
             <div class="notif-container">
                 <div class="notification-bell" id="bellBtn">
                     <i class="fa-solid fa-bell fa-xl"></i>
@@ -168,35 +210,36 @@
                     {% endif %}
                 </div>
                 <div class="notif-dropdown" id="notifBox">
-                    <div class="notif-header">Demandes en attente</div>
+                    <div class="p-3 border-bottom fw-bold">Demandes en attente</div>
                     <div class="notif-body">
                         {% if notifications_list is defined and notifications_list|length > 0 %}
                             {% for rdv in notifications_list %}
-                                <a href="{{ path('app_medecin_demandes_rdv') }}" class="notif-item">
-                                    <div class="p-2 border-bottom">
-                                        <small class="fw-bold">Nouveau RDV : {{ rdv.patient.user.nom|default('Patient') }}</small><br>
-                                        <small class="text-muted">Le {{ rdv.datetime|date('d/m à H:i') }}</small>
+                                <a href="{{ path('app_medecin_demandes_rdv') }}" class="text-decoration-none text-dark">
+                                    <div class="p-2 border-bottom small">
+                                        <strong>{{ rdv.patient.user.nom }}</strong><br>
+                                        <span class="text-muted">Le {{ rdv.datetime|date('d/m à H:i') }}</span>
                                     </div>
                                 </a>
                             {% endfor %}
                         {% else %}
-                            <div class="p-3 text-center text-muted small">Aucune demande</div>
+                            <div class="p-3 text-center text-muted small">Aucune notification</div>
                         {% endif %}
                     </div>
                 </div>
             </div>
         {% endif %}
 
-        {# Flash Messages Unifiés #}
+        {# Flash Messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show shadow-sm border-0">
+                <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show shadow-sm">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
         {% endfor %}
 
+        {% block content %}{% endblock %}
         {% block body %}{% endblock %}
     </main>
 </div>

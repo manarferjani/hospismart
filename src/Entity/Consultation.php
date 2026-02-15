@@ -38,30 +38,26 @@ class Consultation
     #[Assert\Length(max: 2000, maxMessage: 'Les observations ne doivent pas dépasser 2000 caractères')]
     private ?string $observations = null;
 
-    #[ORM\ManyToOne(inversedBy: 'consultations')]
+    // Correction : Cible l'entité User
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
-    #[Assert\NotBlank(message: 'Un patient doit être associé')]
-    private ?Patient $patient = null;
+    #[Assert\NotNull(message: 'Un patient doit être associé')]
+    private ?User $patient = null;
 
-    #[ORM\ManyToOne(inversedBy: 'consultations')]
+    // Correction : Cible l'entité User
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
-    #[Assert\NotBlank(message: 'Un médecin doit être associé')]
-    private ?Medecin $medecin = null;
+    #[Assert\NotNull(message: 'Un médecin doit être associé')]
+    private ?User $medecin = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     private ?RendezVous $rendezVous = null;
 
     // --- GETTERS ET SETTERS ---
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function getDateHeure(): ?\DateTimeInterface
-    {
-        return $this->date_heure;
-    }
+    public function getDateHeure(): ?\DateTimeInterface { return $this->date_heure; }
 
     public function setDateHeure(\DateTimeInterface $date_heure): static
     {
@@ -69,10 +65,7 @@ class Consultation
         return $this;
     }
 
-    public function getStatut(): ConsultationStatus
-    {
-        return $this->statut;
-    }
+    public function getStatut(): ConsultationStatus { return $this->statut; }
 
     public function setStatut(ConsultationStatus $statut): static
     {
@@ -80,10 +73,7 @@ class Consultation
         return $this;
     }
 
-    public function getMotif(): ?string
-    {
-        return $this->motif;
-    }
+    public function getMotif(): ?string { return $this->motif; }
 
     public function setMotif(string $motif): static
     {
@@ -91,10 +81,7 @@ class Consultation
         return $this;
     }
 
-    public function getObservations(): ?string
-    {
-        return $this->observations;
-    }
+    public function getObservations(): ?string { return $this->observations; }
 
     public function setObservations(?string $observations): static
     {
@@ -102,32 +89,24 @@ class Consultation
         return $this;
     }
 
-    public function getPatient(): ?Patient
-    {
-        return $this->patient;
-    }
+    // Mise à jour des types en User
+    public function getPatient(): ?User { return $this->patient; }
 
-    public function setPatient(?Patient $patient): static
+    public function setPatient(?User $patient): static
     {
         $this->patient = $patient;
         return $this;
     }
 
-    public function getMedecin(): ?Medecin
-    {
-        return $this->medecin;
-    }
+    public function getMedecin(): ?User { return $this->medecin; }
 
-    public function setMedecin(?Medecin $medecin): static
+    public function setMedecin(?User $medecin): static
     {
         $this->medecin = $medecin;
         return $this;
     }
 
-    public function getRendezVous(): ?RendezVous
-    {
-        return $this->rendezVous;
-    }
+    public function getRendezVous(): ?RendezVous { return $this->rendezVous; }
 
     public function setRendezVous(?RendezVous $rendezVous): static
     {

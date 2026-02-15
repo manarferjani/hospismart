@@ -1,464 +1,220 @@
-{% extends 'base_admin.html.twig' %}
+{% extends 'back.html.twig' %}
 
-{% block title %}Dashboard Admin{% endblock %}
+{% block title %}Dashboard Admin - Hospismart{% endblock %}
 
 {% block content %}
 <style>
+    /* --- Styles Généraux du Dashboard --- */
     .page-header {
-        margin-bottom: 2.5rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 2px solid #f0f0f0;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     .page-header h2 {
-        font-size: 2rem;
-        font-weight: 600;
-        color: #1a1a1a;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
         margin: 0;
     }
 
+    /* --- Cartes de Statistiques --- */
     .card-stats {
         border: none;
         border-radius: 12px;
         transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
+        color: white;
     }
 
     .card-stats:hover {
         transform: translateY(-5px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
-    }
-
-    .card-stats .card-body {
-        padding: 2rem 1.5rem;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
     }
 
     .card-stats i {
-        opacity: 0.9;
-        transition: transform 0.3s ease;
-    }
-
-    .card-stats:hover i {
-        transform: scale(1.1);
+        font-size: 2rem;
+        margin-bottom: 10px;
+        display: block;
     }
 
     .card-stats h3 {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         font-weight: 700;
-        margin: 0.75rem 0;
-        letter-spacing: -0.5px;
+        margin: 5px 0;
     }
 
     .card-stats p {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         font-weight: 500;
-        opacity: 0.95;
-        margin: 0;
+        margin-bottom: 0;
+        opacity: 0.9;
     }
 
-    .card-stats.border-3 {
-        box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1), 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+    /* --- Formulaire de Recherche --- */
+    .search-card {
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
     }
 
+    .search-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+
+    /* --- Tableau --- */
     .table-container {
+        background: white;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .card-header {
-        border-radius: 12px 12px 0 0;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%) !important;
-    }
-
-    .card-header h5 {
-        font-size: 1.1rem;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-    }
-
-    .btn-group .btn {
-        border-radius: 6px;
-        margin: 0 3px;
-        font-weight: 500;
-        transition: all 0.2s ease;
-    }
-
-    .btn-group .btn-warning {
-        box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3);
-    }
-
-    .btn-group .btn-warning:hover {
-        box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
-        transform: translateY(-2px);
-    }
-
-    .table {
-        margin-bottom: 0;
-        font-size: 0.95rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
 
     .table thead th {
-        background: #f8f9fa;
-        border: none;
+        background: #f8fafc;
+        color: #64748b;
         font-weight: 600;
-        color: #2c3e50;
-        padding: 1.25rem;
         text-transform: uppercase;
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
     }
 
-    .table tbody tr {
-        border-bottom: 1px solid #e9ecef;
-        transition: background-color 0.2s ease;
-    }
-
-    .table tbody tr:hover {
-        background-color: #f8f9fa;
-    }
-
-    .table tbody td {
-        padding: 1.25rem;
-        vertical-align: middle;
-        color: #555;
-    }
-
-    .table tbody td small {
-        font-size: 0.8rem;
-    }
-
-    .badge {
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .badge.bg-warning {
-        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%) !important;
-    }
-
-    .badge.bg-primary {
-        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%) !important;
-    }
-
-    .badge.bg-success {
-        background: linear-gradient(135deg, #198754 0%, #157347 100%) !important;
-    }
-
-    .btn-sm {
-        padding: 0.5rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        transition: all 0.2s ease;
-        font-weight: 500;
-    }
-
-    .btn-sm:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-outline-primary:hover {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-        color: white;
-    }
-
-    .btn-success {
-        background: linear-gradient(135deg, #198754 0%, #157347 100%);
-        border: none;
-    }
-
-    .btn-success:hover {
-        background: linear-gradient(135deg, #157347 0%, #11532f 100%);
-        color: white;
-    }
-
-    .btn-outline-danger:hover {
-        background-color: #dc3545;
-        border-color: #dc3545;
-        color: white;
-    }
-
-    .empty-state {
-        text-align: center;
-        padding: 3rem 1rem;
-        color: #999;
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        opacity: 0.3;
-    }
-
+    /* --- Badges Priorité --- */
     .badge-priority {
-        display: inline-block;
         padding: 0.4rem 0.8rem;
-        border-radius: 5px;
+        border-radius: 6px;
         font-weight: 600;
-        font-size: 0.8rem;
-    }
-
-    .badge-priority-basse {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        font-size: 0.75rem;
         color: white;
+        text-transform: uppercase;
     }
-
-    .badge-priority-normale {
-        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-        color: white;
-    }
-
-    .badge-priority-haute {
-        background: linear-gradient(135deg, #fd7e14 0%, #fc7604 100%);
-        color: white;
-    }
-
-    .badge-priority-urgente {
-        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        color: white;
-    }
+    .badge-priority-basse { background: #10b981; }
+    .badge-priority-normale { background: #3b82f6; }
+    .badge-priority-haute { background: #f59e0b; }
+    .badge-priority-urgente { background: #ef4444; }
 
     .btn-export {
-        background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
-        color: white;
-        border: none;
         padding: 0.6rem 1.2rem;
-        border-radius: 6px;
+        border-radius: 8px;
         font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-export:hover {
-        background: linear-gradient(135deg, #5a32a3 0%, #4d2e8a 100%);
-        transform: translateY(-2px);
-        color: white;
+        transition: 0.2s;
         text-decoration: none;
+        color: white;
     }
 </style>
 
-<div class="page-header">
-    <h2><i class="bi bi-speedometer2 me-2"></i>Tableau de Bord</h2>
-    <div class="text-end" style="gap: 0.75rem; display: flex; justify-content: flex-end;">
-        <a href="{{ path('back_office_export_pdf') }}" class="btn btn-export" target="_blank">
-            <i class="bi bi-file-pdf me-2"></i>PDF
-        </a>
-        <a href="{{ path('back_office_export_excel') }}" class="btn btn-export" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
-            <i class="bi bi-file-earmark-spreadsheet me-2"></i>Excel
-        </a>
+<div class="container-fluid py-2">
+    
+    <div class="page-header">
+        <h2><i class="bi bi-speedometer2 me-2"></i>Tableau de Bord</h2>
+        <div class="d-flex gap-2">
+            <a href="{{ path('back_office_export_pdf') }}" class="btn btn-export bg-danger" target="_blank">
+                <i class="bi bi-file-pdf me-1"></i> PDF
+            </a>
+            <a href="{{ path('back_office_export_excel') }}" class="btn btn-export bg-success">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Excel
+            </a>
+        </div>
     </div>
-</div>
 
-<div class="row mb-5">
-    <div class="col-md-3 mb-3">
-        <a href="{{ path('back_office_dashboard', {'sortBy': sortBy, 'sortOrder': sortOrder, 'filterStatut': 'total'}) }}" class="text-decoration-none">
-            <div class="card card-stats bg-primary text-white shadow {% if filterStatut == 'total' %}border-3 border-dark{% endif %}">
-                <div class="card-body text-center">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <a href="{{ path('back_office_dashboard', {'filterStatut': 'total'}) }}" class="text-decoration-none">
+                <div class="card card-stats bg-primary p-3 shadow-sm {% if filterStatut == 'total' %}border border-3 border-dark{% endif %}">
                     <i class="bi bi-inbox"></i>
                     <h3>{{ stats.total }}</h3>
-                    <p>Total des Réclamations</p>
+                    <p>Total Réclamations</p>
                 </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3 mb-3">
-        <a href="{{ path('back_office_dashboard', {'sortBy': sortBy, 'sortOrder': sortOrder, 'filterStatut': 'En attente'}) }}" class="text-decoration-none">
-            <div class="card card-stats bg-warning text-dark shadow {% if filterStatut == 'En attente' %}border-3 border-dark{% endif %}">
-                <div class="card-body text-center">
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('back_office_dashboard', {'filterStatut': 'En attente'}) }}" class="text-decoration-none">
+                <div class="card card-stats bg-warning text-dark p-3 shadow-sm {% if filterStatut == 'En attente' %}border border-3 border-dark{% endif %}">
                     <i class="bi bi-hourglass-split"></i>
                     <h3>{{ stats.en_attente }}</h3>
                     <p>En Attente</p>
                 </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3 mb-3">
-        <a href="{{ path('back_office_dashboard', {'sortBy': sortBy, 'sortOrder': sortOrder, 'filterStatut': 'En cours'}) }}" class="text-decoration-none">
-            <div class="card card-stats bg-info text-white shadow {% if filterStatut == 'En cours' %}border-3 border-dark{% endif %}">
-                <div class="card-body text-center">
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('back_office_dashboard', {'filterStatut': 'En cours'}) }}" class="text-decoration-none">
+                <div class="card card-stats bg-info p-3 shadow-sm {% if filterStatut == 'En cours' %}border border-3 border-dark{% endif %}">
                     <i class="bi bi-arrow-repeat"></i>
                     <h3>{{ stats.en_cours }}</h3>
                     <p>En Cours</p>
                 </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-3 mb-3">
-        <a href="{{ path('back_office_dashboard', {'sortBy': sortBy, 'sortOrder': sortOrder, 'filterStatut': 'Traité'}) }}" class="text-decoration-none">
-            <div class="card card-stats bg-success text-white shadow {% if filterStatut == 'Traité' %}border-3 border-dark{% endif %}">
-                <div class="card-body text-center">
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ path('back_office_dashboard', {'filterStatut': 'Traité'}) }}" class="text-decoration-none">
+                <div class="card card-stats bg-success p-3 shadow-sm {% if filterStatut == 'Traité' %}border border-3 border-dark{% endif %}">
                     <i class="bi bi-check-circle"></i>
                     <h3>{{ stats.traite }}</h3>
-                    <p>Traités</p>
+                    <p>Traitées</p>
                 </div>
-            </div>
-        </a>
+            </a>
+        </div>
     </div>
-</div>
 
-<!-- Nouvelle ligne de stats avec priorités -->
-<div class="row mb-5">
-    <div class="col-md-3 mb-3">
-        <a href="{{ path('back_office_dashboard', {'filterPriorite': 'Urgente', 'filterStatut': filterStatut, 'searchQuery': searchQuery ?? '', 'filterCategorie': filterCategorie ?? '', 'filterStatutSearch': filterStatutSearch ?? 'total'}) }}" class="text-decoration-none">
-            <div class="card card-stats bg-danger text-white shadow" style="cursor: pointer; transition: all 0.3s ease;">
-                <div class="card-body text-center">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    <h3>{{ stats.priorite_urgente }}</h3>
-                    <p>Priorité Urgente</p>
-                </div>
+    <div class="row mb-5">
+        <div class="col-md-3">
+            <div class="card card-stats bg-danger p-3 shadow-sm">
+                <i class="bi bi-exclamation-triangle"></i>
+                <h3>{{ stats.priorite_urgente }}</h3>
+                <p>Urgences</p>
             </div>
-        </a>
-    </div>
-    <div class="col-md-3 mb-3">
-        <a href="{{ path('back_office_dashboard', {'filterPriorite': 'Haute', 'filterStatut': filterStatut, 'searchQuery': searchQuery ?? '', 'filterCategorie': filterCategorie ?? '', 'filterStatutSearch': filterStatutSearch ?? 'total'}) }}" class="text-decoration-none">
-            <div class="card card-stats" style="background: linear-gradient(135deg, #fd7e14 0%, #fc7604 100%); color: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease;">
-                <div class="card-body text-center">
-                    <i class="bi bi-exclamation-circle-fill"></i>
-                    <h3>{{ stats.priorite_haute }}</h3>
-                    <p>Priorité Haute</p>
-                </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-stats p-3 shadow-sm" style="background: #fd7e14;">
+                <i class="bi bi-exclamation-circle"></i>
+                <h3>{{ stats.priorite_haute }}</h3>
+                <p>Priorité Haute</p>
             </div>
-        </a>
-    </div>
-    <div class="col-md-3 mb-3">
-        <a href="{{ path('back_office_dashboard', {'filterPriorite': 'Normale', 'filterStatut': filterStatut, 'searchQuery': searchQuery ?? '', 'filterCategorie': filterCategorie ?? '', 'filterStatutSearch': filterStatutSearch ?? 'total'}) }}" class="text-decoration-none">
-            <div class="card card-stats" style="background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%); color: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease;">
-                <div class="card-body text-center">
-                    <i class="bi bi-exclamation-lg"></i>
-                    <h3>{{ stats.non_traitees }}</h3>
-                    <p>Non Traitées</p>
-                </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-stats bg-secondary p-3 shadow-sm">
+                <i class="bi bi-list-task"></i>
+                <h3>{{ stats.non_traitees }}</h3>
+                <p>Non Traitées</p>
             </div>
-        </a>
-    </div>
-    <div class="col-md-3 mb-3">
-        <div class="card card-stats bg-success text-white shadow">
-            <div class="card-body text-center">
+        </div>
+        <div class="col-md-3">
+            <div class="card card-stats bg-dark p-3 shadow-sm">
                 <i class="bi bi-percent"></i>
                 <h3>{{ stats.taux_reponse }}%</h3>
                 <p>Taux de Réponse</p>
             </div>
         </div>
     </div>
-</div>
 
-<style>
-    .search-card {
-        border-radius: 12px;
-        background: #f8f9fa;
-        border: 1px solid #e8e8e8;
-        margin-bottom: 2rem;
-    }
-    
-    .search-card .card-body {
-        padding: 1.5rem;
-    }
-    
-    .search-form {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr auto;
-        gap: 1rem;
-        align-items: end;
-    }
-    
-    .search-form .form-group {
-        margin-bottom: 0;
-    }
-    
-    .search-form label {
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-        display: block;
-    }
-    
-    .search-form input,
-    .search-form select {
-        border-radius: 6px;
-        border: 1px solid #d0d0d0;
-        padding: 0.6rem 0.75rem;
-        font-size: 0.9rem;
-    }
-    
-    .search-form input:focus,
-    .search-form select:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
-    }
-    
-    .search-form .btn {
-        padding: 0.6rem 1.25rem;
-        border-radius: 6px;
-        font-weight: 600;
-        transition: all 0.2s ease;
-    }
-    
-    .search-form .btn-primary {
-        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-        border: none;
-        color: white;
-    }
-    
-    .search-form .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
-    }
-    
-    .search-form .btn-secondary {
-        background: #e8e8e8;
-        border: none;
-        color: #333;
-    }
-    
-    .search-form .btn-secondary:hover {
-        background: #d0d0d0;
-    }
-    
-    @media (max-width: 1200px) {
-        .search-form {
-            grid-template-columns: 1fr 1fr;
-        }
-    }
-    
-    @media (max-width: 768px) {
-        .search-form {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
-
-<div class="search-card card">
-    <div class="card-body">
+    <div class="search-card card p-4">
         <form method="GET" class="search-form">
             <div class="form-group">
-                <label for="searchQuery"><i class="bi bi-search me-1"></i>Rechercher</label>
-                <input type="text" id="searchQuery" name="searchQuery" class="form-control" placeholder="Titre, patient, email..." value="{{ searchQuery ?? '' }}">
+                <label class="form-label fw-bold small"><i class="bi bi-search me-1"></i> Rechercher</label>
+                <input type="text" name="searchQuery" class="form-control" placeholder="Titre, patient..." value="{{ searchQuery ?? '' }}">
             </div>
-            
             <div class="form-group">
-                <label for="filterCategorie"><i class="bi bi-tag me-1"></i>Catégorie</label>
-                <select id="filterCategorie" name="filterCategorie" class="form-select">
+                <label class="form-label fw-bold small"><i class="bi bi-tag me-1"></i> Catégorie</label>
+                <select name="filterCategorie" class="form-select">
                     <option value="">Toutes</option>
                     <option value="Service médical" {% if filterCategorie == 'Service médical' %}selected{% endif %}>Service médical</option>
                     <option value="Accueil" {% if filterCategorie == 'Accueil' %}selected{% endif %}>Accueil</option>
                     <option value="Facturation" {% if filterCategorie == 'Facturation' %}selected{% endif %}>Facturation</option>
-                    <option value="Hygiène" {% if filterCategorie == 'Hygiène' %}selected{% endif %}>Hygiène</option>
-                    <option value="Autre" {% if filterCategorie == 'Autre' %}selected{% endif %}>Autre</option>
                 </select>
             </div>
-            
             <div class="form-group">
-                <label for="filterPriorite"><i class="bi bi-traffic-cone me-1"></i>Priorité</label>
-                <select id="filterPriorite" name="filterPriorite" class="form-select">
+                <label class="form-label fw-bold small"><i class="bi bi-flag me-1"></i> Priorité</label>
+                <select name="filterPriorite" class="form-select">
                     <option value="">Toutes</option>
                     <option value="Basse" {% if filterPriorite == 'Basse' %}selected{% endif %}>Basse</option>
                     <option value="Normale" {% if filterPriorite == 'Normale' %}selected{% endif %}>Normale</option>
@@ -466,178 +222,86 @@
                     <option value="Urgente" {% if filterPriorite == 'Urgente' %}selected{% endif %}>Urgente</option>
                 </select>
             </div>
-            
-            <div class="form-group">
-                <label for="filterStatutSearch"><i class="bi bi-check-circle me-1"></i>Statut</label>
-                <select id="filterStatutSearch" name="filterStatutSearch" class="form-select">
-                    <option value="total" {% if filterStatutSearch == 'total' %}selected{% endif %}>Tous</option>
-                    <option value="En attente" {% if filterStatutSearch == 'En attente' %}selected{% endif %}>En Attente</option>
-                    <option value="En cours" {% if filterStatutSearch == 'En cours' %}selected{% endif %}>En Cours</option>
-                    <option value="Traité" {% if filterStatutSearch == 'Traité' %}selected{% endif %}>Traité</option>
-                </select>
-            </div>
-            
             <div>
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search me-1"></i>Chercher
+                <button type="submit" class="btn btn-primary w-100 fw-bold">
+                    <i class="bi bi-filter me-1"></i> Filtrer
                 </button>
             </div>
+            <div>
+                <a href="{{ path('back_office_dashboard') }}" class="btn btn-outline-secondary w-100 fw-bold">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </a>
+            </div>
         </form>
-        <div style="margin-top: 1rem;">
-            <a href="{{ path('back_office_dashboard') }}" class="btn btn-secondary btn-sm">
-                <i class="bi bi-arrow-clockwise me-1"></i>Réinitialiser
-            </a>
-        </div>
     </div>
-</div>
 
-<div id="reclamations" tabindex="-1" class="card table-container">
-    <div class="card-header bg-dark text-white">
-        <div class="row align-items-center">
-            <div class="col">
-                <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Liste des Réclamations</h5>
-            </div>
-            <div class="col-auto">
-                <div class="btn-group" role="group">
-                    <a href="{{ path('back_office_dashboard', {'sortBy': 'date', 'sortOrder': sortOrder == 'DESC' and sortBy == 'date' ? 'ASC' : 'DESC', 'filterStatut': filterStatut, 'searchQuery': searchQuery ?? '', 'filterCategorie': filterCategorie ?? '', 'filterPriorite': filterPriorite ?? '', 'filterStatutSearch': filterStatutSearch ?? 'total'}) }}" 
-                       class="btn btn-sm {% if sortBy == 'date' %}btn-warning{% else %}btn-outline-warning{% endif %}">
-                        <i class="bi bi-calendar me-1"></i>Date
-                    </a>
-                    <a href="{{ path('back_office_dashboard', {'sortBy': 'nomPatient', 'sortOrder': sortOrder == 'DESC' and sortBy == 'nomPatient' ? 'ASC' : 'DESC', 'filterStatut': filterStatut, 'searchQuery': searchQuery ?? '', 'filterCategorie': filterCategorie ?? '', 'filterPriorite': filterPriorite ?? '', 'filterStatutSearch': filterStatutSearch ?? 'total'}) }}" 
-                       class="btn btn-sm {% if sortBy == 'nomPatient' %}btn-warning{% else %}btn-outline-warning{% endif %}">
-                        <i class="bi bi-person me-1"></i>Nom Patient
-                    </a>
-                    <span class="btn btn-sm btn-outline-warning" title="Ordre de tri">
-                        <i class="bi {% if sortOrder == 'DESC' %}bi-arrow-down{% else %}bi-arrow-up{% endif %}"></i>
-                    </span>
-                </div>
+    <div class="table-container">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
+            <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-table me-2"></i>Dernières Réclamations</h5>
+            <div class="btn-group">
+                <a href="{{ path('back_office_dashboard', {'sortBy': 'date', 'sortOrder': sortOrder == 'DESC' ? 'ASC' : 'DESC'}) }}" class="btn btn-sm btn-outline-secondary">
+                    Trier par Date <i class="bi bi-arrow-down-up ms-1"></i>
+                </a>
             </div>
         </div>
-    </div>
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 5%">#</th>
-                    <th style="width: 20%">Titre</th>
-                    <th style="width: 18%">Patient</th>
-                    <th style="width: 12%">Catégorie</th>
-                    <th style="width: 10%">Priorité</th>
-                    <th style="width: 10%">Statut</th>
-                    <th style="width: 15%">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for reclamation in reclamations %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <td><strong>{{ reclamation.id }}</strong></td>
+                        <th>ID</th>
+                        <th>Titre</th>
+                        <th>Patient</th>
+                        <th>Catégorie</th>
+                        <th>Priorité</th>
+                        <th>Statut</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reclamation in reclamations %}
+                    <tr>
+                        <td class="fw-bold">#{{ reclamation.id }}</td>
                         <td>
-                            <strong class="text-dark">{{ reclamation.titre|slice(0, 20) }}{% if reclamation.titre|length > 20 %}...{% endif %}</strong>
+                            <div class="fw-bold text-dark">{{ reclamation.titre|slice(0, 25) }}...</div>
+                            <small class="text-muted">{{ reclamation.dateCreation|date('d/m/Y H:i') }}</small>
                         </td>
                         <td>
-                            <strong>{{ reclamation.nomPatient }}</strong><br>
+                            <div class="fw-bold">{{ reclamation.nomPatient }}</div>
                             <small class="text-muted">{{ reclamation.email }}</small>
                         </td>
-                        <td>
-                            {% if reclamation.categorie %}
-                                <span class="badge bg-light text-dark">{{ reclamation.categorie }}</span>
-                            {% else %}
-                                <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ reclamation.categorie }}</span></td>
                         <td>
                             <span class="badge-priority badge-priority-{{ reclamation.priorite|lower }}">
                                 {{ reclamation.priorite }}
                             </span>
                         </td>
                         <td>
-                            <small>{{ reclamation.dateCreation|date('d/m/Y') }}</small>
-                        </td>
-                        <td>
-                            <span class="badge {% if reclamation.statut == 'En attente' %}bg-warning text-dark{% elseif reclamation.statut == 'En cours' %}bg-primary text-white{% else %}bg-success text-white{% endif %}">
+                            <span class="badge {% if reclamation.statut == 'En attente' %}bg-warning text-dark{% elseif reclamation.statut == 'En cours' %}bg-primary{% else %}bg-success{% endif %}">
                                 {{ reclamation.statut }}
                             </span>
                         </td>
-                        <td>
-                            <a href="{{ path('back_office_voir_reclamation', {'id': reclamation.id}) }}" class="btn btn-sm btn-outline-primary" title="Voir"><i class="bi bi-eye"></i></a>
-                            <a href="{{ path('back_office_repondre_reclamation', {'id': reclamation.id}) }}" class="btn btn-sm btn-success" title="Répondre"><i class="bi bi-reply"></i></a>
-                            <form method="post" action="{{ path('back_office_supprimer_reclamation', {'id': reclamation.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer cette réclamation ?');">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer"><i class="bi bi-trash"></i></button>
-                            </form>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="7">
-                            <div class="empty-state">
-                                <i class="bi bi-inbox"></i>
-                                <p class="mt-2">Aucune réclamation à afficher</p>
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <a href="{{ path('back_office_voir_reclamation', {'id': reclamation.id}) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                                <a href="{{ path('back_office_repondre_reclamation', {'id': reclamation.id}) }}" class="btn btn-sm btn-outline-success"><i class="bi bi-reply"></i></a>
+                                <form method="post" action="{{ path('back_office_supprimer_reclamation', {'id': reclamation.id}) }}" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </form>
                             </div>
                         </td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    
-    <!-- Pagination -->
-    {% if reclamations.pageCount > 1 %}
-    <div class="card-footer bg-light d-flex justify-content-between align-items-center" style="padding: 1rem 1.5rem; border-radius: 0 0 12px 12px;">
-        <div class="text-muted small">
-            Affichage {{ reclamations.firstItemNumber }} à {{ reclamations.lastItemNumber }} sur <strong>{{ reclamations.getTotalItemCount }}</strong> résultats
-        </div>
-        <nav aria-label="Pagination">
-            <ul class="pagination mb-0" style="gap: 0.25rem;">
-                <!-- Première page -->
-                {% if reclamations.currentPageNumber > 1 %}
-                <li class="page-item">
-                    <a class="page-link" href="?page=1&sortBy={{ sortBy }}&sortOrder={{ sortOrder }}&filterStatut={{ filterStatut }}&searchQuery={{ searchQuery }}&filterCategorie={{ filterCategorie }}&filterPriorite={{ filterPriorite }}&filterStatutSearch={{ filterStatutSearch }}">
-                        <i class="bi bi-chevron-double-left"></i>
-                    </a>
-                </li>
-                <!-- Page précédente -->
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ reclamations.currentPageNumber - 1 }}&sortBy={{ sortBy }}&sortOrder={{ sortOrder }}&filterStatut={{ filterStatut }}&searchQuery={{ searchQuery }}&filterCategorie={{ filterCategorie }}&filterPriorite={{ filterPriorite }}&filterStatutSearch={{ filterStatutSearch }}">
-                        <i class="bi bi-chevron-left"></i>
-                    </a>
-                </li>
-                {% endif %}
-                
-                <!-- Numéros de page -->
-                {% for page in range(max(1, reclamations.currentPageNumber - 2), min(reclamations.pageCount, reclamations.currentPageNumber + 2)) %}
-                    {% if page == reclamations.currentPageNumber %}
-                    <li class="page-item active">
-                        <span class="page-link" style="background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%); border-color: #0b5ed7;">
-                            {{ page }}
-                        </span>
-                    </li>
                     {% else %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page }}&sortBy={{ sortBy }}&sortOrder={{ sortOrder }}&filterStatut={{ filterStatut }}&searchQuery={{ searchQuery }}&filterCategorie={{ filterCategorie }}&filterPriorite={{ filterPriorite }}&filterStatutSearch={{ filterStatutSearch }}">
-                            {{ page }}
-                        </a>
-                    </li>
-                    {% endif %}
-                {% endfor %}
-                
-                <!-- Page suivante -->
-                {% if reclamations.currentPageNumber < reclamations.pageCount %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ reclamations.currentPageNumber + 1 }}&sortBy={{ sortBy }}&sortOrder={{ sortOrder }}&filterStatut={{ filterStatut }}&searchQuery={{ searchQuery }}&filterCategorie={{ filterCategorie }}&filterPriorite={{ filterPriorite }}&filterStatutSearch={{ filterStatutSearch }}">
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                </li>
-                <!-- Dernière page -->
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ reclamations.pageCount }}&sortBy={{ sortBy }}&sortOrder={{ sortOrder }}&filterStatut={{ filterStatut }}&searchQuery={{ searchQuery }}&filterCategorie={{ filterCategorie }}&filterPriorite={{ filterPriorite }}&filterStatutSearch={{ filterStatutSearch }}">
-                        <i class="bi bi-chevron-double-right"></i>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                            Aucune réclamation trouvée.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-    {% endif %}
 </div>
 {% endblock %}

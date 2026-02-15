@@ -1,4 +1,4 @@
-{% extends 'base_back.html.twig' %}
+{% extends 'back.html.twig' %}
 
 {% block title %}Modifier {{ user.prenom }} {{ user.nom }} - Hospismart{% endblock %}
 
@@ -67,27 +67,27 @@
     </div>
     {% endif %}
 
-    {% if medecin %}
+    {% if user %}
     <div class="back-form-card">
         <h3>Profil médecin</h3>
         <div class="back-form-grid">
             <div class="form-group">
                 <label for="specialite">Spécialité</label>
-                <input type="text" id="specialite" name="specialite" value="{{ medecin.specialite }}">
+                <input type="text" id="specialite" name="specialite" value="{{ user.specialite }}">
             </div>
             <div class="form-group">
                 <label for="matricule">Matricule</label>
-                <input type="text" id="matricule" name="matricule" value="{{ medecin.matricule }}">
+                <input type="text" id="matricule" name="matricule" value="{{ user.matricule }}">
             </div>
             <div class="form-group">
-                <label for="medecin_telephone">Téléphone médecin</label>
-                <input type="text" id="medecin_telephone" name="medecin_telephone" value="{{ medecin.telephone }}">
+                <label for="user_telephone">Téléphone médecin</label>
+                <input type="text" id="user_telephone" name="user_telephone" value="{{ user.telephone }}">
             </div>
             <div class="form-group">
                 <label for="service">Service</label>
                 <select id="service" name="service">
                     {% for s in services %}
-                    <option value="{{ s.id }}" {{ medecin.service and medecin.service.id == s.id ? 'selected' : '' }}>{{ s.nom }}</option>
+                    <option value="{{ s.id }}" {{ user.service and user.service.id == s.id ? 'selected' : '' }}>{{ s.nom }}</option>
                     {% endfor %}
                 </select>
             </div>

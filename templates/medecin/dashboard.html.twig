@@ -1,13 +1,13 @@
 {% extends 'back.html.twig' %}
 
-{% block title %}Dashboard - Dr. {{ medecin.user.nom }}{% endblock %}
+{% block title %}Dashboard - Dr. {{ app.user.nom }}{% endblock %}
 
 {% block body %}
 <div class="container-fluid">
 <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="fw-bold" style="color: #1a1a2e;">Tableau de bord Médical</h1>
-            <p class="text-muted">Bienvenue, Dr. {{ medecin.user.prenom }} {{ medecin.user.nom }}</p>
+            <p class="text-muted">Bienvenue, Dr. {{ app.user.prenom }} {{ app.user.nom }}</p>
         </div>
         <span class="badge bg-light text-dark shadow-sm p-2">
             <i class="fa-solid fa-calendar-day me-2 text-primary"></i>{{ "now"|date("d F Y") }}
@@ -75,7 +75,7 @@
     {% if prochain_rdv.patient.image is not empty %}
         <img src="{{ asset('images/patients/' ~ prochain_rdv.patient.image) }}" 
              class="rounded-circle shadow-sm mb-3" 
-             style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #fff;">
+             style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #fff;">
     {% else %}
         <img src="https://ui-avatars.com/api/?name={{ prochain_rdv.patient.user.nom }}+{{ prochain_rdv.patient.user.prenom }}&background=0D6EFD&color=fff&size=80" 
              class="rounded-circle shadow-sm mb-3">
@@ -106,7 +106,8 @@
             <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 20px;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 class="fw-bold mb-0">Aperçu Hebdomadaire</h5>
-                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3" 
+<button class="btn btn-outline-primary btn-sm rounded-pill px-3" 
+        style="white-space: nowrap; width: fit-content;"
         data-bs-toggle="modal" 
         data-bs-target="#calendarModal">
     Voir tout le calendrier

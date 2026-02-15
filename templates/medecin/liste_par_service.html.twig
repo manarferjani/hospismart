@@ -83,23 +83,23 @@
                 
                 <div class="avatar-container">
                     {# AFFICHAGE DE L'IMAGE DE LA BASE DE DONNÉES #}
-                    {% if medecin.image %}
-                        <img src="{{ asset('images/medecins/' ~ medecin.image) }}" 
+                    {% if user.image %}
+                        <img src="{{ asset('images/medecins/' ~ user.image) }}" 
                              class="avatar-img" 
-                             alt="Dr. {{ medecin.user.nom }}"
-                             onerror="this.src='https://ui-avatars.com/api/?name={{ medecin.user.nom|url_encode }}+{{ medecin.user.prenom|url_encode }}&background=EBF2FF&color=4178F5&size=150&bold=true'">
+                             alt="Dr. {{ user.nom }}"
+                             onerror="this.src='https://ui-avatars.com/api/?name={{ user.nom|url_encode }}+{{ user.prenom|url_encode }}&background=EBF2FF&color=4178F5&size=150&bold=true'">
                     {% else %}
                         {# Fallback si le champ image est vide #}
-                        <img src="https://ui-avatars.com/api/?name={{ medecin.user.nom|url_encode }}+{{ medecin.user.prenom|url_encode }}&background=EBF2FF&color=4178F5&size=150&bold=true"
-                             class="avatar-img" alt="Dr. {{ medecin.user.nom }}">
+                        <img src="https://ui-avatars.com/api/?name={{ user.nom|url_encode }}+{{ user.prenom|url_encode }}&background=EBF2FF&color=4178F5&size=150&bold=true"
+                             class="avatar-img" alt="Dr. {{ user.nom }}">
                     {% endif %}
                 </div>
                 
                 <h4 style="color: #1a1a2e; font-size: 22px; font-weight: 700; margin-bottom: 5px;">
-                    Dr. {{ medecin.user.nom|upper }} {{ medecin.user.prenom }}
+                    Dr. {{ user.nom|upper }} {{ user.prenom }}
                 </h4>
                 
-                <p style="color: #4178F5; font-weight: 600; margin-bottom: 15px;">{{ medecin.specialite }}</p>
+                <p style="color: #4178F5; font-weight: 600; margin-bottom: 15px;">{{ user.specialite }}</p>
                 
                 <div style="color: #f59e0b; font-size: 14px; margin-bottom: 20px;">
                     <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
@@ -107,15 +107,15 @@
                 
                 <div style="text-align: left; background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 25px;">
                     <p style="font-size: 13px; margin: 0; color: #64748b;">
-                        <i class="fas fa-envelope" style="color:#4178F5; margin-right: 10px;"></i> {{ medecin.user.email }}
+                        <i class="fas fa-envelope" style="color:#4178F5; margin-right: 10px;"></i> {{ user.email }}
                     </p>
                 </div>
 
-                <a href="{{ path('app_rendezvous_dispo', {'id': medecin.id}) }}" class="btn-rdv">
+                <a href="{{ path('app_rendezvous_dispo', {'id': user.id}) }}" class="btn-rdv">
                     Prendre rendez-vous
                 </a>
                 
-                <a href="{{ path('app_medecin_show', {'id': medecin.id}) }}" style="color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none;">
+                <a href="{{ path('app_medecin_show', {'id': user.id}) }}" style="color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none;">
                     Consulter le profil complet
                 </a>
             </div>

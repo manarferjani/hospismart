@@ -1,67 +1,161 @@
 {% extends 'back.html.twig' %}
 
-{% block title %}Nouvel Événement{% endblock %}
-{% block page_title %}Nouvel Événement{% endblock %}
+{% block title %}Nouvel Événement - Hospismart{% endblock %}
 
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{{ path('app_evenement_index') }}">Accueil</a></li>
-<li class="breadcrumb-item"><a href="{{ path('app_evenement_index') }}">Événements</a></li>
-<li class="breadcrumb-item active">Nouveau</li>
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    /* En-tête de page */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    /* Conteneur de formulaire */
+    .form-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 40px;
+        max-width: 900px;
+        margin: 0 auto; /* Centrage du formulaire */
+    }
+
+    /* Style des labels et inputs */
+    .form-label {
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 8px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        padding: 12px 15px;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Boutons */
+    .btn-save {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.3s;
+    }
+
+    .btn-save:hover {
+        background: #2563eb;
+        transform: translateY(-2px);
+    }
+
+    .btn-back {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 12px 25px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        color: #3b82f6;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #eff6ff;
+        font-weight: 700;
+    }
+</style>
 {% endblock %}
 
-{% block body %}
-<div class="row">
-    <div class="col-md-12">
-        <div class="card card-primary">
-            <div class="card-header">
-                <h3 class="card-title">Créer un nouvel événement</h3>
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="m-0 fw-bold" style="font-size: 24px;">✨ Créer un événement</h1>
+        <small class="text-muted">Remplissez les informations pour planifier une nouvelle activité.</small>
+    </div>
+</div>
+
+<div class="form-container">
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+        
+        <div class="section-title"><i class="fa-solid fa-circle-info me-2"></i>Informations Générales</div>
+        <div class="row mb-4">
+            <div class="col-md-8">
+                {{ form_label(form.titre, 'Titre de l\'événement', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Réunion de service'}}) }}
+                {{ form_errors(form.titre) }}
             </div>
-            <div class="card-body">
-                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
-                    {{ form_errors(form) }}
-                    <div class="row">
-                        <div class="col-md-6">
-                            {{ form_row(form.titre) }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form_row(form.type_evenement) }}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            {{ form_row(form.description) }}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            {{ form_row(form.date_debut) }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form_row(form.date_fin) }}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            {{ form_row(form.lieu) }}
-                        </div>
-                        <div class="col-md-3">
-                            {{ form_row(form.statut) }}
-                        </div>
-                        <div class="col-md-3">
-                            {{ form_row(form.budget_alloue) }}
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Enregistrer
-                        </button>
-                        <a href="{{ path('app_evenement_index') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Retour
-                        </a>
-                    </div>
-                {{ form_end(form) }}
+            <div class="col-md-4">
+                {{ form_label(form.type_evenement, 'Type', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.type_evenement, {'attr': {'class': 'form-select'}}) }}
             </div>
         </div>
-    </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                {{ form_label(form.description, 'Description détaillée', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '4', 'placeholder': 'Décrivez l\'objectif de l\'événement...'}}) }}
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fa-solid fa-clock me-2"></i>Planification & Lieu</div>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                {{ form_label(form.date_debut, 'Date et heure de début', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.date_debut, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="col-md-6">
+                {{ form_label(form.date_fin, 'Date et heure de fin', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.date_fin, {'attr': {'class': 'form-control'}}) }}
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-md-6">
+                {{ form_label(form.lieu, 'Lieu / Salle', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.lieu, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Salle de conférence B'}}) }}
+            </div>
+            <div class="col-md-3">
+                {{ form_label(form.statut, 'Statut initial', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.statut, {'attr': {'class': 'form-select'}}) }}
+            </div>
+            <div class="col-md-3">
+                {{ form_label(form.budget_alloue, 'Budget (TND)', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.budget_alloue, {'attr': {'class': 'form-control', 'placeholder': '0.00'}}) }}
+            </div>
+        </div>
+
+        <hr class="text-faded mb-4">
+
+        <div class="d-flex justify-content-between align-items:center">
+            <a href="{{ path('app_evenement_index') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Annuler
+            </a>
+            <button type="submit" class="btn-save shadow-sm">
+                <i class="fas fa-save"></i> Confirmer la création
+            </button>
+        </div>
+    {{ form_end(form) }}
 </div>
 {% endblock %}
