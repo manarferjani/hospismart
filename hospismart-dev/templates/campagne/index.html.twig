@@ -1,0 +1,84 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Campagnes{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-bullhorn"></i> Campagnes</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_campagne_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouvelle Campagne
+            </a>
+        </div>
+    </div>
+
+    {% if campagnes %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Liste des campagnes</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Titre</th>
+                                <th>Thème</th>
+                                <th>Date de début</th>
+                                <th>Date de fin</th>
+                                <th>Budget</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for campagne in campagnes %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ campagne.titre }}</strong>
+                                    </td>
+                                    <td>{{ campagne.theme }}</td>
+                                    <td>
+                                        {% if campagne.dateDebut %}
+                                            {{ campagne.dateDebut|date('d/m/Y') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if campagne.dateFin %}
+                                            {{ campagne.dateFin|date('d/m/Y') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ campagne.budget|number_format(2, ',', ' ') }} €</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_campagne_show', {id: campagne.id}) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                        <a href="{{ path('app_campagne_edit', {id: campagne.id}) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i> Modifier
+                                        </a>
+                                        <form method="post" action="{{ path('app_campagne_delete', {id: campagne.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ campagne.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Supprimer
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> Aucune campagne trouvée.
+            <a href="{{ path('app_campagne_new') }}" class="alert-link">Créer une campagne</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

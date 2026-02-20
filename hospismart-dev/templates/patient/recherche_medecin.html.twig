@@ -1,0 +1,254 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Trouver un médecin - Hospismart{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    body { background-color: #f4f7fe; }
+
+    /* ========== BARRE DE RECHERCHE ========== */
+    .search-section {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 32px 48px;
+    }
+    .search-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .search-logo {
+        flex-shrink: 0;
+        width: 48px; height: 48px;
+        background: #ffffff;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .search-logo i { font-size: 24px; color: #4178F5; }
+    
+    .search-form {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 9999px;
+        padding: 6px 6px 6px 24px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .search-input {
+        flex: 1; border: none; outline: none;
+        font-size: 15px; background: transparent;
+        color: #1a1a2e; padding: 10px 0;
+    }
+    .search-btn {
+        padding: 12px 28px;
+        background: #4178F5;
+        color: white; border: none;
+        border-radius: 9999px;
+        font-weight: 600; cursor: pointer;
+        transition: 0.2s;
+    }
+    .search-btn:hover { background: #3366e0; }
+
+    /* ========== SECTION CATEGORIES ARRONDIE ========== */
+    .categories-section {
+        max-width: 1350px; /* Légèrement plus large pour l'effet de débordement */
+        margin: 0 auto 40px;
+        padding: 60px 48px;
+        background: #ffffff;
+        border-radius: 50px; /* L'arrondi principal */
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+    }
+    .categories-section::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0.03;
+        background-image: radial-gradient(circle, #4178F5 1px, transparent 1px);
+        background-size: 24px 24px;
+    }
+    .categories-inner { position: relative; z-index: 1; }
+    .categories-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 40px;
+    }
+    .category-label { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .category-label-dot { width: 10px; height: 10px; border-radius: 50%; background: #4178F5; }
+    .category-label-text { font-size: 14px; font-weight: 600; color: #4178F5; text-transform: uppercase; }
+    .categories-title { font-size: 36px; font-weight: 700; color: #1a1a2e; line-height: 1.2; }
+    .categories-subtitle { font-size: 15px; color: #6b7280; max-width: 500px; margin-top: 10px; }
+
+    /* Carousel */
+    .cards-carousel {
+        display: flex; gap: 20px; overflow-x: auto;
+        padding-bottom: 20px; scrollbar-width: none;
+        scroll-behavior: smooth;
+    }
+    .cards-carousel::-webkit-scrollbar { display: none; }
+
+    .doctor-card {
+        flex-shrink: 0; width: 260px;
+        border-radius: 24px; background: #f8faff;
+        border: 1px solid #eef2f6;
+        padding: 24px; text-align: center;
+        transition: all 0.3s ease;
+    }
+    .doctor-card:hover { transform: translateY(-10px); background: #ffffff; box-shadow: 0 15px 30px rgba(65, 120, 245, 0.1); }
+    .doctor-card-image img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; }
+    .doctor-card-title { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 5px; }
+    .doctor-card-count { font-size: 14px; color: #4178F5; font-weight: 600; margin-bottom: 12px; }
+    .doctor-card-btn {
+        display: inline-block; padding: 10px 20px;
+        background: #4178F5; color: white;
+        border-radius: 12px; text-decoration: none;
+        font-size: 13px; font-weight: 600; transition: 0.2s;
+    }
+
+    /* ========== GRILLE MEDECINS ========== */
+    .doctors-grid-section { max-width: 1280px; margin: 0 auto; padding: 40px 48px 80px; }
+    .doctors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+    .medecin-card {
+        background: white; border-radius: 24px; padding: 24px;
+        text-align: center; border: 1px solid #eef2f6; transition: 0.3s;
+    }
+    .medecin-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .service-badge {
+        display: inline-block; background: #eef3ff; color: #4178F5;
+        padding: 4px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; margin-bottom: 15px;
+    }
+    .avatar { width: 90px; height: 90px; border-radius: 50%; margin-bottom: 15px; border: 3px solid #f0f4ff; }
+    .btn-rdv {
+        display: block; width: 100%; padding: 14px;
+        background: #1a1a2e; color: white;
+        border-radius: 16px; text-decoration: none;
+        font-weight: 600; margin-bottom: 10px; transition: 0.2s;
+    }
+    .btn-rdv:hover { background: #4178F5; }
+
+    @media (max-width: 768px) {
+        .categories-section { border-radius: 30px; padding: 30px 20px; }
+        .search-section, .doctors-grid-section { padding: 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+
+{# ========== SECTION 1 : RECHERCHE ========== #}
+<div class="search-section">
+    <div class="search-row">
+        <div class="search-logo">
+            <i class="fas fa-hospital-alt"></i>
+        </div>
+        <form method="get" action="{{ path('app_medecin_recherche') }}" class="search-form">
+            <i class="fas fa-search search-icon" style="color: #9ca3af; margin-right: 10px;"></i>
+            <input type="text" name="nom" class="search-input"
+                   placeholder="Rechercher un spécialiste ou un service..."
+                   value="{{ app.request.query.get('nom') }}">
+            <button type="submit" class="search-btn">Rechercher</button>
+        </form>
+    </div>
+</div>
+
+
+
+{# ========== SECTION 2 : CAROUSEL DES SERVICES (AVEC GRANDES IMAGES) ========== #}
+<section class="categories-section">
+    <div class="categories-inner">
+        <div class="categories-header">
+            <div>
+                <div class="category-label">
+                    <span class="category-label-dot"></span>
+                    <span class="category-label-text">Nos Services</span>
+                </div>
+                <h2 class="categories-title"> Trouvez le bon spécialiste <br> pour vos besoins </h2>
+                <p class="categories-subtitle">
+                    Que ce soit pour une consultation générale ou un soin spécialisé, notre équipe d'experts est là pour vous accompagner.
+                </p>
+            </div>
+            <div class="nav-arrows">
+                <button class="nav-arrow nav-arrow-left" onclick="scrollCarousel('left')" style="background: white; border: 1px solid #e2e8f0; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; margin-right: 8px;">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="nav-arrow nav-arrow-right" onclick="scrollCarousel('right')" style="background: #4178F5; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer;">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        {# Définition des descriptions #}
+        {% set descriptions = {
+            'Médecine Générale': 'Bilans de routine et gestion de votre santé au quotidien.',
+            'Pédiatrie': "Soins spécialisés pour la santé et le bien-être de vos enfants.",
+            'Psychiatrie': 'Soutien professionnel pour votre santé mentale et bien-être.',
+            'Dermatologie': 'Experts pour le traitement de la peau, de l’acné et autres soins cutanés.',
+            'Cardiologie': 'Soins complets du cœur : diagnostic et traitement.',
+            'Neurologie': 'Diagnostic et traitement des troubles du cerveau et du système nerveux.'
+        } %}
+
+        {# Mappage des images locales #}
+        {% set service_images = {
+            'Médecine Générale': 'medecine.jpg',
+            'Pédiatrie': 'pediatrie.jpg',
+            'Psychiatrie': 'psy.jpg',
+            'Dermatologie': 'dermatologie.jpg',
+            'Cardiologie': 'cardiologie.jpg',
+            'Neurologie': 'neurologie.jpg',
+            'Radiologie': 'radiologie.jpg'
+        } %}
+
+        <div class="cards-carousel" id="doctorCarousel">
+            {% for service in services %}
+                {# J'ai augmenté la largeur de la carte à 300px pour accueillir la grande image #}
+                <div class="doctor-card" style="width: 300px;"> 
+                    <div class="doctor-card-image">
+                        {% if service_images[service.nom] is defined %}
+                            {# Taille augmentée à 160px #}
+                            <img src="{{ asset('images/services/' ~ service_images[service.nom]) }}" 
+                                 alt="{{ service.nom }}"
+                                 style="width: 160px; height: 160px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 6px 15px rgba(0,0,0,0.12); margin-bottom: 20px;">
+                        {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ service.nom|url_encode }}&background=EBF2FF&color=4178F5&size=160&bold=true"
+                                 alt="{{ service.nom }}"
+                                 style="width: 160px; height: 160px; border-radius: 50%; margin-bottom: 20px;">
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="doctor-card-title" style="font-size: 20px;">{{ service.nom }}</h3>
+                    <p class="doctor-card-count">{{ service.medecins|length }} Médecins</p>
+                    
+                    <p style="font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 20px; min-height: 45px; padding: 0 10px;">
+                        {{ descriptions[service.nom]|default('Découvrez nos services spécialisés en ' ~ service.nom ~ '.') }}
+                    </p>
+
+<a href="{{ path('app_medecins_par_service', {'id': service.id}) }}" class="doctor-card-btn">
+    Voir les spécialistes
+</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
+
+<script>
+function scrollCarousel(direction) {
+    const carousel = document.getElementById('doctorCarousel');
+    const scrollAmount = 300;
+    carousel.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+    });
+}
+</script>
+{% endblock %}

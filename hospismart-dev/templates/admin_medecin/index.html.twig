@@ -1,0 +1,86 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Gestion des Médecins{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-stethoscope"></i> Gestion des Médecins</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_admin_medecin_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouveau Médecin
+            </a>
+        </div>
+    </div>
+
+    {% if medecins %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Liste des médecins ({{ medecins|length }})</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Téléphone</th>
+                                <th>Spécialité</th>
+                                <th>Service</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for medecin in medecins %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ medecin.prenom }} {{ medecin.nom }}</strong>
+                                    </td>
+                                    <td>{{ medecin.email }}</td>
+                                    <td>{{ medecin.telephone|default('N/A') }}</td>
+                                    <td>
+                                        {% if medecin.specialite %}
+                                            <span class="badge bg-info">{{ medecin.specialite }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if medecin.service %}
+                                            {{ medecin.service.nom }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_admin_medecin_show', {id: medecin.id}) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                        <a href="{{ path('app_admin_medecin_edit', {id: medecin.id}) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i> Modifier
+                                        </a>
+                                        <form method="post" action="{{ path('app_admin_medecin_delete', {id: medecin.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ medecin.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Supprimer
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> Aucun médecin trouvé.
+            <a href="{{ path('app_admin_medecin_new') }}" class="alert-link">Créer un médecin</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

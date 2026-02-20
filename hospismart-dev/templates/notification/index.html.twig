@@ -1,0 +1,102 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Centre de Notifications{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 fw-bold"><i class="fas fa-bell text-primary me-2"></i> Notifications</h1>
+            <p class="text-muted small mb-0">Centre de notifications</p>
+        </div>
+        {% if stats.unread > 0 %}
+            <form method="post" action="{{ path('app_notification_mark_all_read') }}" style="display:inline;">
+                <input type="hidden" name="_token" value="{{ csrf_token('mark_all_read') }}">
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-check-double"></i> Tout marquer comme lu
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    {# Stats cards #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center" style="border-radius:12px; border-left:4px solid #6c757d !important;">
+                <div class="card-body py-3">
+                    <h4 class="fw-bold mb-0">{{ stats.total }}</h4>
+                    <small class="text-muted">Total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center" style="border-radius:12px; border-left:4px solid #ffc107 !important;">
+                <div class="card-body py-3">
+                    <h4 class="fw-bold mb-0 text-warning">{{ stats.unread }}</h4>
+                    <small class="text-muted">Non lues</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center" style="border-radius:12px; border-left:4px solid #198754 !important;">
+                <div class="card-body py-3">
+                    <h4 class="fw-bold mb-0 text-success">{{ stats.read }}</h4>
+                    <small class="text-muted">Lues</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if notifications %}
+        <div class="card shadow-sm border-0" style="border-radius:15px;">
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for notification in notifications %}
+                        <div class="list-group-item {{ not notification.isRead ? 'bg-light' : '' }} p-3" style="border-left: 4px solid {{ not notification.isRead ? '#ffc107' : '#dee2e6' }};">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="fas fa-bell me-2 {{ not notification.isRead ? 'text-warning' : 'text-muted' }}"></i>
+                                        <span class="fw-semibold">{{ notification.content }}</span>
+                                        {% if not notification.isRead %}
+                                            <span class="badge bg-warning ms-2 text-dark">Nouveau</span>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ notification.createdAt|date('d/m/Y à H:i') }}
+                                    </small>
+                                </div>
+                                <div class="ms-3 d-flex gap-1">
+                                    {% if not notification.isRead %}
+                                        <form method="post" action="{{ path('app_notification_mark_read', {id: notification.id}) }}" style="display:inline;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('mark_read') }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Marquer comme lu">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    <form method="post" action="{{ path('app_notification_delete', {id: notification.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer cette notification ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete') }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="card border-0 shadow-sm text-center py-5" style="border-radius:15px;">
+            <div class="card-body">
+                <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Aucune notification</h5>
+                <p class="text-muted small">Vous n'avez aucune notification pour le moment.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

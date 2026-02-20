@@ -1,0 +1,216 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Réclamation #{{ reclamation.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .badge-priority {
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: white;
+        display: inline-block;
+        margin-left: 0.5rem;
+    }
+    
+    .badge-priority-basse { background: rgba(40, 167, 69, 0.9); }
+    .badge-priority-normale { background: rgba(13, 110, 253, 0.9); }
+    .badge-priority-haute { background: rgba(255, 193, 7, 0.9); color: #1a1a1a; }
+    .badge-priority-urgente { background: rgba(220, 53, 69, 0.9); }
+
+    .badge-en-attente { background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%); color: #1a1a1a; }
+    .badge-en-cours { background: linear-gradient(135deg, #0dcaf0 0%, #0bacda 100%); color: white; }
+    .badge-traite { background: linear-gradient(135deg, #198754 0%, #157347 100%); color: white; }
+
+    .info-card { height: 100%; border-left: 4px solid #0d6efd; }
+    .reply-card { height: 100%; border-left: 4px solid #198754; }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #495057;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 0.5rem;
+    }
+</style>
+
+<div class="d-flex justify-content-between mb-4 align-items-center">
+    <a href="{{ path('back_office_dashboard') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Retour au tableau de bord
+    </a>
+    <div class="d-flex gap-2">
+        <a href="{{ path('back_office_export_reclamation_pdf', {'id': reclamation.id}) }}" class="btn btn-outline-danger" target="_blank" title="Exporter en PDF">
+            <i class="bi bi-file-pdf"></i> PDF
+        </a>
+        <a href="{{ path('back_office_export_reclamation_excel', {'id': reclamation.id}) }}" class="btn btn-outline-success" title="Exporter en Excel">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Excel
+        </a>
+        <form method="post" action="{{ path('back_office_supprimer_reclamation', {'id': reclamation.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ? Cette action est irréversible.');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Supprimer
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Complaint Details -->
+    <div class="col-lg-7">
+        <div class="card shadow-sm mb-4 info-card">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-primary">
+                        <i class="bi bi-card-text me-2"></i>Détails de la réclamation #{{ reclamation.id }}
+                    </h5>
+                    <span class="badge {% if reclamation.statut == 'En attente' %}badge-en-attente{% elseif reclamation.statut == 'En cours' %}badge-en-cours{% else %}badge-traite{% endif %} px-3 py-2">
+                        {{ reclamation.statut }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6 border-end">
+                        <small class="text-muted text-uppercase fw-bold">Patient</small>
+                        <p class="fs-5 mb-0 fw-bold">{{ reclamation.nomPatient }}</p>
+                        <p class="text-muted mb-0"><i class="bi bi-envelope me-1"></i> {{ reclamation.email }}</p>
+                    </div>
+                    <div class="col-md-6 ps-4">
+                        <div class="mb-2">
+                            <small class="text-muted text-uppercase fw-bold">Date de création</small>
+                            <p class="mb-0 text-dark">{{ reclamation.dateCreation|date('d/m/Y à H:i') }}</p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted text-uppercase fw-bold">Catégorie</small>
+                                <p class="mb-0 fw-bold">{{ reclamation.categorie ?? 'Non spécifiée' }}</p>
+                            </div>
+                            <div>
+                                <span class="badge-priority badge-priority-{{ reclamation.priorite|lower }}">
+                                    {{ reclamation.priorite }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="section-title"><i class="bi bi-chat-left-quote me-2"></i>Sujet : {{ reclamation.titre }}</h6>
+                    <div class="bg-light p-4 rounded border">
+                        {{ reclamation.description|nl2br }}
+                    </div>
+                </div>
+
+                {% if reclamation.reponses|length > 0 %}
+                    <h6 class="section-title mt-5"><i class="bi bi-chat-dots me-2"></i>Historique des réponses</h6>
+                    <div class="d-flex flex-column gap-3">
+                        {% for reponse in reclamation.reponses %}
+                            <div class="card border-0 shadow-sm bg-light">
+                                <div class="card-body p-3 border-start border-4 border-success">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong><i class="bi bi-person-check me-1"></i> {{ reponse.adminNom }}</strong>
+                                        <small class="text-muted">{{ reponse.dateReponse|date('d/m/Y H:i') }}</small>
+                                    </div>
+                                    <p class="mb-0">{{ reponse.contenu|nl2br }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Audit Logs Section (Collapsed by default) -->
+        {% if auditLogs|length > 0 %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center" role="button" data-bs-toggle="collapse" data-bs-target="#auditLogsParams" aria-expanded="false">
+                    <h6 class="mb-0 text-muted"><i class="bi bi-clock-history me-2"></i>Historique des modifications du système</h6>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="collapse" id="auditLogsParams">
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            {% for log in auditLogs %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1 text-primary">{{ log.description }}</h6>
+                                        <small class="text-muted">{{ log.createdAt|date('d/m/Y H:i') }}</small>
+                                    </div>
+                                    <p class="mb-1 small">Par {{ log.changedBy }}</p>
+                                    {% if log.fieldName %}
+                                        <small class="text-muted">Changement sur <code>{{ log.fieldName }}</code> : 
+                                            <span class="text-danger text-decoration-line-through">{{ log.oldValue }}</span> 
+                                            <i class="bi bi-arrow-right mx-1"></i> 
+                                            <span class="text-success">{{ log.newValue }}</span>
+                                        </small>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column: Reply Form -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm reply-card sticky-top" style="top: 2rem; z-index: 100;">
+            <div class="card-header bg-success text-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-reply-all me-2"></i>Répondre à la réclamation</h5>
+            </div>
+            <div class="card-body bg-light">
+                <div class="alert alert-info border-0 shadow-sm mb-4">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    L'envoi d'une réponse marquera automatiquement cette réclamation comme <strong>Traitée</strong>.
+                </div>
+
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'needs-validation'}}) }}
+                    
+                    {% if form.vars.errors|length > 0 %}
+                        <div class="alert alert-danger" role="alert">
+                            <ul class="mb-0">
+                                {% for error in form.vars.errors %}
+                                    <li>{{ error.message }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        {{ form_label(form.adminNom, 'Votre Nom', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
+                            {{ form_widget(form.adminNom, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        {{ form_errors(form.adminNom) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.adminEmail, 'Votre Email', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
+                            {{ form_widget(form.adminEmail, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        {{ form_errors(form.adminEmail) }}
+                    </div>
+
+                    <div class="mb-4">
+                        {{ form_label(form.contenu, 'Message', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'rows': '8'}}) }}
+                        {{ form_errors(form.contenu) }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg fw-bold shadow-sm">
+                            <i class="bi bi-send me-2"></i>Envoyer la réponse
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

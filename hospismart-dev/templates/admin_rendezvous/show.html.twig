@@ -1,0 +1,96 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Rendez-vous #{{ rendezvous.id }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Rendez-vous #{{ rendezvous.id }}</h6>
+                    <div>
+                        <a href="{{ path('app_admin_rendezvous_edit', {id: rendezvous.id}) }}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        <a href="{{ path('app_admin_rendezvous_index') }}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-list"></i> Retour
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Patient</label>
+                                <p class="h6">{{ rendezvous.patient.prenom }} {{ rendezvous.patient.nom }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Médecin</label>
+                                <p class="h6">
+                                    {% if rendezvous.medecin %}
+                                        {{ rendezvous.medecin.prenom }} {{ rendezvous.medecin.nom }}
+                                    {% else %}
+                                        <span class="text-muted">Non assigné</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Date & Heure</label>
+                                <p class="h6">{{ rendezvous.datetime|date('d/m/Y à H:i') }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Statut</label>
+                                <p class="h6">
+                                    {% if rendezvous.statut == 'CONFIRME' %}
+                                        <span class="badge bg-success">Confirmé</span>
+                                    {% elseif rendezvous.statut == 'EN_ATTENTE' %}
+                                        <span class="badge bg-warning">En attente</span>
+                                    {% elseif rendezvous.statut == 'REFUSE' %}
+                                        <span class="badge bg-danger">Refusé</span>
+                                    {% elseif rendezvous.statut == 'ANNULE' %}
+                                        <span class="badge bg-secondary">Annulé</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Type de consultation</label>
+                                <p class="h6">{{ rendezvous.typeConsultation|default('Non spécifié') }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Motif</label>
+                                <p class="h6">{{ rendezvous.motif|default('Non spécifié') }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <form method="post" action="{{ path('app_admin_rendezvous_delete', {id: rendezvous.id}) }}" onsubmit="return confirm('Êtes-vous sûr ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ rendezvous.id) }}">
+                            <button class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Supprimer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Connexion - Hospismart{% endblock %}
+
+{% block body %} 
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px; border-radius: 20px; border: none;">
+        <h2 class="text-center mb-4 fw-bold" style="color: #0d6efd;">Se connecter</h2>
+        
+        {% if error %}
+            <div class="alert alert-danger" style="border-radius: 12px;">
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+            </div>
+        {% endif %}
+
+        <form method="post" action="{{ path('app_login') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+            
+            <div class="mb-3">
+                <label for="username" class="form-label small fw-bold">Nom d'utilisateur ou email</label>
+                <input type="text" id="username" name="_username" value="{{ last_username }}" 
+                       class="form-control" placeholder="Votre identifiant" required autofocus>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label small fw-bold">Mot de passe</label>
+                <input type="password" id="password" name="_password" 
+                       class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm fw-bold">
+                Connexion
+            </button>
+        </form>
+
+        <p class="mt-4 text-center small">
+            Pas encore de compte ? <a href="{{ path('app_register') }}" class="text-decoration-none fw-bold">Créer un compte</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

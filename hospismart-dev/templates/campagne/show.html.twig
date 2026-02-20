@@ -1,0 +1,79 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}{{ campagne.titre }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">{{ campagne.titre }}</h6>
+                    <div>
+                        <a href="{{ path('app_campagne_edit', {id: campagne.id}) }}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        <a href="{{ path('app_campagne_index') }}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-list"></i> Retour
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Thème</label>
+                                <p class="h5">{{ campagne.theme }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Budget</label>
+                                <p class="h5"><span class="badge bg-info">{{ campagne.budget|number_format(2, ',', ' ') }} €</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Date de début</label>
+                                <p class="h6">
+                                    {% if campagne.dateDebut %}
+                                        {{ campagne.dateDebut|date('d/m/Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Date de fin</label>
+                                <p class="h6">
+                                    {% if campagne.dateFin %}
+                                        {{ campagne.dateFin|date('d/m/Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Description</label>
+                        <div class="p-3 bg-light rounded">
+                            {{ campagne.description }}
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        {{ include('campagne/_delete_form.html.twig') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

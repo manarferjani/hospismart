@@ -1,0 +1,64 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Paramètre Vital{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Paramètre Vital</h6>
+                    <div>
+                        <a href="{{ path('app_parametre_vital_edit', {id: parametre_vital.id}) }}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        <a href="{{ path('app_parametre_vital_index') }}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-list"></i> Retour
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Tension (mmHg)</label>
+                                <p class="h5"><span class="badge bg-info">{{ parametre_vital.tension }}</span></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Température (°C)</label>
+                                <p class="h5"><span class="badge bg-warning">{{ parametre_vital.temperature }}°C</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Fréquence cardiaque (bpm)</label>
+                                <p class="h5"><span class="badge bg-danger">{{ parametre_vital.frequenceCardiaque }} bpm</span></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Date et heure de prise</label>
+                                <p class="h6">
+                                    {% if parametre_vital.datePrise %}
+                                        {{ parametre_vital.datePrise|date('d/m/Y à H:i') }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        {{ include('parametre_vital/_delete_form.html.twig') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

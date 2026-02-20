@@ -1,0 +1,74 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Diagnostics{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-heartbeat"></i> Diagnostics</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_diagnostic_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouveau Diagnostic
+            </a>
+        </div>
+    </div>
+
+    {% if diagnostics %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Liste des diagnostics</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Contenu</th>
+                                <th>Probabilité IA</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for diagnostic in diagnostics %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ diagnostic.id }}</strong>
+                                    </td>
+                                    <td>
+                                        {{ diagnostic.contenu|length > 80 ? diagnostic.contenu|slice(0, 80) ~ '...' : diagnostic.contenu }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ diagnostic.probabiliteIa|number_format(2, ',', ' ') }}%</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_diagnostic_show', {id: diagnostic.id}) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                        <a href="{{ path('app_diagnostic_edit', {id: diagnostic.id}) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i> Modifier
+                                        </a>
+                                        <form method="post" action="{{ path('app_diagnostic_delete', {id: diagnostic.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ diagnostic.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Supprimer
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> Aucun diagnostic trouvé.
+            <a href="{{ path('app_diagnostic_new') }}" class="alert-link">Créer un diagnostic</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

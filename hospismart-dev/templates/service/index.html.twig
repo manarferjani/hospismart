@@ -1,0 +1,118 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+{# On utilise container-fluid pour occuper plus de largeur sur l'écran #}
+<div class="container-fluid py-5 px-md-5">
+    
+    {# La glass-card avec du padding interne (p-4 p-md-5) pour ne pas coller au contenu #}
+    <div class="glass-card shadow-lg p-4 p-md-5">
+        
+        {# En-tête bien espacé avec mb-5 #}
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="fa-solid fa-layer-group me-2 text-primary"></i>Nos Services
+            </h2>
+            <a href="{{ path('app_service_new') }}" class="btn btn-primary rounded-pill px-4 shadow-sm py-2">
+                <i class="fa-solid fa-plus me-1"></i> Créer un service
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr class="text-muted border-bottom">
+                        <th class="pb-3">Service</th>
+                        <th class="pb-3">Description / Localisation</th>
+                        <th class="pb-3">Équipements</th>
+                        <th class="text-center pb-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for service in services %}
+                        <tr>
+                            <td class="py-3">
+                                <div class="d-flex align-items-center">
+                                    {% set service_name = service.nom|lower %}
+                                    
+                                    {% if 'cardio' in service_name %}
+                                        {% set icon, color = 'fa-heart-pulse', 'danger' %}
+                                    {% elseif 'radio' in service_name or 'imagerie' in service_name %}
+                                        {% set icon, color = 'fa-x-ray', 'primary' %}
+                                    {% elseif 'reanim' in service_name or 'urgence' in service_name %}
+                                        {% set icon, color = 'fa-truck-medical', 'warning' %}
+                                    {% elseif 'pediatr' in service_name %}
+                                        {% set icon, color = 'fa-baby', 'info' %}
+                                    {% elseif 'bloc' in service_name or 'chirurgie' in service_name %}
+                                        {% set icon, color = 'fa-scalpel-path', 'success' %}
+                                    {% else %}
+                                        {% set icon, color = 'fa-hospital', 'secondary' %}
+                                    {% endif %}
+
+                                    <div class="bg-{{ color }} bg-opacity-10 p-2 rounded-3 me-3 text-{{ color }}" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid {{ icon }} fs-5"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark fs-5">{{ service.nom }}</span>
+                                </div>
+                            </td>
+                            <td class="text-muted">
+                                <i class="fa-solid fa-location-dot me-1"></i> 
+                                {{ service.description }}
+                            </td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2 border border-primary border-opacity-25">
+                                    {{ service.equipements|length }} unités
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{{ path('app_service_show', {'id': service.id}) }}" class="btn btn-sm btn-white rounded-circle border shadow-sm p-2" style="width: 38px; height: 38px;" title="Voir">
+                                        <i class="fa-solid fa-eye text-primary"></i>
+                                    </a>
+                                    <a href="{{ path('app_service_edit', {'id': service.id}) }}" class="btn btn-sm btn-white rounded-circle border shadow-sm p-2" style="width: 38px; height: 38px;" title="Modifier">
+                                        <i class="fa-solid fa-pen text-warning"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-inbox fa-3x mb-3 opacity-25"></i>
+                                <p class="mb-0">Aucun service enregistré.</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Pour que la card prenne bien de l'espace sans être étouffée */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    tbody tr { 
+        transition: all 0.3s ease; 
+        border-color: rgba(0,0,0,0.05) !important;
+    }
+    
+    tbody tr:hover { 
+        background-color: rgba(255, 255, 255, 0.5) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    .btn-white {
+        background: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}

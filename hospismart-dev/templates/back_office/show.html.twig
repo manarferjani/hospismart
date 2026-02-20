@@ -1,0 +1,116 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Détail de la réclamation{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 fw-bold"><i class="fas fa-circle-exclamation text-danger me-2"></i> Réclamation #{{ reclamation.id }}</h1>
+            <p class="text-muted small mb-0">Détails de la réclamation</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('back_office_dashboard') }}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+            <a href="{{ path('back_office_voir_reclamation', {id: reclamation.id}) }}" class="btn btn-primary">
+                <i class="fas fa-eye"></i> Voir détails complets
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 15px;">
+                <div class="card-header py-3 bg-white border-bottom">
+                    <h6 class="m-0 fw-bold text-primary">Informations de la réclamation</h6>
+                </div>
+                <div class="card-body p-4">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th class="text-muted" style="width: 200px;">Titre</th>
+                            <td><strong>{{ reclamation.titre }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Patient</th>
+                            <td>{{ reclamation.nomPatient }}</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Email</th>
+                            <td>{{ reclamation.email }}</td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Catégorie</th>
+                            <td><span class="badge bg-info">{{ reclamation.categorie }}</span></td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Priorité</th>
+                            <td>
+                                <span class="badge {{ reclamation.priorite == 'Urgente' ? 'bg-danger' : (reclamation.priorite == 'Haute' ? 'bg-warning' : (reclamation.priorite == 'Normale' ? 'bg-primary' : 'bg-secondary')) }}">
+                                    {{ reclamation.priorite }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Statut</th>
+                            <td>
+                                <span class="badge {{ reclamation.statut == 'Traité' ? 'bg-success' : (reclamation.statut == 'En cours' ? 'bg-warning' : 'bg-secondary') }}">
+                                    {{ reclamation.statut }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-muted">Date de création</th>
+                            <td>{{ reclamation.dateCreation ? reclamation.dateCreation|date('d/m/Y H:i') : '—' }}</td>
+                        </tr>
+                    </table>
+
+                    <hr>
+                    <h6 class="fw-bold mb-3">Description</h6>
+                    <div class="p-3 bg-light rounded">
+                        {{ reclamation.description }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 15px;">
+                <div class="card-header py-3 bg-white border-bottom">
+                    <h6 class="m-0 fw-bold text-success">Actions</h6>
+                </div>
+                <div class="card-body p-4 d-grid gap-2">
+                    <a href="{{ path('back_office_repondre_reclamation', {id: reclamation.id}) }}" class="btn btn-success">
+                        <i class="fas fa-reply"></i> Répondre
+                    </a>
+                    <a href="{{ path('back_office_voir_reclamation', {id: reclamation.id}) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-eye"></i> Voir détails complets
+                    </a>
+                    <form method="post" action="{{ path('back_office_supprimer_reclamation', {id: reclamation.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réclamation ?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="fas fa-trash"></i> Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% if reclamation.reponses|length > 0 %}
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-header py-3 bg-white border-bottom">
+                    <h6 class="m-0 fw-bold text-info">Réponses ({{ reclamation.reponses|length }})</h6>
+                </div>
+                <div class="card-body p-3">
+                    {% for reponse in reclamation.reponses %}
+                    <div class="border-bottom pb-2 mb-2">
+                        <small class="text-muted">{{ reponse.dateReponse ? reponse.dateReponse|date('d/m/Y') : '' }}</small>
+                        <p class="mb-0 small">{{ reponse.contenu|slice(0, 100) }}{% if reponse.contenu|length > 100 %}...{% endif %}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}{{ medecin.prenom }} {{ medecin.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user-md"></i> {{ medecin.prenom }} {{ medecin.nom }}
+                    </h6>
+                    <div>
+                        <a href="{{ path('app_admin_medecin_edit', {id: medecin.id}) }}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Modifier
+                        </a>
+                        <a href="{{ path('app_admin_medecin_index') }}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-list"></i> Retour
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Email</label>
+                                <p class="h6">{{ medecin.email }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Téléphone</label>
+                                <p class="h6">{{ medecin.telephone|default('N/A') }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Spécialité</label>
+                                <p class="h6">
+                                    {% if medecin.specialite %}
+                                        <span class="badge bg-info">{{ medecin.specialite }}</span>
+                                    {% else %}
+                                        <span class="text-muted">Non spécifiée</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Service</label>
+                                <p class="h6">
+                                    {% if medecin.service %}
+                                        {{ medecin.service.nom }}
+                                    {% else %}
+                                        <span class="text-muted">Non assigné</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        {{ include('admin_medecin/_delete_form.html.twig') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

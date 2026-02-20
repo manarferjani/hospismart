@@ -1,0 +1,27 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Nouveau mouvement{% endblock %}
+
+{% block body %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_medicament_index') }}">Médicaments</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_mouvement_stock_index') }}">Mouvements</a></li>
+            <li class="breadcrumb-item active">Nouveau</li>
+        </ol>
+    </nav>
+
+    <div class="card form-card-hospi shadow-sm">
+        <div class="card-header">
+            <i class="fa-solid fa-arrows-rotate me-2"></i> Nouveau mouvement de stock
+        </div>
+        <div class="card-body">
+            {{ include('mouvement_stock/_form.html.twig') }}
+            <div class="mt-3 pt-3 border-top">
+                <a href="{{ path('app_medicament_index') }}" class="btn btn-link text-decoration-none p-0">
+                    <i class="fa-solid fa-pills me-1"></i> Voir les médicaments
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

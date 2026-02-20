@@ -1,0 +1,299 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    :root {
+        --primary-color: #0d6efd;
+        --dark-sidebar: #1e293b;
+        --success-color: #198754;
+    }
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: #f8fafc; 
+    }
+
+    .admin-wrapper { 
+        display: flex; 
+        min-height: 100vh; 
+        background: #f8fafc;
+    }
+    
+    .sidebar {
+        width: 280px;
+        background: var(--dark-sidebar);
+        color: white;
+        padding: 30px 20px;
+        position: fixed; /* Changed from sticky to fixed for better sidebar behavior */
+        top: 0;
+        bottom: 0; /* Full height */
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        z-index: 1001;
+        flex-shrink: 0;
+        overflow-y: auto; /* Enable scrolling for tall menus */
+    }
+    
+    /* Custom scrollbar for sidebar */
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+    .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+    .main-content {
+        flex: 1;
+        padding: 40px;
+        background: #f8fafc;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        margin-left: 280px; /* Offset for fixed sidebar */
+    }
+
+    @media (max-width: 992px) {
+        .sidebar { 
+            position: relative; 
+            width: 100%; 
+            height: auto; 
+            margin-left: 0;
+            overflow-y: visible;
+        }
+        .main-content {
+            margin-left: 0;
+        }
+        .admin-wrapper { flex-direction: column; }
+    }
+
+    .sidebar-brand { font-size: 22px; font-weight: 700; margin-bottom: 30px; display: flex; align-items: center; color: white; text-decoration: none; }
+    .sidebar-brand i, .sidebar-brand svg { color: var(--primary-color); margin-right: 15px; }
+
+    /* Rôle Badge */
+    .role-badge {
+        font-size: 10px;
+        background: rgba(255,255,255,0.1);
+        padding: 2px 8px;
+        border-radius: 10px;
+        text-transform: uppercase;
+        margin-left: 10px;
+        color: var(--primary-color);
+    }
+
+    /* Profil Sidebar */
+    .sidebar-profile {
+        text-align: center;
+        padding: 15px 10px 25px 10px;
+        margin-bottom: 25px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: block; 
+        text-decoration: none;
+        transition: 0.3s;
+        border-radius: 15px;
+    }
+    .sidebar-profile:hover { background: rgba(255, 255, 255, 0.05); }
+    .sidebar-profile.active-profile { background: rgba(13, 110, 253, 0.1); border-bottom: 1px solid var(--primary-color); }
+
+    .profile-img {
+        width: 70px; height: 70px;
+        border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.1);
+        margin-bottom: 10px;
+        object-fit: cover;
+    }
+    .profile-name { font-size: 15px; font-weight: 600; display: block; color: #fff; }
+    .profile-spec { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; display: block; }
+
+    .sidebar-menu { list-style: none; padding: 0; flex-grow: 1; }
+    .sidebar-menu li { margin-bottom: 5px; }
+    .sidebar-menu a {
+        color: rgba(255,255,255,0.7);
+        text-decoration: none;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        border-radius: 12px;
+        transition: 0.3s;
+    }
+    .sidebar-menu a:hover, .sidebar-menu a.active {
+        background: rgba(13, 110, 253, 0.15);
+        color: white;
+        font-weight: 600;
+    }
+    .sidebar-menu i, .sidebar-menu span { width: 25px; margin-right: 10px; font-size: 18px; text-align: center; }
+
+    .main-content { 
+        flex: 1; 
+        padding: 40px; 
+        background: #f8fafc; 
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    .menu-header { font-size: 11px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin: 20px 0 10px 15px; letter-spacing: 1px; }
+
+    /* Notifications */
+    .notif-container { position: absolute; top: 40px; right: 40px; z-index: 1000; }
+    .notification-bell { color: #555; cursor: pointer; position: relative; }
+    .bell-badge {
+        position: absolute; top: -5px; right: -5px;
+        background-color: #dc3545; color: white;
+        border-radius: 50%; padding: 2px 5px; font-size: 10px;
+    }
+    .notif-dropdown {
+        position: absolute; right: 0; top: 45px; width: 300px;
+        background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        display: none; border: 1px solid #eee;
+    }
+    .notif-dropdown.active { display: block; }
+
+    @media (max-width: 992px) {
+        .admin-wrapper { flex-direction: column; }
+        .sidebar { width: 100%; height: auto; position: relative; }
+    }
+</style>
+{% endblock %}
+
+{% block layout %}
+<div class="admin-wrapper">
+    <aside class="sidebar">
+        <a href="{{ path('app_dashboard') }}" class="sidebar-brand">
+            <i class="fa-solid fa-heart-pulse"></i> Hospismart
+            <span class="role-badge">
+                {% if is_granted('ROLE_ADMIN') %}Admin{% elseif is_granted('ROLE_MEDECIN') %}Médecin{% else %}Staff{% endif %}
+            </span>
+        </a>
+
+        {# Section Profil Dynamique #}
+        {% if is_granted('ROLE_MEDECIN') %}
+            <a href="{{ path('app_medecin_profil') }}" class="sidebar-profile {{ app.request.get('_route') == 'app_medecin_profil' ? 'active-profile' : '' }}">
+                <img src="{{ app.user.image ? asset('/images/users/' ~ app.user.image) : 'https://ui-avatars.com/api/?name=' ~ app.user.nom ~ '+' ~ app.user.prenom ~ '&background=0d6efd&color=fff' }}" class="profile-img shadow-sm">
+                <span class="profile-name">Dr. {{ app.user.nom }}</span>
+                <span class="profile-spec">{{ app.user.specialite|default('Médecin') }}</span>
+            </a>
+        {% elseif is_granted('ROLE_ADMIN') %}
+             <div class="sidebar-profile">
+                <img src="https://ui-avatars.com/api/?name=Admin+Smart&background=1e293b&color=fff" class="profile-img">
+                <span class="profile-name">{{ app.user.nom }} {{ app.user.prenom }}</span>
+                <span class="profile-spec">Administrateur</span>
+            </div>
+        {% endif %}
+
+        <nav class="sidebar-nav">
+            <ul class="sidebar-menu">
+                {# Menu Admin #}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <div class="menu-header">Administration</div>
+                    <li><a href="{{ path('app_dashboard') }}" class="{{ app.request.get('_route') == 'app_dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                    <li><a href="{{ path('app_dashboard_utilisateurs_list') }}" class="{{ app.request.get('_route') starts with 'app_dashboard_utilisateurs' ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Utilisateurs</a></li>
+
+                    <div class="menu-header">Gestion Médicale</div>
+                    <li><a href="{{ path('app_medecin_index') }}" class="{{ app.request.get('_route') starts with 'app_medecin_index' ? 'active' : '' }}"><i class="fa-solid fa-user-doctor"></i> Médecins</a></li>
+                    <li><a href="{{ path('app_diagnostic_index') }}" class="{{ app.request.get('_route') starts with 'app_diagnostic' ? 'active' : '' }}"><i class="fa-solid fa-stethoscope"></i> Diagnostics</a></li>
+                    <li><a href="{{ path('app_parametre_vital_index') }}" class="{{ app.request.get('_route') starts with 'app_parametre_vital' ? 'active' : '' }}"><i class="fa-solid fa-heart-pulse"></i> Paramètres Vitaux</a></li>
+
+                    <div class="menu-header">Logistique</div>
+                    <li><a href="{{ path('app_medicament_index') }}" class="{{ app.request.get('_route') starts with 'app_medicament' ? 'active' : '' }}"><i class="fa-solid fa-pills"></i> Médicaments</a></li>
+                    <li><a href="{{ path('app_equipement_index') }}" class="{{ app.request.get('_route') starts with 'app_equipement' ? 'active' : '' }}"><i class="fa-solid fa-kit-medical"></i> Équipements</a></li>
+                    <li><a href="{{ path('app_service_index') }}" class="{{ app.request.get('_route') starts with 'app_service' ? 'active' : '' }}"><i class="fa-solid fa-hospital"></i> Services</a></li>
+                    <li><a href="{{ path('app_campagne_index') }}" class="{{ app.request.get('_route') starts with 'app_campagne' ? 'active' : '' }}"><i class="fa-solid fa-bullhorn"></i> Campagnes</a></li>
+
+                    <div class="menu-header">Réclamations</div>
+                    <li><a href="{{ path('back_office_dashboard') }}" class="{{ app.request.get('_route') starts with 'back_office' ? 'active' : '' }}"><i class="fa-solid fa-circle-exclamation"></i> Réclamations</a></li>
+
+                    <div class="menu-header">Événements</div>
+                    <li><a href="{{ path('app_evenement_index') }}" class="{{ app.request.get('_route') starts with 'app_evenement' ? 'active' : '' }}"><i class="fa-solid fa-calendar-check"></i> Événements</a></li>
+                {% endif %}
+
+                {# Menu Médecin #}
+                {% if is_granted('ROLE_MEDECIN') %}
+                    <div class="menu-header">Ma Clinique</div>
+                    <li><a href="{{ path('app_medecin_dashboard') }}" class="{{ app.request.get('_route') == 'app_medecin_dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                    <li><a href="{{ path('app_medecin_demandes_rdv') }}" class="{{ app.request.get('_route') == 'app_medecin_demandes_rdv' ? 'active' : '' }}"><i class="fa-solid fa-calendar-check"></i> Mes RDV</a></li>
+                    <li><a href="{{ path('app_medecin_dispo_index') }}" class="{{ app.request.get('_route') == 'app_medecin_dispo_index' ? 'active' : '' }}"><i class="fa-solid fa-clock"></i> Mes Créneaux</a></li>
+                    <li><a href="{{ path('app_medecin_patients') }}" class="{{ app.request.get('_route') == 'app_medecin_patients' ? 'active' : '' }}"><i class="fa-solid fa-hospital-user"></i> Mes Patients</a></li>
+                    <li><a href="{{ path('app_notification_index') }}" class="{{ app.request.get('_route') starts with 'app_notification' ? 'active' : '' }}"><i class="fa-solid fa-bell"></i> Notifications</a></li>
+
+                    <div class="menu-header">Événements</div>
+                    <li><a href="{{ path('app_evenement_index') }}" class="{{ app.request.get('_route') starts with 'app_evenement' ? 'active' : '' }}"><i class="fa-solid fa-calendar-check"></i> Événements</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        <div class="logout-box">
+            <ul class="sidebar-menu">
+                {# Cette condition restreint l'affichage à l'ADMIN uniquement #}
+                {% if is_granted('ROLE_ADMIN') %}
+                    <li>
+                        <a href="{{ path('app_compte_edit') }}" class="{{ app.request.get('_route') == 'app_compte_edit' ? 'active' : '' }}">
+                            <i class="fa-solid fa-user-gear"></i> Mon compte
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li><a href="{{ path('app_home') }}" class="text-info"><i class="fa-solid fa-globe"></i> Voir le site</a></li>
+                <li><a href="{{ path('app_logout') }}" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        {# Barre de notifications (si médecin) #}
+        {% if is_granted('ROLE_MEDECIN') %}
+            <div class="notif-container">
+                <div class="notification-bell" id="bellBtn">
+                    <i class="fa-solid fa-bell fa-xl"></i>
+                    {% if demandes_attente is defined and demandes_attente > 0 %}
+                        <span class="bell-badge">{{ demandes_attente }}</span>
+                    {% endif %}
+                </div>
+                <div class="notif-dropdown" id="notifBox">
+                    <div class="p-3 border-bottom fw-bold">Demandes en attente</div>
+                    <div class="notif-body">
+                        {% if notifications_list is defined and notifications_list|length > 0 %}
+                            {% for rdv in notifications_list %}
+                                <a href="{{ path('app_medecin_demandes_rdv') }}" class="text-decoration-none text-dark">
+                                    <div class="p-2 border-bottom small">
+                                        <strong>{{ rdv.patient.nom }} {{ rdv.patient.prenom }}</strong><br>
+                                        <span class="text-muted">Le {{ rdv.datetime|date('d/m à H:i') }}</span>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="p-3 text-center text-muted small">Aucune notification</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {# Flash Messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show shadow-sm">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {% block content %}{% endblock %}
+        {% block body %}{% endblock %}
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const bell = document.getElementById('bellBtn');
+        const box = document.getElementById('notifBox');
+        if (bell && box) {
+            bell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                box.classList.toggle('active');
+            });
+            document.addEventListener('click', () => box.classList.remove('active'));
+        }
+    });
+</script>
+{% endblock %}
