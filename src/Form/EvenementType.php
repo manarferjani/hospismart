@@ -28,11 +28,9 @@ class EvenementType extends AbstractType
             ->add('type_evenement', ChoiceType::class, [
                 'label' => 'Type d\'événement',
                 'choices' => [
-                    'Réunion' => 'réunion',
                     'Formation' => 'formation',
                     'Visite' => 'visite',
-                    'Maintenance' => 'maintenance',
-                    'Autre' => 'autre',
+                    'Concert' => 'concert',
                 ],
                 'attr' => ['class' => 'form-control']
             ])

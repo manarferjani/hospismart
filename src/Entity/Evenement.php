@@ -32,7 +32,7 @@ class Evenement
 
     #[ORM\Column(length: 50)]
     #[Assert\NotBlank(message: "Le type d'événement est obligatoire")]
-    #[Assert\Choice(choices: ['réunion', 'formation', 'visite', 'maintenance', 'autre'], message: "Le type d'événement doit être l'un des suivants : réunion, formation, visite, maintenance, autre")]
+    #[Assert\Choice(choices: ['formation', 'visite', 'concert'], message: "Le type d'événement doit être l'un des suivants : formation, visite, concert")]
     private ?string $type_evenement = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]

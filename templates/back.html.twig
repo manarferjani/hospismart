@@ -38,6 +38,27 @@
 
     .main-content { flex: 1; padding: 40px; }
     
+    /* Cartes (cadres) plus arrondies et plus douces */
+    .card {
+        border-radius: 20px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+    }
+    .card-header {
+        border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+        background: linear-gradient(90deg, #f8f9ff, #ffffff);
+        padding-top: 14px;
+        padding-bottom: 14px;
+    }
+    .card-body {
+        background-color: #ffffff;
+    }
+    .card-footer {
+        background-color: #f9fafb;
+        border-top: 1px solid rgba(15, 23, 42, 0.06);
+    }
+    
     .logout-box { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
 </style>
 {% endblock %}
@@ -49,11 +70,33 @@
             <i class="fa-solid fa-heart-pulse"></i> Hospismart <small class="ms-2 text-muted" style="font-size: 12px;">OASIS</small>
         </div>
 
+        {% set current_route = app.request.get('_route') %}
+
         <ul class="sidebar-menu">
-            <li><a href="{{ path('app_evenement_index') }}" class="active"><i class="fa-solid fa-calendar"></i> Événements</a></li>
-            <li><a href="{{ path('app_evenement_new') }}"><i class="fa-solid fa-plus-circle"></i> Nouvel Événement</a></li>
-            <li><a href="{{ path('app_participant_evenement_index') }}"><i class="fa-solid fa-users"></i> Participants</a></li>
-            <li><a href="{{ path('app_evenement_public') }}"><i class="fa-solid fa-globe"></i> Front Office</a></li>
+            <li>
+                <a href="{{ path('app_evenement_index') }}"
+                   class="{{ current_route in ['app_evenement_index', 'app_evenement_show', 'app_evenement_edit', 'app_evenement_new'] ? 'active' : '' }}">
+                    <i class="fa-solid fa-calendar"></i> Événements
+                </a>
+            </li>
+            <li>
+                <a href="{{ path('app_evenement_new') }}"
+                   class="{{ current_route == 'app_evenement_new' ? 'active' : '' }}">
+                    <i class="fa-solid fa-plus-circle"></i> Nouvel Événement
+                </a>
+            </li>
+            <li>
+                <a href="{{ path('app_participant_evenement_index') }}"
+                   class="{{ current_route starts with 'app_participant_evenement_' ? 'active' : '' }}">
+                    <i class="fa-solid fa-users"></i> Participants
+                </a>
+            </li>
+            <li>
+                <a href="{{ path('app_evenement_public') }}"
+                   class="{{ current_route in ['app_evenement_public', 'app_evenement_inscription', 'app_mes_reservations_index', 'app_front_accueil'] ? 'active' : '' }}">
+                    <i class="fa-solid fa-globe"></i> Front Office
+                </a>
+            </li>
         </ul>
 
         <div class="logout-box">

@@ -30,11 +30,9 @@
                         <div class="col-md-3">
                             <select name="type" class="form-control">
                                 <option value="">Tous les types</option>
-                                <option value="réunion" {{ typeFilter == 'réunion' ? 'selected' : '' }}>Réunion</option>
                                 <option value="formation" {{ typeFilter == 'formation' ? 'selected' : '' }}>Formation</option>
                                 <option value="visite" {{ typeFilter == 'visite' ? 'selected' : '' }}>Visite</option>
-                                <option value="maintenance" {{ typeFilter == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
-                                <option value="autre" {{ typeFilter == 'autre' ? 'selected' : '' }}>Autre</option>
+                                <option value="concert" {{ typeFilter == 'concert' ? 'selected' : '' }}>Concert</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -49,6 +47,31 @@
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-info btn-block">
                                 <i class="fas fa-search"></i> Filtrer
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Trier par</label>
+                            <select name="sort" class="form-control">
+                                <option value="">Par défaut (date début)</option>
+                                <option value="date_debut" {{ sort == 'date_debut' ? 'selected' : '' }}>Date début</option>
+                                <option value="date_fin" {{ sort == 'date_fin' ? 'selected' : '' }}>Date fin</option>
+                                <option value="titre" {{ sort == 'titre' ? 'selected' : '' }}>Titre</option>
+                                <option value="type" {{ sort == 'type' ? 'selected' : '' }}>Type</option>
+                                <option value="lieu" {{ sort == 'lieu' ? 'selected' : '' }}>Lieu</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Direction</label>
+                            <select name="direction" class="form-control">
+                                <option value="ASC" {{ direction|upper == 'ASC' ? 'selected' : '' }}>Ascendant</option>
+                                <option value="DESC" {{ direction|upper == 'DESC' ? 'selected' : '' }}>Descendant</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 align-self-end">
+                            <button type="submit" class="btn btn-secondary">
+                                <i class="fas fa-sort"></i> Trier
                             </button>
                         </div>
                     </div>

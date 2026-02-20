@@ -25,14 +25,18 @@ class EvenementController extends AbstractController
         $searchTerm = $request->query->get('search');
         $type = $request->query->get('type');
         $statut = $request->query->get('statut');
+        $sort = $request->query->get('sort');
+        $direction = $request->query->get('direction', 'ASC');
 
-        $evenements = $evenementRepository->search($searchTerm, $type, $statut);
+        $evenements = $evenementRepository->search($searchTerm, $type, $statut, $sort, $direction);
 
         return $this->render('evenement/index.html.twig', [
             'evenements' => $evenements,
             'searchTerm' => $searchTerm,
             'typeFilter' => $type,
             'statutFilter' => $statut,
+            'sort' => $sort,
+            'direction' => $direction,
         ]);
     }
 

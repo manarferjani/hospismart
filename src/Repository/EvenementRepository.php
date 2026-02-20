@@ -19,7 +19,7 @@ class EvenementRepository extends ServiceEntityRepository
     /**
      * Recherche d'événements avec filtres optionnels
      */
-    public function search(?string $searchTerm = null, ?string $type = null, ?string $statut = null): array
+    public function search(?string $searchTerm = null, ?string $type = null, ?string $statut = null, ?string $sort = null, ?string $direction = 'ASC'): array
     {
         $qb = $this->createQueryBuilder('e');
 
@@ -38,9 +38,23 @@ class EvenementRepository extends ServiceEntityRepository
                ->setParameter('statut', $statut);
         }
 
-        return $qb->orderBy('e.date_debut', 'ASC')
-                  ->getQuery()
-                  ->getResult();
+        // Sorting
+        $allowedSorts = [
+            'date_debut' => 'date_debut',
+            'date_fin' => 'date_fin',
+            'titre' => 'titre',
+            'type' => 'type_evenement',
+            'lieu' => 'lieu',
+        ];
+
+        if ($sort && isset($allowedSorts[$sort])) {
+            $dir = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
+            $qb->orderBy('e.' . $allowedSorts[$sort], $dir);
+        } else {
+            $qb->orderBy('e.date_debut', 'ASC');
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
