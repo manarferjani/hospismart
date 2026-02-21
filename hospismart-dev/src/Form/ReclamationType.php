@@ -34,22 +34,6 @@ class ReclamationType extends AbstractType
                     'placeholder' => 'Décrivez votre réclamation',
                 ],
             ])
-            ->add('email', EmailType::class, [
-                'label' => 'Email',
-                'required' => true,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'votre@email.com',
-                ],
-            ])
-            ->add('nomPatient', TextType::class, [
-                'label' => 'Nom du patient',
-                'required' => true,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'Votre nom complet',
-                ],
-            ])
             ->add('categorie', ChoiceType::class, [
                 'label' => 'Catégorie',
                 'choices' => [

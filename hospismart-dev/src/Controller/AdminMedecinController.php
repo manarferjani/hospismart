@@ -14,11 +14,11 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/admin/medecin', name: 'app_admin_medecin')]
+#[Route('/admin/medecin')]
 #[IsGranted('ROLE_ADMIN')]
 final class AdminMedecinController extends AbstractController
 {
-    #[Route(name: 'app_admin_medecin_index', methods: ['GET'])]
+    #[Route('', name: 'app_admin_medecin_index', methods: ['GET'])]
     public function index(UserRepository $userRepository): Response
     {
         $medecins = $userRepository->findBy(['type' => 'MEDECIN']);

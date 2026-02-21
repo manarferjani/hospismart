@@ -1,0 +1,104 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Modifier la Réponse #{{ reponse.id }}{% endblock %}
+
+{% block content %}
+<style>
+    .edit-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        max-width: 750px;
+        margin: 0 auto;
+    }
+    .edit-card .card-header {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 1.25rem 1.5rem;
+    }
+    .reclamation-badge {
+        background: #ede9fe;
+        color: #7c3aed;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        text-decoration: none;
+    }
+    .reclamation-badge:hover { background: #ddd6fe; color: #6d28d9; }
+    .form-label { font-weight: 600; color: #374151; }
+    textarea.form-control { border-radius: 10px; font-size: 0.95rem; }
+    input.form-control { border-radius: 10px; }
+    .btn-save {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 2rem;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: 0.2s;
+    }
+    .btn-save:hover { opacity: 0.9; transform: translateY(-1px); color: white; }
+</style>
+
+<div class="container-fluid py-2">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <h2 class="fw-bold text-dark mb-0">
+            <i class="fa-solid fa-pen-to-square me-2 text-primary"></i>Modifier la Réponse
+        </h2>
+        <a href="{{ path('back_office_reponses_liste') }}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fa-solid fa-arrow-left me-2"></i>Retour à la liste
+        </a>
+    </div>
+
+    <div class="edit-card">
+        <div class="card-header">
+            <h5 class="mb-0 fw-bold"><i class="fa-solid fa-comment-dots me-2"></i>Édition de la réponse #{{ reponse.id }}</h5>
+        </div>
+        <div class="card-body p-4">
+            <a href="{{ path('back_office_voir_reclamation', {'id': reponse.reclamation.id}) }}" class="reclamation-badge">
+                <i class="fa-solid fa-link me-1"></i>
+                Réclamation #{{ reponse.reclamation.id }} — {{ reponse.reclamation.titre }}
+            </a>
+
+            <div class="alert alert-info border-0 mb-4 rounded-3 small">
+                <i class="fa-solid fa-circle-info me-2"></i>
+                Modifiez le contenu de la réponse ci-dessous. Les modifications seront sauvegardées immédiatement.
+            </div>
+
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                {% if form.vars.errors|length > 0 %}
+                    <div class="alert alert-danger mb-3">
+                        <ul class="mb-0">
+                            {% for error in form.vars.errors %}
+                                <li>{{ error.message }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    {{ form_label(form.contenu, 'Contenu de la réponse', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'rows': '8'}}) }}
+                    {{ form_errors(form.contenu) }}
+                </div>
+
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-save">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Sauvegarder
+                    </button>
+                    <a href="{{ path('back_office_reponses_liste') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        Annuler
+                    </a>
+                </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

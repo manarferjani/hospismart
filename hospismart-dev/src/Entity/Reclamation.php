@@ -78,6 +78,9 @@ class Reclamation
     )]
     private ?string $priorite = 'Normale';
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $etatMental = null;
+
     #[ORM\OneToMany(mappedBy: 'reclamation', targetEntity: Reponse::class, orphanRemoval: true)]
     private Collection $reponses;
 
@@ -178,6 +181,17 @@ class Reclamation
     public function setPriorite(string $priorite): static
     {
         $this->priorite = $priorite;
+        return $this;
+    }
+
+    public function getEtatMental(): ?string
+    {
+        return $this->etatMental;
+    }
+
+    public function setEtatMental(?string $etatMental): static
+    {
+        $this->etatMental = $etatMental;
         return $this;
     }
 

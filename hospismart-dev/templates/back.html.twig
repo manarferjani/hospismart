@@ -51,6 +51,7 @@
         display: flex;
         flex-direction: column;
         margin-left: 280px; /* Offset for fixed sidebar */
+        position: relative;
     }
 
     @media (max-width: 992px) {
@@ -134,19 +135,71 @@
     .menu-header { font-size: 11px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin: 20px 0 10px 15px; letter-spacing: 1px; }
 
     /* Notifications */
-    .notif-container { position: absolute; top: 40px; right: 40px; z-index: 1000; }
-    .notification-bell { color: #555; cursor: pointer; position: relative; }
+    .admin-topbar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1000;
+    }
+    .notif-container { position: relative; z-index: 1000; }
+    .notification-bell {
+        color: #475569;
+        cursor: pointer;
+        position: relative;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.2s;
+    }
+    .notification-bell:hover {
+        background: #f1f5f9;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        color: #3b82f6;
+    }
     .bell-badge {
         position: absolute; top: -5px; right: -5px;
         background-color: #dc3545; color: white;
         border-radius: 50%; padding: 2px 5px; font-size: 10px;
     }
     .notif-dropdown {
-        position: absolute; right: 0; top: 45px; width: 300px;
-        background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        display: none; border: 1px solid #eee;
+        position: absolute; right: 0; top: 45px; width: 350px;
+        background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        display: none; border: 1px solid #eee; max-height: 450px; overflow: hidden;
     }
     .notif-dropdown.active { display: block; }
+    .notif-body { max-height: 350px; overflow-y: auto; }
+    .notif-item { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; transition: background 0.2s; display: block; text-decoration: none; color: inherit; }
+    .notif-item:hover { background: #f8fafc; }
+    .notif-item.unread { background: #eff6ff; border-left: 3px solid #3b82f6; }
+    .notif-item .notif-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .notif-item .notif-icon.reclamation { background: #fee2e2; color: #dc2626; }
+    .notif-item .notif-icon.info { background: #dbeafe; color: #2563eb; }
+    .notif-item .notif-text { font-size: 0.8rem; line-height: 1.4; }
+    .notif-item .notif-time { font-size: 0.7rem; color: #94a3b8; }
+    .notif-header { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .notif-header .title { font-weight: 700; font-size: 0.9rem; }
+    .notif-header .mark-read { font-size: 0.75rem; color: #3b82f6; cursor: pointer; border: none; background: none; }
+    .notif-header .mark-read:hover { text-decoration: underline; }
+    .notif-empty { padding: 30px; text-align: center; color: #94a3b8; }
+    @keyframes bellShake { 0%,100%{transform:rotate(0)} 20%{transform:rotate(15deg)} 40%{transform:rotate(-10deg)} 60%{transform:rotate(5deg)} 80%{transform:rotate(-5deg)} }
+    .bell-animate { animation: bellShake 0.6s ease; }
+    .notif-toast {
+        position: fixed; top: 20px; right: 20px; z-index: 9999;
+        background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        padding: 15px 20px; min-width: 320px; max-width: 400px;
+        border-left: 4px solid #3b82f6; transform: translateX(120%); transition: transform 0.4s ease;
+    }
+    .notif-toast.show { transform: translateX(0); }
+    .notif-toast .toast-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+    .notif-toast .toast-body { font-size: 0.8rem; color: #64748b; }
+    .notif-toast .toast-close { position: absolute; top: 8px; right: 12px; cursor: pointer; color: #94a3b8; border: none; background: none; font-size: 16px; }
 
     @media (max-width: 992px) {
         .admin-wrapper { flex-direction: column; }
@@ -200,7 +253,8 @@
                     <li><a href="{{ path('app_campagne_index') }}" class="{{ app.request.get('_route') starts with 'app_campagne' ? 'active' : '' }}"><i class="fa-solid fa-bullhorn"></i> Campagnes</a></li>
 
                     <div class="menu-header">Réclamations</div>
-                    <li><a href="{{ path('back_office_dashboard') }}" class="{{ app.request.get('_route') starts with 'back_office' ? 'active' : '' }}"><i class="fa-solid fa-circle-exclamation"></i> Réclamations</a></li>
+                    <li><a href="{{ path('back_office_dashboard') }}" class="{{ app.request.get('_route') == 'back_office_dashboard' ? 'active' : '' }}"><i class="fa-solid fa-circle-exclamation"></i> Réclamations</a></li>
+                    <li><a href="{{ path('back_office_reponses_liste') }}" class="{{ app.request.get('_route') starts with 'back_office_reponse' ? 'active' : '' }}"><i class="fa-solid fa-comments"></i> Réponses</a></li>
 
                     <div class="menu-header">Événements</div>
                     <li><a href="{{ path('app_evenement_index') }}" class="{{ app.request.get('_route') starts with 'app_evenement' ? 'active' : '' }}"><i class="fa-solid fa-calendar-check"></i> Événements</a></li>
@@ -239,6 +293,32 @@
     </aside>
 
     <main class="main-content">
+        {# ====== Barre supérieure Admin avec notifications ====== #}
+        {% if is_granted('ROLE_ADMIN') %}
+            <div class="admin-topbar">
+                <div class="notif-container">
+                    <div class="notification-bell" id="adminBellBtn">
+                        <i class="fa-solid fa-bell" style="font-size:18px;"></i>
+                        <span class="bell-badge" id="adminBellBadge" style="display:none;">0</span>
+                    </div>
+                    <div class="notif-dropdown" id="adminNotifBox">
+                        <div class="notif-header">
+                            <span class="title"><i class="fa-solid fa-bell me-1"></i> Notifications</span>
+                            <button class="mark-read" id="adminMarkAllRead">Tout marquer lu</button>
+                        </div>
+                        <div class="notif-body" id="adminNotifList">
+                            <div class="notif-empty"><i class="fa-solid fa-check-circle fs-3 d-block mb-2"></i>Aucune notification</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="notif-toast" id="adminNotifToast">
+                <button class="toast-close" onclick="this.parentElement.classList.remove('show')">&times;</button>
+                <div class="toast-title" id="toastTitle">📩 Nouvelle réclamation</div>
+                <div class="toast-body" id="toastBody"></div>
+            </div>
+        {% endif %}
+
         {# Barre de notifications (si médecin) #}
         {% if is_granted('ROLE_MEDECIN') %}
             <div class="notif-container">
@@ -285,6 +365,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // --- Médecin bell (existant) ---
         const bell = document.getElementById('bellBtn');
         const box = document.getElementById('notifBox');
         if (bell && box) {
@@ -293,6 +374,117 @@
                 box.classList.toggle('active');
             });
             document.addEventListener('click', () => box.classList.remove('active'));
+        }
+
+        // --- Admin Notifications en temps réel ---
+        const adminBell = document.getElementById('adminBellBtn');
+        const adminBox = document.getElementById('adminNotifBox');
+        const adminBadge = document.getElementById('adminBellBadge');
+        const adminList = document.getElementById('adminNotifList');
+        const markAllBtn = document.getElementById('adminMarkAllRead');
+        const toast = document.getElementById('adminNotifToast');
+
+        if (adminBell && adminBox) {
+            let lastNotifId = 0;
+            let isFirstPoll = true;
+
+            // Toggle dropdown
+            adminBell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                adminBox.classList.toggle('active');
+                if (adminBox.classList.contains('active')) {
+                    loadLatestNotifs();
+                }
+            });
+            document.addEventListener('click', (e) => {
+                if (!adminBox.contains(e.target)) adminBox.classList.remove('active');
+            });
+
+            // Mark all read
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    await fetch('/api/notifications/mark-read', { method: 'POST' });
+                    updateBadge(0);
+                    document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+                });
+            }
+
+            function updateBadge(count) {
+                if (count > 0) {
+                    adminBadge.textContent = count > 99 ? '99+' : count;
+                    adminBadge.style.display = 'inline-block';
+                } else {
+                    adminBadge.style.display = 'none';
+                }
+            }
+
+            function showToast(notif) {
+                const toastTitle = document.getElementById('toastTitle');
+                const toastBody = document.getElementById('toastBody');
+                if (toastTitle) toastTitle.textContent = '📩 Nouvelle notification';
+                if (toastBody) toastBody.textContent = notif.content;
+                toast.classList.add('show');
+                // Shake bell
+                adminBell.querySelector('i').classList.add('bell-animate');
+                setTimeout(() => adminBell.querySelector('i').classList.remove('bell-animate'), 700);
+                // Auto-hide toast
+                setTimeout(() => toast.classList.remove('show'), 5000);
+            }
+
+            function renderNotifItem(n) {
+                const iconClass = n.type === 'reclamation' ? 'reclamation' : 'info';
+                const icon = n.type === 'reclamation' ? 'fa-file-medical' : 'fa-info-circle';
+                const unread = n.isRead ? '' : 'unread';
+                const link = n.linkUrl || '#';
+                return `<a href="${link}" class="notif-item ${unread}">
+                    <div class="d-flex align-items-start gap-2">
+                        <div class="notif-icon ${iconClass}"><i class="fa-solid ${icon}"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="notif-text">${n.content}</div>
+                            <div class="notif-time">${n.createdAt}</div>
+                        </div>
+                    </div>
+                </a>`;
+            }
+
+            async function loadLatestNotifs() {
+                try {
+                    const res = await fetch('/api/notifications/latest');
+                    const data = await res.json();
+                    updateBadge(data.unreadCount);
+                    if (data.notifications.length === 0) {
+                        adminList.innerHTML = '<div class="notif-empty"><i class="fa-solid fa-check-circle fs-3 d-block mb-2"></i>Aucune notification</div>';
+                    } else {
+                        adminList.innerHTML = data.notifications.map(renderNotifItem).join('');
+                    }
+                } catch(e) { console.error('Notif load error', e); }
+            }
+
+            async function pollNotifs() {
+                try {
+                    const res = await fetch(`/api/notifications/poll?since=${lastNotifId}`);
+                    const data = await res.json();
+                    updateBadge(data.unreadCount);
+                    if (data.notifications.length > 0) {
+                        // Update lastNotifId
+                        data.notifications.forEach(n => {
+                            if (n.id > lastNotifId) lastNotifId = n.id;
+                        });
+                        if (!isFirstPoll) {
+                            // Show toast for new notifications
+                            showToast(data.notifications[0]);
+                            // Play sound
+                            try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdG2Ik4yGfnJ4goOBgYSNlJqPloh+e3x9goSHiIuRmJiXlZKMh4aBfnp4e36BgoSFiYuOkZSTlJSSj42LiYeEgH57eXp7foCBg4WIi42PkZKTk5OSkI+NjIqIhoOBf317enl6e3x9f4GDhYeJi42PkJGSkpGRkI+OjYuKiIaEgoB/fXt6eXl6e3x+gIGDhYeJi42OkJGRkpKRkZCPjo2LioiGhIKAf317enl5ent8fn+BgoSGiIqMjo+QkZGRkZGQj46NjIqJh4WDgX9+fHp5eXp7fH5/gYKEhoiKjI6PkJGRkZGRkI+OjYyKiYeGhIJ/fnx7eXl6e3x+f4GCg4WHiYuNj5CRkZGRkZCPjo2Mi4mIhoWDgX9+fHt5eXp7fH5/gYOEhoeJi42Oj5CRkZGRkJCPjo2MiomIhoWDgn9+fHt6eXp7fH1/gIKDhYeJi42Oj5CRkZGRkJCPjo2MiomIh4WEgn9+fXt6eXp7fH1/gIKDhYeJi4yOj5CQkZGRkJCPjo2MiomIh4WEgoB+fXt6eXp7fH1+gIGDhYeIiouNjo+QkJGRkZCQj46NjIqJiIaFhIKAfn17enl6e3x9f4CBg4WHiIqLjY6PkJCRkZCQj46OjYyKiYiGhYSCgH5+fHp5ent8fX+AgYOEhoiJi42Oj5CQkZGQkI+Ojo2MiomIh4aFg4F/fn18enl6e3x9f4CBgoSGh4mLjI6PkJCQkZCQj46NjYyKiYiHhoSCgH9+fHt6eXp7fH1/gIGDhIaHiYuMjo+PkJCQkJCPj46NjIuKiYiHhYSDgX9+fXt6eXp7fH1+gIGCg4WHiImLjI2Oj4+QkJCQj4+OjYyLiomIh4aFg4F/fn17enl5ent8fX+AgYOEhoeIiouMjY6Pj5CQkJCPj46NjIuKiYiHhoSDgYB+fXt6eXl6e3x+f4CBg4SFh4iKi4yNjo+Pj5CQj4+Ojo2Mi4qJiIeGhIOCgH9+fHt6eXp7e31+f4GCg4SHiImKjI2Oj4+Pj5CQj4+OjY2Li4qJiIeGhYOBgH5+fHt6eXp7fH1+gICCg4WGiImKjI2Oj4+Pj5CQj4+OjY2Mi4qJiIeGhYSDgYB+fXt6eXp7fH1+f4GCg4WGiImLjI2Oj4+Pj4+Pj46OjY2Mi4qJiIeGhYSDgYB/fXx6eXl6e3x9fn+BgoOFhoiJi4yNjo6Pj4+Pj4+OjY2MjIuKiYiHhoWEg4GAfn18enl5ent8fX5/gIGDhIaHiYqLjI2Oj4+Pj4+Pjo6NjIyLioqJiIeGhYSDgYB/fnx7enl6e3x9fn+AgYOEhoeJiouMjY2Oj4+Pj46Ojo2NjIuKiomIh4aFhIOBgH9+fHt6eXp7fH1+f4CBgoSFh4iKi4yNjY6Oj4+Pjo6OjY2MjIuKiYmIh4aFhIOCgH9+fHt6eXl6e3x9fn+AgYKEhYeIiouMjY2Ojo6Pj46Ojo2NjIyLiomJiIeGhYSEgoGAfn18e3p5eXp7fH1+f4CBgoSFhoeJiouMjY2Ojo6Ojo6OjY2MjIuKiomIh4eGhYSCgYB/fXx7enl5ent8fX5/gIGCg4WGh4mKi4yNjY2Ojo6Ojo2NjYyMi4qKiYiHh4aFhIOCgYB/fXx7enl5ent8fX5/gIGCg4WGh4mKi4yMjY2Ojo6Ojo2NjYyMi4uKiYmIh4eGhYSEgoGAf358e3p5eXp7fH19f4CBgoOFhoeJiouMjI2Njo6Ojo6NjY2MjIuLiomJiIeHhoWEhIKBgH9+fHt6eXl6e3x9fn+AgIKDhYaHiIqLjIyNjY2Ojo6OjY2NjIyLi4qKiYiIh4aFhISCgYB/fnx7enl5ent7fX5/gICCg4WGh4iKi4yMjY2NjY6OjY2NjYyMi4uKiomIiIeHhoWEg4KBgH9+fHt6eXl6e3x9fn+AgIKDhIaHiIqLjIyMjY2Njo6NjY2NjIyLi4qKiYmIh4eGhYSEgoGAf35+fHt6eQ==').play(); } catch(e) {}
+                        }
+                    }
+                    isFirstPoll = false;
+                } catch(e) { console.error('Poll error', e); }
+            }
+
+            // Initial load + start polling
+            loadLatestNotifs();
+            setInterval(pollNotifs, 8000); // Poll every 8 seconds
         }
     });
 </script>

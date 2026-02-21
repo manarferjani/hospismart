@@ -43,6 +43,9 @@ class Reponse
     #[Assert\Email(message: 'L\'adresse email "{{ value }}" est invalide')]
     private ?string $adminEmail = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $adminAdresse = null;
+
     #[ORM\ManyToOne(inversedBy: 'reponses')]
     #[ORM\JoinColumn(nullable: false)]
     #[Assert\NotNull(message: 'Une réclamation doit être associée à cette réponse')]
@@ -99,6 +102,17 @@ class Reponse
     public function setAdminEmail(string $adminEmail): static
     {
         $this->adminEmail = $adminEmail;
+        return $this;
+    }
+
+    public function getAdminAdresse(): ?string
+    {
+        return $this->adminAdresse;
+    }
+
+    public function setAdminAdresse(?string $adminAdresse): static
+    {
+        $this->adminAdresse = $adminAdresse;
         return $this;
     }
 

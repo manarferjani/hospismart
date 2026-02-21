@@ -20,12 +20,17 @@ class Notification
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    private ?bool $isRead = false; // Initialisé à false par défaut
+    private ?bool $isRead = false;
 
-    // On utilise 'user' au lieu de 'patient' car tout le monde reçoit des notifications
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'notifications')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $type = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $linkUrl = null;
 
     public function __construct()
     {
@@ -68,6 +73,22 @@ class Notification
     public function setUser(?User $user): static
     {
         $this->user = $user;
+        return $this;
+    }
+
+    public function getType(): ?string { return $this->type; }
+
+    public function setType(?string $type): static
+    {
+        $this->type = $type;
+        return $this;
+    }
+
+    public function getLinkUrl(): ?string { return $this->linkUrl; }
+
+    public function setLinkUrl(?string $linkUrl): static
+    {
+        $this->linkUrl = $linkUrl;
         return $this;
     }
 }

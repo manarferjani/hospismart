@@ -1,214 +1,773 @@
 {% extends 'front.html.twig' %}
 
-{% block title %}Nouvelle Réclamation{% endblock %}
+{% block title %}Nouvelle Réclamation | Assistant IA{% endblock %}
+
+{% block javascripts %}
+    {# Désactiver Turbo Drive sur cette page pour éviter les conflits avec le chatbot #}
+    <meta name="turbo-visit-control" content="reload">
+    {{ parent() }}
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Force tous les éléments de cette page à rester sous la navbar */
+#reclamation-form, .page-wrapper, .form-panel, .chatbot-panel, .chatbot-card, body > * {
+    position: relative !important;
+    z-index: 0 !important;
+}
+
+/* ===================== BASE ===================== */
+body { font-family: 'Inter', sans-serif; background: #f0f4ff; }
+
+/* ===================== LAYOUT ===================== */
+.page-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 440px;
+    gap: 24px;
+    align-items: start;
+}
+@media (max-width: 1100px) {
+    .page-wrapper { grid-template-columns: 1fr; }
+    .chatbot-panel { order: -1; }
+}
+
+/* Page header */
+.page-header { margin-bottom: 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.page-header h2 { font-size: 1.65rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+.badge-ia { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-size: 0.7rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px; }
+
+/* Back button styling */
+.btn-back { padding: 0.6rem 1rem !important; border-radius: 10px !important; background: linear-gradient(135deg, #f0f4ff 0%, #e9f0ff 100%) !important; border: 2px solid #3b82f6 !important; color: #3b82f6 !important; text-decoration: none !important; font-weight: 600 !important; transition: all 0.3s ease !important; display: inline-flex !important; align-items: center !important; gap: 0.5rem !important; cursor: pointer !important; z-index: 100 !important; }
+.btn-back:hover { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; color: white !important; transform: translateY(-2px) !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important; text-decoration: none !important; }
+
+/* ===================== FORM PANEL ===================== */
+.form-panel { background: #fff; border-radius: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); overflow: hidden; }
+.form-panel-header { background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 60%, #60a5fa 100%); padding: 24px 28px; color: white; }
+.form-panel-header h4 { font-weight: 700; margin: 0; font-size: 1.1rem; }
+.form-panel-header p { margin: 5px 0 0; opacity: 0.85; font-size: 0.85rem; }
+
+/* Progress bar formulaire */
+.form-progress { padding: 16px 28px 0; }
+.progress-label { font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+.progress-bar-track { height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #6366f1); border-radius: 3px; transition: width 0.5s ease; }
+
+.form-panel-body { padding: 24px 28px 28px; }
+.form-field { margin-bottom: 20px; }
+.form-field label { display: block; font-weight: 600; color: #374151; margin-bottom: 6px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.readonly-field { background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 11px 14px; font-size: 0.875rem; color: #6b7280; display: flex; align-items: center; gap: 8px; }
+.form-control, .form-select { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 11px 14px; font-size: 0.875rem; width: 100%; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; font-family: 'Inter', sans-serif; box-sizing: border-box; }
+.form-control:focus, .form-select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+textarea.form-control { min-height: 120px; resize: vertical; }
+.invalid-feedback { display: block; color: #ef4444; font-size: 0.78rem; margin-top: 5px; font-weight: 500; }
+.is-invalid { border-color: #ef4444 !important; }
+
+/* Field header with AI btn */
+.field-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.field-header label { margin-bottom: 0; }
+.btn-ai-fill { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; padding: 4px 11px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: none; gap: 4px; align-items: center; font-family: 'Inter', sans-serif; white-space: nowrap; }
+.btn-ai-fill.show { display: inline-flex; animation: popIn 0.3s ease; }
+.btn-ai-fill:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Field highlight IA */
+.ai-highlight { border-color: #8b5cf6 !important; box-shadow: 0 0 0 3px rgba(139,92,246,0.15) !important; }
+@keyframes typewriter { from { background-color: rgba(139,92,246,0.15); } to { background-color: transparent; } }
+
+/* Submit button */
+.btn-submit { background: linear-gradient(135deg, #1d4ed8, #3b82f6); border: none; padding: 13px 28px; font-weight: 700; border-radius: 12px; font-size: 0.95rem; transition: all 0.3s; box-shadow: 0 4px 16px rgba(29,78,216,0.3); color: white; width: 100%; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; }
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(29,78,216,0.4); }
+
+/* ===================== CHATBOT ===================== */
+.chatbot-panel { position: sticky; top: 20px; z-index: 1; }
+.chatbot-card { background: #fff; border-radius: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 680px; }
+
+/* Header */
+.chatbot-header { background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); padding: 16px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.chatbot-avatar { width: 42px; height: 42px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; position: relative; }
+.chatbot-avatar::after { content: ''; position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; background: #10b981; border-radius: 50%; border: 2px solid #24243e; }
+.chatbot-info h5 { color: #fff; font-weight: 700; margin: 0; font-size: 0.9rem; }
+.chatbot-info span { color: #a5b4fc; font-size: 0.72rem; }
+.chatbot-header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+/* Form progress mini inside chatbot */
+.chat-progress-pill { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 4px 12px; font-size: 0.72rem; font-weight: 600; color: #a5b4fc; display: flex; align-items: center; gap: 6px; }
+.chat-progress-pill .pct { color: #a5f3fc; font-size: 0.85rem; }
+
+/* Guide mode button */
+.btn-guide { background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; color: white; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; white-space: nowrap; }
+.btn-guide:hover { transform: scale(1.05); }
+
+/* Messages */
+.chatbot-messages { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; background: #f8faff; }
+.chatbot-messages::-webkit-scrollbar { width: 4px; }
+.chatbot-messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+.msg { display: flex; gap: 8px; align-items: flex-end; animation: msgIn 0.3s ease; max-width: 100%; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.msg.user { flex-direction: row-reverse; }
+.msg-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+.msg.bot .msg-avatar { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+.msg.user .msg-avatar { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; }
+.msg-bubble { max-width: 82%; padding: 10px 14px; border-radius: 16px; font-size: 0.845rem; line-height: 1.55; }
+.msg.bot .msg-bubble { background: white; color: #1f2937; border-bottom-left-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.msg.user .msg-bubble { background: linear-gradient(135deg, #3b82f6, #60a5fa); color: white; border-bottom-right-radius: 4px; }
+
+/* Typing */
+.typing-indicator { display: flex; align-items: center; gap: 4px; padding: 10px 14px; background: white; border-radius: 16px; border-bottom-left-radius: 4px; width: fit-content; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.dot { width: 6px; height: 6px; background: #9ca3af; border-radius: 50%; animation: bounce 1.2s infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity:0.5; } 30% { transform: translateY(-6px); opacity:1; } }
+
+/* Quick replies */
+.quick-replies { padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 7px; border-top: 1px solid #f1f5f9; flex-shrink: 0; background: white; min-height: 52px; }
+.qr-btn { background: #ede9fe; color: #6d28d9; border: none; padding: 6px 13px; border-radius: 18px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; white-space: nowrap; }
+.qr-btn:hover { background: #8b5cf6; color: white; transform: translateY(-1px); }
+.qr-btn.action { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+.qr-btn.action:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
+
+/* Input */
+.chatbot-input-area { padding: 12px 16px; border-top: 1px solid #f1f5f9; display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; background: white; }
+.chatbot-input { flex: 1; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 9px 13px; font-size: 0.845rem; resize: none; max-height: 100px; min-height: 40px; transition: border-color 0.2s; font-family: 'Inter', sans-serif; outline: none; }
+.chatbot-input:focus { border-color: #6366f1; }
+.btn-send { width: 40px; height: 40px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 11px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+.btn-send:hover { transform: scale(1.08); box-shadow: 0 4px 12px rgba(99,102,241,0.4); }
+.btn-send:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Toast */
+.ai-toast { position: fixed; bottom: 24px; right: 24px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 11px 18px; border-radius: 14px; font-size: 0.845rem; font-weight: 600; box-shadow: 0 8px 24px rgba(99,102,241,0.4); z-index: 9999; display: flex; align-items: center; gap: 9px; opacity: 0; transform: translateY(20px); transition: all 0.3s ease; pointer-events: none; }
+.ai-toast.show { opacity: 1; transform: translateY(0); }
+
+/* Bot message action chips */
+.msg-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.msg-action-btn { background: #ede9fe; color: #6d28d9; border: none; padding: 4px 11px; border-radius: 14px; font-size: 0.75rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+.msg-action-btn:hover { background: #8b5cf6; color: white; }
+
+/* Guided step indicator */
+.step-badge { display: inline-flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.72rem; font-weight: 700; margin-bottom: 6px; }
+
+/* Fill all button inside chat */
+.btn-fill-all { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.btn-fill-all:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.4); }
+</style>
+{% endblock %}
 
 {% block body %}
-<style>
-    .form-container {
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .form-container .card-header {
-        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-        padding: 2rem 1.5rem;
-        border-radius: 12px 12px 0 0;
-    }
-
-    .form-container .card-header h4 {
-        font-weight: 600;
-        letter-spacing: 0.3px;
-        margin: 0;
-    }
-
-    .form-container .card-body {
-        padding: 2.5rem;
-        background: #fff;
-        border-radius: 0 0 12px 12px;
-    }
-
-    .form-group {
-        margin-bottom: 1.75rem;
-    }
-
-    .form-label {
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 0.75rem;
-        font-size: 0.95rem;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-    }
-
-    .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-        padding: 0.75rem 1rem;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
-    }
-
-    .form-control::placeholder {
-        color: #adb5bd;
-        font-size: 0.9rem;
-    }
-
-    textarea.form-control {
-        min-height: 120px;
-        resize: vertical;
-    }
-
-    .btn-submit {
-        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-        border: none;
-        padding: 0.85rem 2rem;
-        font-weight: 600;
-        border-radius: 8px;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
-    }
-
-    .btn-submit:hover {
-        background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(13, 110, 253, 0.4);
-        color: white;
-    }
-
-    .invalid-feedback {
-        display: block;
-        color: #dc3545;
-        font-size: 0.85rem;
-        margin-top: 0.5rem;
-        font-weight: 500;
-    }
-
-    .alert {
-        border-radius: 8px;
-        border: none;
-        margin-bottom: 2rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .alert-danger {
-        background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-        color: #721c24;
-    }
-
-    .page-header {
-        margin-bottom: 2.5rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 2px solid #f0f0f0;
-    }
-
-    .page-header h2 {
-        font-size: 2rem;
-        font-weight: 600;
-        color: #1a1a1a;
-        margin: 0;
-    }
-</style>
-
-<div class="page-header mb-4">
-    <a href="{{ path('front_office_index') }}" class="btn btn-outline-secondary btn-sm mb-3">
-        <i class="bi bi-arrow-left"></i> Retour
-    </a>
+<div data-turbo="false">
+<div class="page-header">
+    <a href="{{ path('front_office_index') }}" class="btn btn-back" title="Retour aux réclamations" style="position: relative !important; z-index: 9999 !important; pointer-events: auto !important;"><i class="bi bi-arrow-left me-2"></i>Retour</a>
     <h2><i class="bi bi-pencil-square me-2"></i>Soumettre une Réclamation</h2>
+    <span class="badge-ia">✨ Assistant IA</span>
 </div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-7 col-md-9">
-        <div class="card form-container">
-            <div class="card-header text-white">
-                <h4><i class="bi bi-plus-circle me-2"></i>Nouvelle Réclamation</h4>
+<div class="page-wrapper">
+
+    {# ====== FORMULAIRE ====== #}
+    <div class="form-panel">
+        <div class="form-panel-header">
+            <h4><i class="bi bi-clipboard2-plus me-2"></i>Formulaire de Réclamation</h4>
+            <p>Remplissez les champs ou laissez l'Assistant IA vous guider →</p>
+        </div>
+        <div class="form-progress">
+            <div class="progress-label">
+                <span>Complétion du formulaire</span>
+                <span id="progress-pct">0%</span>
             </div>
-            <div class="card-body">
-                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
-                    <div class="form-group">
-                        {{ form_label(form.nomPatient, 'Nom Complet') }}
-                        {{ form_widget(form.nomPatient, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre nom'}}) }}
-                        {% if form.nomPatient.vars.errors|length > 0 %}
-                            <div class="invalid-feedback">
-                                {% for error in form.nomPatient.vars.errors %}
-                                    {{ error.message }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+            <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar" style="width:0%"></div></div>
+        </div>
+        <div class="form-panel-body">
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'reclamation-form'}}) }}
 
-                    <div class="form-group">
-                        {{ form_label(form.email, 'Adresse Email') }}
-                        {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'votre@email.com'}}) }}
-                        {% if form.email.vars.errors|length > 0 %}
-                            <div class="invalid-feedback">
-                                {% for error in form.email.vars.errors %}
-                                    {{ error.message }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+            <div class="form-field">
+                <label>👤 Nom Complet</label>
+                <div class="readonly-field"><i class="bi bi-person-check text-primary"></i>{{ userInfo.nom }}</div>
+            </div>
+            <div class="form-field">
+                <label>📧 Adresse Email</label>
+                <div class="readonly-field"><i class="bi bi-envelope-check text-primary"></i>{{ userInfo.email }}</div>
+            </div>
 
-                    <div class="form-group">
-                        {{ form_label(form.categorie, 'Catégorie') }}
-                        {{ form_widget(form.categorie, {'attr': {'class': 'form-select ' ~ (form.categorie.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
-                        {% if form.categorie.vars.errors|length > 0 %}
-                            <div class="invalid-feedback">
-                                {% for error in form.categorie.vars.errors %}
-                                    {{ error.message }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+            <div class="form-field">
+                <div class="field-header">
+                    {{ form_label(form.categorie, '📂 Catégorie') }}
+                    <button type="button" class="btn-ai-fill" id="btn-fill-categorie" onclick="applyAiSuggestion('categorie')">✨ Appliquer</button>
+                </div>
+                {{ form_widget(form.categorie, {'attr': {'class': 'form-select'~(form.categorie.vars.errors|length>0?' is-invalid':''), 'id': 'field-categorie', 'onchange': 'onFieldChange()'}}) }}
+                {% if form.categorie.vars.errors|length > 0 %}<div class="invalid-feedback">{% for e in form.categorie.vars.errors %}{{ e.message }}{% endfor %}</div>{% endif %}
+            </div>
 
-                    <div class="form-group">
-                        {{ form_label(form.priorite, 'Priorité de la Réclamation') }}
-                        {{ form_widget(form.priorite, {'attr': {'class': 'form-select'}}) }}
-                        {% if form.priorite.vars.errors|length > 0 %}
-                            <div class="invalid-feedback">
-                                {% for error in form.priorite.vars.errors %}
-                                    {{ error.message }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+            <div class="form-field">
+                <div class="field-header">
+                    {{ form_label(form.priorite, '🎯 Priorité') }}
+                    <button type="button" class="btn-ai-fill" id="btn-fill-priorite" onclick="applyAiSuggestion('priorite')">✨ Appliquer</button>
+                </div>
+                {{ form_widget(form.priorite, {'attr': {'class': 'form-select', 'id': 'field-priorite', 'onchange': 'onFieldChange()'}}) }}
+            </div>
 
-                    <div class="form-group">
-                        {{ form_label(form.titre, 'Titre de la Réclamation') }}
-                        {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Entrez le titre'}}) }}
-                        {% if form.titre.vars.errors|length > 0 %}
-                            <div class="invalid-feedback">
-                                {% for error in form.titre.vars.errors %}
-                                    {{ error.message }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+            <div class="form-field">
+                <div class="field-header">
+                    {{ form_label(form.titre, '📝 Titre') }}
+                    <button type="button" class="btn-ai-fill" id="btn-fill-titre" onclick="applyAiSuggestion('titre')">✨ Appliquer</button>
+                </div>
+                {{ form_widget(form.titre, {'attr': {'class': 'form-control'~(form.titre.vars.errors|length>0?' is-invalid':''), 'placeholder': 'Ex: Temps d\'attente excessif aux urgences', 'id': 'field-titre', 'oninput': 'onFieldChange()'}}) }}
+                {% if form.titre.vars.errors|length > 0 %}<div class="invalid-feedback">{% for e in form.titre.vars.errors %}{{ e.message }}{% endfor %}</div>{% endif %}
+            </div>
 
-                    <div class="form-group">
-                        {{ form_label(form.description, 'Description Détaillée') }}
-                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Décrivez votre réclamation en détail'}}) }}
-                        {% if form.description.vars.errors|length > 0 %}
-                            <div class="invalid-feedback">
-                                {% for error in form.description.vars.errors %}
-                                    {{ error.message }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
+            <div class="form-field">
+                <div class="field-header">
+                    {{ form_label(form.description, '💬 Description') }}
+                    <button type="button" class="btn-ai-fill" id="btn-fill-description" onclick="applyAiSuggestion('description')">✨ Appliquer</button>
+                </div>
+                {{ form_widget(form.description, {'attr': {'class': 'form-control'~(form.description.vars.errors|length>0?' is-invalid':''), 'placeholder': 'Décrivez votre problème en détail...', 'id': 'field-description', 'oninput': 'onFieldChange()'}}) }}
+                {% if form.description.vars.errors|length > 0 %}<div class="invalid-feedback">{% for e in form.description.vars.errors %}{{ e.message }}{% endfor %}</div>{% endif %}
+            </div>
 
-                    <button type="submit" class="btn btn-submit btn-lg w-100 mt-4">
-                        <i class="bi bi-send me-2"></i>Envoyer la Réclamation
-                    </button>
-                {{ form_end(form) }}
+            <input type="hidden" name="etat_mental" id="etat-mental-input" value="">
+            <button type="submit" class="btn-submit"><i class="bi bi-send-fill"></i>Envoyer ma Réclamation</button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+    {# ====== CHATBOT ====== #}
+    <div class="chatbot-panel">
+        <div class="chatbot-card">
+
+            <div class="chatbot-header">
+                <div class="chatbot-avatar">🤖</div>
+                <div class="chatbot-info">
+                    <h5>Assistant HospiSmart</h5>
+                    <span>Propulsé par Gemini AI • En ligne</span>
+                </div>
+                <div class="chatbot-header-right">
+                    <div class="chat-progress-pill">
+                        <span>Formulaire</span>
+                        <span class="pct" id="chat-pct">0%</span>
+                    </div>
+                    <button class="btn-guide" onclick="startGuidedMode()" id="btn-guide-mode" title="Assistant guidé étape par étape">🧭 Guidé</button>
+                </div>
+            </div>
+
+            <div class="chatbot-messages" id="chatbot-messages">
+                <div class="msg bot">
+                    <div class="msg-avatar">🤖</div>
+                    <div class="msg-bubble">
+                        Bonjour ! 👋 Je suis l'<strong>assistant HospiSmart</strong>, propulsé par l'IA.<br><br>
+                        Je peux vous aider de deux façons :<br>
+                        <div class="msg-actions" style="margin-top:10px;">
+                            <button class="msg-action-btn" onclick="startGuidedMode()">🧭 Mode guidé (étape par étape)</button>
+                            <button class="msg-action-btn" onclick="sendQuickMsg('J\'ai un problème à signaler')">💬 Décrire librement</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-replies" id="quick-replies">
+                <button class="qr-btn" onclick="sendQuickMsg('Je veux être guidé étape par étape')">🧭 Guide étape par étape</button>
+                <button class="qr-btn" onclick="sendQuickMsg('Problème avec les soins reçus')">🏥 Soins</button>
+                <button class="qr-btn" onclick="sendQuickMsg('Attente trop longue')">⏱ Attente</button>
+                <button class="qr-btn" onclick="sendQuickMsg('Problème de facturation')">📄 Facturation</button>
+                <button class="qr-btn" onclick="sendQuickMsg('Comportement du personnel')">👥 Personnel</button>
+                <button class="qr-btn" onclick="window.location.href='{{ path('front_office_index') }}';" style="background: linear-gradient(135deg, #e0e0e0, #d0d0d0); color: #333; margin-left: auto;">🏠 Retour accueil</button>
+            </div>
+
+            <div class="chatbot-input-area">
+                <textarea class="chatbot-input" id="chatbot-input" placeholder="Écrivez votre message..." rows="1"
+                    onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+                <button class="btn-send" id="btn-send" onclick="sendMessage()"><i class="bi bi-send-fill"></i></button>
             </div>
         </div>
     </div>
+</div>
+
+{# Toast #}
+<div class="ai-toast" id="ai-toast">
+    <span id="toast-icon">✨</span>
+    <span id="toast-text">Champ rempli par l'IA</span>
+</div>
+
+<script>
+const CHAT_URL = '{{ path('api_chatbot_reclamation') }}';
+let history = [];
+let aiSuggestions = {};
+let isLoading = false;
+let guidedStep = 0; // 0=libre, 1=categorie, 2=priorite, 3=titre, 4=description
+let lastSentiment = null; // Stocke le dernier état mental détecté
+const GUIDED_STEPS = ['categorie', 'priorite', 'titre', 'description'];
+
+// Résolution intelligente des champs — essaie plusieurs patterns d'ID
+function getField(name) {
+    return document.getElementById('field-' + name)
+        || document.getElementById('reclamation_' + name)
+        || document.querySelector('[name="reclamation[' + name + ']"]')
+        || document.querySelector('[name*="' + name + '"]');
+}
+
+const STEP_QUESTIONS = {
+    categorie: "**Étape 1/4 — Catégorie** 📂\n\nQuel type de problème avez-vous rencontré ?\n\n• 🏥 Soins médicaux\n• 👥 Personnel soignant\n• ⏱ Attente / délais\n• 📄 Facturation / administratif\n• 🧹 Hygiène et propreté\n• 💬 Autre",
+    priorite: "**Étape 2/4 — Priorité** 🎯\n\nQuelle est l'urgence de votre réclamation ?\n\n• 🟢 **Basse** — Problème mineur\n• 🔵 **Normale** — Cas standard\n• 🟠 **Haute** — Problème important\n• 🔴 **Urgente** — Besoin immédiat",
+    titre: "**Étape 3/4 — Titre** 📝\n\nDonnez un titre court et clair à votre réclamation.\n\nExemple : *\"Attente de 3h aux urgences sans prise en charge\"*",
+    description: "**Étape 4/4 — Description** 💬\n\nDécrivez votre problème en détail :\n• Que s'est-il passé ?\n• Quand et où ?\n• Qui était impliqué ?\n• Quel impact cela a-t-il eu ?"
+};
+
+const STEP_CHIPS = {
+    0: [
+        { label: '🧭 Guide étape par étape', fn: 'startGuidedMode()' },
+        { label: '🏥 Soins médicaux', fn: "sendQuickMsg('Problème avec les soins médicaux reçus')" },
+        { label: '⏱ Attente excessive', fn: "sendQuickMsg('J\\'ai attendu très longtemps')" },
+        { label: '📄 Facturation', fn: "sendQuickMsg('Problème avec ma facture')" },
+    ],
+    1: [
+        { label: '🏥 Soins médicaux', fn: "pickCategorie('Soins médicaux')" },
+        { label: '👥 Personnel soignant', fn: "pickCategorie('Personnel soignant')" },
+        { label: '⏱ Attente / délais', fn: "pickCategorie('Attente / délais')" },
+        { label: '📄 Facturation', fn: "pickCategorie('Facturation / administratif')" },
+        { label: '🧹 Hygiène', fn: "pickCategorie('Hygiène et propreté')" },
+        { label: '💬 Autre', fn: "pickCategorie('Autre')" },
+    ],
+    2: [
+        { label: '🟢 Basse', fn: "pickPriorite('Basse')" },
+        { label: '🔵 Normale', fn: "pickPriorite('Normale')" },
+        { label: '🟠 Haute', fn: "pickPriorite('Haute')" },
+        { label: '🔴 Urgente', fn: "pickPriorite('Urgente')" },
+    ],
+    3: [],
+    4: []
+};
+
+// ==================== GUIDED MODE ====================
+function startGuidedMode() {
+    guidedStep = 1;
+    document.getElementById('btn-guide-mode').style.display = 'none';
+    hideQuickReplies();
+    appendBotMessage("🧭 **Mode guidé activé !**\n\nJe vais vous poser 4 questions pour remplir votre réclamation.\n\nCommençons !");
+    setTimeout(() => {
+        appendBotMessage(STEP_QUESTIONS.categorie);
+        setQuickReplies(STEP_CHIPS[1]);
+    }, 800);
+}
+
+function pickCategorie(val) {
+    const el = getField('categorie');
+    if (el) {
+        const norm = s => s.toLowerCase().trim();
+        for (let o of el.options) { if (norm(o.text) === norm(val) || norm(o.value) === norm(val)) { el.value = o.value; break; } }
+        el.classList.add('ai-highlight');
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => el.classList.remove('ai-highlight'), 2500);
+    }
+    appendUserMessage('📂 ' + val);
+    onFieldChange();
+    setTimeout(() => {
+        guidedStep = 2;
+        appendBotMessage("✅ Catégorie **" + val + "** sélectionnée !\n\n" + STEP_QUESTIONS.priorite);
+        setQuickReplies(STEP_CHIPS[2]);
+    }, 600);
+}
+
+function pickPriorite(val) {
+    const el = getField('priorite');
+    if (el) {
+        const norm = s => s.toLowerCase().trim();
+        for (let o of el.options) { if (norm(o.text) === norm(val) || norm(o.value) === norm(val)) { el.value = o.value; break; } }
+        el.classList.add('ai-highlight');
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => el.classList.remove('ai-highlight'), 2500);
+    }
+    appendUserMessage('🎯 ' + val);
+    onFieldChange();
+    setTimeout(() => {
+        guidedStep = 3;
+        appendBotMessage("✅ Priorité **" + val + "** sélectionnée !\n\n" + STEP_QUESTIONS.titre);
+        setQuickReplies([{ label: '💡 Suggérer un titre', fn: 'askAiForTitle()' }]);
+    }, 600);
+}
+
+function askAiForTitle() {
+    sendQuickMsg('Aide-moi à formuler un bon titre pour ma réclamation');
+}
+
+// ==================== SEND MESSAGES ====================
+async function sendMessage() {
+    const input = document.getElementById('chatbot-input');
+    const text = input.value.trim();
+    if (!text || isLoading) return;
+    input.value = '';
+    autoResize(input);
+    appendUserMessage(text);
+    history.push({ role: 'user', content: text });
+    await callApi();
+}
+
+function sendQuickMsg(text) {
+    if (isLoading) return;
+    appendUserMessage(text);
+    history.push({ role: 'user', content: text });
+    callApi();
+}
+
+function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
+
+// ==================== API CALL ====================
+async function callApi() {
+    showTyping();
+    isLoading = true;
+    document.getElementById('btn-send').disabled = true;
+
+    const formData = {
+        titre: getField('titre')?.value || '',
+        categorie: getField('categorie')?.value || '',
+        priorite: getField('priorite')?.value || '',
+        description: getField('description')?.value || '',
+    };
+
+    try {
+        const res = await fetch(CHAT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: history, formData, guidedStep })
+        });
+
+        if (!res.ok) {
+            hideTyping();
+            const errText = await res.text();
+            appendBotMessage(`⚠️ Erreur serveur (HTTP ${res.status}). Détails : ${errText.substring(0, 200)}`);
+            isLoading = false;
+            document.getElementById('btn-send').disabled = false;
+            return;
+        }
+
+        const data = await res.json();
+        hideTyping();
+
+        // Afficher l'erreur API réelle si présente
+        if (data.api_error) {
+            appendBotMessage(`⚠️ **Erreur Gemini API :** ${data.api_error}\n\nVérifiez que votre clé API est valide sur [aistudio.google.com](https://aistudio.google.com/app/apikey).`);
+            isLoading = false;
+            document.getElementById('btn-send').disabled = false;
+            return;
+        }
+
+        // Langage inapproprié détecté
+        if (data.profanity) {
+            appendBotMessage(data.message);
+            // Ne pas ajouter au history pour ne pas polluer le contexte IA
+            history.pop(); // Retirer le dernier message utilisateur de l'historique
+            isLoading = false;
+            document.getElementById('btn-send').disabled = false;
+            return;
+        }
+
+        // Stocker suggestions
+        if (data.suggestions && Object.keys(data.suggestions).length > 0) {
+            aiSuggestions = { ...aiSuggestions, ...data.suggestions };
+            showAiButtons();
+        }
+
+        // Stocker l'état mental détecté par l'IA
+        if (data.sentiment && data.sentiment.etat) {
+            lastSentiment = data.sentiment;
+            document.getElementById('etat-mental-input').value = data.sentiment.etat;
+            updateSentimentBadge(data.sentiment);
+        }
+
+        const clean = cleanMsg(data.message || '');
+        appendBotMessage(clean);
+        history.push({ role: 'assistant', content: data.message });
+
+        // Si mode guidé et suggestions de l'IA pour le titre
+        if (guidedStep === 3 && aiSuggestions.titre) {
+            setTimeout(() => appendBotMsgWithFillBtn(), 400);
+        }
+        if (guidedStep === 4 && aiSuggestions.description) {
+            setTimeout(() => {
+                const container = document.getElementById('chatbot-messages');
+                const el = document.createElement('div');
+                el.className = 'msg bot';
+                el.innerHTML = `<div class="msg-avatar">🤖</div>
+                <div class="msg-bubble">✨ Voici une description suggérée !<br><br>
+                <em style="color:#6366f1;font-style:normal;">${esc(aiSuggestions.description || '')}</em><br><br>
+                <button class="btn-fill-all" onclick="applyAiSuggestion('description'); showCompletionMsg()">
+                    <i class="bi bi-check2"></i> Utiliser cette description
+                </button></div>`;
+                container.appendChild(el);
+                scroll();
+            }, 400);
+        }
+
+    } catch(e) {
+        hideTyping();
+        appendBotMessage(`⚠️ **Impossible de joindre le serveur.**\n\nErreur : ${e.message}\n\nUtilisez le mode guidé avec les boutons ci-dessous, ou remplissez le formulaire directement.`);
+        // Afficher les chips de mode guidé local
+        setQuickReplies([
+            { label: '🧭 Reprendre le mode guidé', fn: 'startGuidedMode()' },
+        ]);
+    }
+    isLoading = false;
+    document.getElementById('btn-send').disabled = false;
+}
+
+function showCompletionMsg() {
+    appendBotMessage("🎉 **Votre formulaire est complet !**\n\nCliquez sur **\"Envoyer ma Réclamation\"** pour l'envoyer à l'équipe médicale.");
+    setQuickReplies([{ label: '✅ Formulaire prêt à envoyer !', fn: '' }]);
+}
+
+function askAiForDesc() {
+    sendQuickMsg('Génère-moi une description complète basée sur mes réponses précédentes');
+}
+
+// ==================== UI MESSAGES ====================
+function appendUserMessage(text) {
+    const container = document.getElementById('chatbot-messages');
+    const el = document.createElement('div');
+    el.className = 'msg user';
+    el.innerHTML = `<div class="msg-avatar">👤</div><div class="msg-bubble">${esc(text)}</div>`;
+    container.appendChild(el);
+    scroll();
+    hideInitialChips();
+}
+
+function appendBotMessage(text, actions = []) {
+    const container = document.getElementById('chatbot-messages');
+    const el = document.createElement('div');
+    el.className = 'msg bot';
+    const formatted = formatMsg(text);
+    let actionsHtml = '';
+    if (actions.length) {
+        actionsHtml = '<div class="msg-actions">' + actions.map(a => `<button class="msg-action-btn" onclick="${a.fn}">${a.label}</button>`).join('') + '</div>';
+    }
+    el.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">${formatted}${actionsHtml}</div>`;
+    container.appendChild(el);
+    scroll();
+}
+
+function appendBotMsgWithFillBtn() {
+    const container = document.getElementById('chatbot-messages');
+    const el = document.createElement('div');
+    el.className = 'msg bot';
+    el.innerHTML = `<div class="msg-avatar">🤖</div>
+    <div class="msg-bubble">
+        ✨ J'ai un titre à vous proposer !<br>
+        <em style="color:#6366f1;font-style:normal;">"${esc(aiSuggestions.titre || '')}"</em><br><br>
+        <button class="btn-fill-all" onclick="applyAiSuggestion('titre'); nextGuidedStep()">
+            <i class="bi bi-check2"></i> Utiliser ce titre
+        </button>
+    </div>`;
+    container.appendChild(el);
+    scroll();
+}
+
+function nextGuidedStep() {
+    if (guidedStep === 3) {
+        guidedStep = 4;
+        setTimeout(() => {
+            appendBotMessage(STEP_QUESTIONS.description);
+            setQuickReplies([{ label: '✨ Générer une description', fn: 'sendQuickMsg(\'Génère-moi une description complète basée sur mes réponses\')' }]);
+        }, 500);
+    }
+}
+
+function showTyping() {
+    const container = document.getElementById('chatbot-messages');
+    const el = document.createElement('div');
+    el.className = 'msg bot'; el.id = 'typing';
+    el.innerHTML = `<div class="msg-avatar">🤖</div><div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+    container.appendChild(el);
+    scroll();
+}
+function hideTyping() { document.getElementById('typing')?.remove(); }
+function scroll() { const c = document.getElementById('chatbot-messages'); c.scrollTop = c.scrollHeight; }
+
+function setQuickReplies(chips) {
+    const container = document.getElementById('quick-replies');
+    container.innerHTML = '';
+    chips.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'qr-btn';
+        btn.innerHTML = c.label;
+        btn.setAttribute('onclick', c.fn);
+        container.appendChild(btn);
+    });
+}
+
+function hideQuickReplies() { setQuickReplies([]); }
+function hideInitialChips() {
+    if (guidedStep === 0 && history.filter(m => m.role === 'user').length === 1) {
+        setQuickReplies([
+            { label: '🔄 Recommencer en mode guidé', fn: 'startGuidedMode()' },
+            { label: '✨ Remplir tout automatiquement', fn: 'applyAllSuggestions()' }
+        ]);
+    }
+}
+
+// ==================== AI SUGGESTIONS ====================
+function cleanMsg(text) {
+    return text
+        .replace(/TITRE_SUGGERE:\s*"?[^"\n]+"?/gi, '')
+        .replace(/CATEGORIE_SUGGEREE:\s*"?[^"\n]+"?/gi, '')
+        .replace(/PRIORITE_SUGGEREE:\s*"?[^"\n]+"?/gi, '')
+        .replace(/DESCRIPTION_SUGGEREE:\s*"?[^"]*"?/gis, '')
+        .replace(/ETAT_MENTAL:\s*"?[^"\n]+"?\s*[—\-]\s*.+/gi, '')
+        .replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function showAiButtons() {
+    ['titre','categorie','priorite','description'].forEach(f => {
+        if (aiSuggestions[f]) document.getElementById('btn-fill-'+f)?.classList.add('show');
+    });
+    // Show "fill all" quick reply
+    if (Object.keys(aiSuggestions).length >= 2) {
+        const existing = document.getElementById('quick-replies');
+        if (!existing.querySelector('[data-fill-all]')) {
+            const btn = document.createElement('button');
+            btn.className = 'qr-btn action';
+            btn.setAttribute('data-fill-all', '1');
+            btn.innerHTML = '⚡ Tout remplir automatiquement';
+            btn.onclick = applyAllSuggestions;
+            existing.prepend(btn);
+        }
+    }
+}
+
+function applyAiSuggestion(field) {
+    if (!aiSuggestions[field]) return;
+    const el = getField(field);
+    if (!el) { console.warn('Field not found:', field); return; }
+
+    const val = aiSuggestions[field];
+
+    if (el.tagName === 'SELECT') {
+        const norm = s => s.toLowerCase().trim().replace(/\s+/g, ' ');
+        const target = norm(val);
+        let found = false;
+        // 1. Correspondance exacte (texte ou valeur)
+        for (let o of el.options) {
+            if (norm(o.text) === target || norm(o.value) === target) {
+                el.value = o.value; found = true; break;
+            }
+        }
+        // 2. Correspondance partielle
+        if (!found) {
+            for (let o of el.options) {
+                if (o.value && (norm(o.text).includes(target) || target.includes(norm(o.text)))) {
+                    el.value = o.value; found = true; break;
+                }
+            }
+        }
+        if (!found) console.warn('Option not found for', field, ':', val);
+    } else {
+        // Typewriter effect pour texte/textarea
+        el.value = '';
+        let i = 0;
+        const timer = setInterval(() => {
+            if (i < val.length) { el.value += val[i++]; } else { clearInterval(timer); }
+        }, 18);
+    }
+
+    // Highlight using the element itself
+    el.classList.add('ai-highlight');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => el.classList.remove('ai-highlight'), 2500);
+    document.getElementById('btn-fill-' + field)?.classList.remove('show');
+    showToast('✨', fieldName(field) + ' rempli par l\'IA');
+    delete aiSuggestions[field];
+    onFieldChange();
+}
+
+function applyAllSuggestions() {
+    const fields = Object.keys(aiSuggestions);
+    if (!fields.length) { showToast('💬', 'Décrivez d\'abord votre problème !'); return; }
+    let delay = 0;
+    fields.forEach(f => {
+        setTimeout(() => applyAiSuggestion(f), delay);
+        delay += 300;
+    });
+    setTimeout(() => showToast('🎉', 'Tous les champs ont été remplis !'), delay + 200);
+}
+
+function highlightField(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('ai-highlight');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => el.classList.remove('ai-highlight'), 2500);
+}
+
+function fieldName(f) { return {titre:'Titre', categorie:'Catégorie', priorite:'Priorité', description:'Description'}[f] || f; }
+
+// ==================== PROGRESS BAR ====================
+function onFieldChange() {
+    const fields = [
+        getField('titre')?.value?.trim(),
+        getField('categorie')?.value,
+        getField('priorite')?.value,
+        getField('description')?.value?.trim(),
+    ];
+    const filled = fields.filter(v => v && v !== '').length;
+    const pct = Math.round((filled / fields.length) * 100);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('chat-pct').textContent = pct + '%';
+    // Auto-suggest when form is complete
+    if (pct === 100) {
+        setTimeout(() => {
+            appendBotMessage("🎉 **Votre formulaire est complet !**\n\nVous pouvez maintenant cliquer sur **\"Envoyer ma Réclamation\"**. Votre réclamation sera transmise à l'équipe médicale.");
+        }, 300);
+    }
+}
+
+// ==================== TOAST ====================
+function showToast(icon, text) {
+    document.getElementById('toast-icon').textContent = icon;
+    document.getElementById('toast-text').textContent = text;
+    const t = document.getElementById('ai-toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ==================== UTILS ====================
+function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function formatMsg(text) {
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
+}
+
+// ==================== SENTIMENT BADGE ====================
+const SENTIMENT_CONFIG = {
+    'Calme':      { emoji: '😌', color: '#10b981', bg: '#d1fae5' },
+    'Frustré':    { emoji: '😤', color: '#f59e0b', bg: '#fef3c7' },
+    'En colère':  { emoji: '😠', color: '#ef4444', bg: '#fee2e2' },
+    'Anxieux':    { emoji: '😰', color: '#8b5cf6', bg: '#ede9fe' },
+    'Triste':     { emoji: '😢', color: '#3b82f6', bg: '#dbeafe' },
+    'Satisfait':  { emoji: '😊', color: '#059669', bg: '#d1fae5' },
+};
+
+function updateSentimentBadge(sentiment) {
+    const config = SENTIMENT_CONFIG[sentiment.etat] || SENTIMENT_CONFIG['Calme'];
+    let badge = document.getElementById('sentiment-badge');
+    if (!badge) {
+        badge = document.createElement('div');
+        badge.id = 'sentiment-badge';
+        badge.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:0.72rem;font-weight:600;transition:all 0.3s ease;cursor:help;';
+        const headerRight = document.querySelector('.chatbot-header-right');
+        if (headerRight) headerRight.prepend(badge);
+    }
+    badge.style.background = config.bg;
+    badge.style.color = config.color;
+    badge.innerHTML = `${config.emoji} ${sentiment.etat}`;
+    badge.title = sentiment.explication || '';
+    // Animation
+    badge.style.transform = 'scale(1.15)';
+    setTimeout(() => badge.style.transform = 'scale(1)', 300);
+}
+</script>
 </div>
 {% endblock %}

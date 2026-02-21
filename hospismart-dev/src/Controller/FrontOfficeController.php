@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Reclamation;
 use App\Form\ReclamationType;
 use App\Repository\ReclamationRepository;
+use App\Service\NotificationService;
+use App\Service\ProfanityFilterService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,17 +25,42 @@ class FrontOfficeController extends AbstractController
     }
 
     #[Route('/reclamation/nouvelle', name: 'front_office_nouvelle_reclamation', methods: ['GET', 'POST'])]
-    public function nouvelleReclamation(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator): Response
+    public function nouvelleReclamation(Request $request, EntityManagerInterface $entityManager, ValidatorInterface $validator, ProfanityFilterService $profanityFilter, NotificationService $notificationService): Response
     {
+        // Vérifier que l'utilisateur est authentifié
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
         $reclamation = new Reclamation();
+        
+        // Pré-remplir le nom et l'email de la réclamation avec les données de l'utilisateur
+        $reclamation->setNomPatient($user->getPrenom() . ' ' . $user->getNom());
+        $reclamation->setEmail($user->getEmail());
+        
         $form = $this->createForm(ReclamationType::class, $reclamation);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
+            // Définir la date et le statut AVANT la validation
+            $reclamation->setDateCreation(new \DateTime());
+            $reclamation->setStatut('En attente');
+            
             // Valider les contraintes de l'entité Reclamation
             $errors = $validator->validate($reclamation);
+
+            // Vérifier le langage inapproprié dans le titre et la description
+            $titreCheck = $profanityFilter->check($reclamation->getTitre() ?? '');
+            $descCheck  = $profanityFilter->check($reclamation->getDescription() ?? '');
+            if (!$titreCheck['clean']) {
+                $form->get('titre')->addError(new FormError('🚫 Langage inapproprié détecté dans le titre. Veuillez reformuler de manière respectueuse.'));
+            }
+            if (!$descCheck['clean']) {
+                $form->get('description')->addError(new FormError('🚫 Langage inapproprié détecté dans la description. Veuillez reformuler de manière respectueuse.'));
+            }
             
-            if (count($errors) > 0 || !$form->isValid()) {
+            if (count($errors) > 0 || !$form->isValid() || !$titreCheck['clean'] || !$descCheck['clean']) {
                 // Afficher les erreurs de validation Symfony
                 foreach ($errors as $error) {
                     // Ajouter les erreurs à la propriété correspondante
@@ -45,18 +72,37 @@ class FrontOfficeController extends AbstractController
                 
                 return $this->render('front_office/nouvelle_reclamation.html.twig', [
                     'form' => $form->createView(),
+                    'userInfo' => [
+                        'nom' => $reclamation->getNomPatient(),
+                        'email' => $reclamation->getEmail()
+                    ],
                 ]);
             }
             
-            $reclamation->setDateCreation(new \DateTime());
-            $reclamation->setStatut('En attente');
-            
             try {
+                // Récupérer l'état mental envoyé par le chatbot (champ caché)
+                $etatMental = $request->request->get('etat_mental');
+                if ($etatMental) {
+                    $reclamation->setEtatMental($etatMental);
+                }
+                
                 $entityManager->persist($reclamation);
                 $entityManager->flush();
 
+                // Notifier tous les admins en temps réel
+                $notificationService->notifyAllAdmins(
+                    sprintf(
+                        '📩 Nouvelle réclamation de %s : "%s" (%s)',
+                        $reclamation->getNomPatient(),
+                        mb_substr($reclamation->getTitre(), 0, 40),
+                        $reclamation->getPriorite()
+                    ),
+                    'reclamation',
+                    '/admin/reclamation/' . $reclamation->getId()
+                );
+
                 $this->addFlash('success', 'Votre réclamation a été soumise avec succès !');
-                return $this->redirectToRoute('front_office_mes_reclamations', ['email' => $reclamation->getEmail()]);
+                return $this->redirectToRoute('front_office_mes_reclamations');
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Une erreur est survenue lors de la création de votre réclamation.');
             }
@@ -64,49 +110,54 @@ class FrontOfficeController extends AbstractController
 
         return $this->render('front_office/nouvelle_reclamation.html.twig', [
             'form' => $form->createView(),
+            'userInfo' => [
+                'nom' => $reclamation->getNomPatient(),
+                'email' => $reclamation->getEmail()
+            ],
         ]);
     }
 
-    #[Route('/mes-reclamations', name: 'front_office_mes_reclamations', methods: ['GET', 'POST'])]
-    public function mesReclamations(Request $request, ReclamationRepository $reclamationRepository): Response
+    #[Route('/mes-reclamations', name: 'front_office_mes_reclamations', methods: ['GET'])]
+    public function mesReclamations(ReclamationRepository $reclamationRepository): Response
     {
-        $email = $request->query->get('email') ?? $request->request->get('email');
-        $reclamations = [];
-        $emailError = null;
-
-        if ($email) {
-            // Valider le format de l'email
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $emailError = 'Le format de l\'adresse email est invalide.';
-                $this->addFlash('error', $emailError);
-            } else {
-                // Sécuriser l'email pour éviter les injections
-                $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-                $reclamations = $reclamationRepository->findByEmail($email);
-                
-                if (empty($reclamations)) {
-                    $this->addFlash('info', 'Aucune réclamation trouvée pour cet email.');
-                }
-            }
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
         }
+
+        $reclamations = $reclamationRepository->findBy(
+            ['email' => $user->getEmail()],
+            ['dateCreation' => 'DESC']
+        );
 
         return $this->render('front_office/mes_reclamations.html.twig', [
             'reclamations' => $reclamations,
-            'email' => $email,
         ]);
     }
 
     #[Route('/reclamation/{id}', name: 'front_office_detail_reclamation', methods: ['GET'])]
     public function detailReclamation(Reclamation $reclamation): Response
     {
+        // Vérifier que l'utilisateur est propriétaire de la réclamation
+        $user = $this->getUser();
+        if (!$user || $reclamation->getEmail() !== $user->getEmail()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette réclamation.');
+        }
+
         return $this->render('front_office/detail_reclamation.html.twig', [
             'reclamation' => $reclamation,
         ]);
     }
 
     #[Route('/reclamation/{id}/modifier', name: 'front_office_modifier_reclamation', methods: ['GET', 'POST'])]
-    public function modifierReclamation(Request $request, Reclamation $reclamation, EntityManagerInterface $entityManager, ValidatorInterface $validator): Response
+    public function modifierReclamation(Request $request, Reclamation $reclamation, EntityManagerInterface $entityManager, ValidatorInterface $validator, ProfanityFilterService $profanityFilter): Response
     {
+        // Vérifier que l'utilisateur est propriétaire de la réclamation
+        $user = $this->getUser();
+        if (!$user || $reclamation->getEmail() !== $user->getEmail()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette réclamation.');
+        }
+
         // Vérifier que la reclamation n'est pas deja traitee
         if ($reclamation->getStatut() === 'Traité') {
             $this->addFlash('error', 'Vous ne pouvez pas modifier une réclamation déjà traitée.');
@@ -125,8 +176,18 @@ class FrontOfficeController extends AbstractController
         if ($form->isSubmitted()) {
             // Valider les contraintes de l'entité Reclamation
             $errors = $validator->validate($reclamation);
+
+            // Vérifier le langage inapproprié dans le titre et la description
+            $titreCheck = $profanityFilter->check($reclamation->getTitre() ?? '');
+            $descCheck  = $profanityFilter->check($reclamation->getDescription() ?? '');
+            if (!$titreCheck['clean']) {
+                $form->get('titre')->addError(new FormError('🚫 Langage inapproprié détecté dans le titre. Veuillez reformuler de manière respectueuse.'));
+            }
+            if (!$descCheck['clean']) {
+                $form->get('description')->addError(new FormError('🚫 Langage inapproprié détecté dans la description. Veuillez reformuler de manière respectueuse.'));
+            }
             
-            if (count($errors) > 0 || !$form->isValid()) {
+            if (count($errors) > 0 || !$form->isValid() || !$titreCheck['clean'] || !$descCheck['clean']) {
                 // Afficher les erreurs de validation Symfony
                 foreach ($errors as $error) {
                     // Ajouter les erreurs à la propriété correspondante
@@ -139,6 +200,10 @@ class FrontOfficeController extends AbstractController
                 return $this->render('front_office/modifier_reclamation.html.twig', [
                     'reclamation' => $reclamation,
                     'form' => $form->createView(),
+                    'userInfo' => [
+                        'nom' => $reclamation->getNomPatient(),
+                        'email' => $reclamation->getEmail()
+                    ],
                 ]);
             }
             
@@ -155,18 +220,28 @@ class FrontOfficeController extends AbstractController
         return $this->render('front_office/modifier_reclamation.html.twig', [
             'reclamation' => $reclamation,
             'form' => $form->createView(),
+            'userInfo' => [
+                'nom' => $reclamation->getNomPatient(),
+                'email' => $reclamation->getEmail()
+            ],
         ]);
     }
 
     #[Route('/reclamation/{id}/supprimer', name: 'front_office_supprimer_reclamation', methods: ['POST'])]
     public function supprimerReclamation(Request $request, Reclamation $reclamation, EntityManagerInterface $entityManager): Response
     {
+        // Vérifier que l'utilisateur est propriétaire de la réclamation
+        $user = $this->getUser();
+        if (!$user || $reclamation->getEmail() !== $user->getEmail()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette réclamation.');
+        }
+
         $email = $reclamation->getEmail();
         
         // Vérifier le token CSRF
         if (!$this->isCsrfTokenValid('delete'.$reclamation->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de sécurité invalide. Suppression impossible.');
-            return $this->redirectToRoute('front_office_mes_reclamations', ['email' => $email]);
+            return $this->redirectToRoute('front_office_mes_reclamations');
         }
         
         // Vérifier que la réclamation n'est pas déjà traitée
@@ -178,7 +253,7 @@ class FrontOfficeController extends AbstractController
         // Vérifier que la réclamation existe
         if (!$reclamation) {
             $this->addFlash('error', 'La réclamation n\'existe pas.');
-            return $this->redirectToRoute('front_office_mes_reclamations', ['email' => $email]);
+            return $this->redirectToRoute('front_office_mes_reclamations');
         }
         
         try {
@@ -189,6 +264,6 @@ class FrontOfficeController extends AbstractController
             $this->addFlash('error', 'Une erreur est survenue lors de la suppression de votre réclamation.');
         }
 
-        return $this->redirectToRoute('front_office_mes_reclamations', ['email' => $email]);
+        return $this->redirectToRoute('front_office_mes_reclamations');
     }
 }

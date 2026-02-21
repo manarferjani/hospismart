@@ -12,11 +12,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/admin/patient', name: 'app_admin_patient')]
+#[Route('/admin/patient')]
 #[IsGranted('ROLE_ADMIN')]
 final class AdminPatientController extends AbstractController
 {
-    #[Route(name: 'app_admin_patient_index', methods: ['GET'])]
+    #[Route('', name: 'app_admin_patient_index', methods: ['GET'])]
     public function index(UserRepository $userRepository): Response
     {
         $patients = $userRepository->findBy(['type' => 'PATIENT']);

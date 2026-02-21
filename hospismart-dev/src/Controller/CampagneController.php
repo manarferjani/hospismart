@@ -12,11 +12,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/campagne', name: 'app_campagne')]
+#[Route('/campagne')]
 #[IsGranted('ROLE_ADMIN')]
 final class CampagneController extends AbstractController
 {
-    #[Route(name: 'app_campagne_index', methods: ['GET'])]
+    #[Route('', name: 'app_campagne_index', methods: ['GET'])]
     public function index(CampagneRepository $campagneRepository): Response
     {
         return $this->render('campagne/index.html.twig', [

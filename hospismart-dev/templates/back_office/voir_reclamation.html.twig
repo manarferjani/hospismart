@@ -179,24 +179,6 @@
                         </div>
                     {% endif %}
 
-                    <div class="mb-3">
-                        {{ form_label(form.adminNom, 'Votre Nom', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                        <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
-                            {{ form_widget(form.adminNom, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-                        {{ form_errors(form.adminNom) }}
-                    </div>
-
-                    <div class="mb-3">
-                        {{ form_label(form.adminEmail, 'Votre Email', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                        <div class="input-group">
-                            <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
-                            {{ form_widget(form.adminEmail, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-                        {{ form_errors(form.adminEmail) }}
-                    </div>
-
                     <div class="mb-4">
                         {{ form_label(form.contenu, 'Message', {'label_attr': {'class': 'form-label fw-bold'}}) }}
                         {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'rows': '8'}}) }}

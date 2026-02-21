@@ -2,66 +2,357 @@
 
 {% block title %}Créer un compte - Hospismart{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.register-wrapper {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.register-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    width: 100%;
+    max-width: 520px;
+}
+
+.register-header {
+    background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 60%, #60a5fa 100%);
+    padding: 2rem 2.5rem;
+    text-align: center;
+    color: white;
+}
+.register-header .icon-wrap {
+    width: 56px;
+    height: 56px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+}
+.register-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+.register-header p {
+    margin: 0.5rem 0 0;
+    opacity: 0.85;
+    font-size: 0.875rem;
+}
+
+.register-body {
+    padding: 2rem 2.5rem 2.5rem;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.field-group {
+    margin-bottom: 1.25rem;
+}
+.field-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+.field-group label .required-star {
+    color: #ef4444;
+    margin-left: 2px;
+}
+.field-group input,
+.field-group select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.925rem;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #fff;
+    box-sizing: border-box;
+    color: #1f2937;
+}
+.field-group input:focus,
+.field-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+.field-group input:invalid:not(:placeholder-shown) {
+    border-color: #ef4444;
+}
+.field-group input::placeholder { color: #9ca3af; }
+
+.errors-box {
+    background: #fef2f2;
+    border: 1.5px solid #fecaca;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.errors-box strong {
+    color: #dc2626;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+.errors-box ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: #b91c1c;
+    font-size: 0.875rem;
+}
+.errors-box ul li { margin-bottom: 2px; }
+
+.btn-register {
+    width: 100%;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    color: white;
+    border: none;
+    padding: 13px 20px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(29, 78, 216, 0.3);
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(29, 78, 216, 0.4);
+}
+.btn-register:active { transform: translateY(0); }
+
+.login-link {
+    text-align: center;
+    margin-top: 1.25rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+.login-link a {
+    color: #3b82f6;
+    font-weight: 600;
+    text-decoration: none;
+}
+.login-link a:hover { text-decoration: underline; }
+
+.divider {
+    border: none;
+    border-top: 1px solid #f3f4f6;
+    margin: 1.5rem 0;
+}
+
+.section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #9ca3af;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.section-label::before,
+.section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #f3f4f6;
+}
+</style>
+{% endblock %}
+
 {% block body %}
-<div class="front-form-box" style="max-width: 520px;">
-    <h2>Créer un compte</h2>
-    {% if errors %}
-        <div class="alert alert-danger" style="padding: 15px; margin-bottom: 20px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;">
-            <strong>Erreur(s) de validation :</strong>
-            <ul style="margin: 10px 0 0 20px;">
-                {% for error in errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+<div class="register-wrapper">
+
+    {# DEBUG BLOC - À SUPPRIMER APRÈS CORRECTION #}
+    {% if debugInfo is defined and debugInfo|length > 0 %}
+    <div style="position:fixed;top:0;left:0;right:0;background:#1e1e2e;color:#a6e3a1;font-family:monospace;font-size:12px;padding:12px 16px;z-index:99999;max-height:40vh;overflow-y:auto;border-bottom:3px solid #f38ba8;">
+        <strong style="color:#f38ba8;">🐛 DEBUG INFO (POST reçu)</strong><br>
+        {% for key, val in debugInfo %}
+            <span style="color:#89b4fa;">{{ key }}</span>: 
+            {% if val is iterable %}
+                [{% for v in val %}<span style="color:#fab387;">{{ v }}</span>{% if not loop.last %}, {% endif %}{% endfor %}]
+            {% else %}
+                <span style="color:#{% if val == false or val == '' %}f38ba8{% else %}a6e3a1{% endif %};">{{ val ? val : 'VIDE/FALSE' }}</span>
+            {% endif %}<br>
+        {% endfor %}
+    </div>
     {% endif %}
-    <form method="post" action="{{ path('app_register') }}" class="js-form-validate" data-password-minlength="6">
-        <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
-        <div class="form-group">
-            <label for="nom">Nom d'utilisateur *</label>
-            <input type="text" id="nom" name="nom" required value="{{ app.request.get('nom') }}" maxlength="180" data-required-msg="Le nom d'utilisateur est obligatoire.">
-            <span class="field-error" aria-live="polite"></span>
+
+    <div class="register-card" style="{% if debugInfo is defined and debugInfo|length > 0 %}margin-top:220px;{% endif %}">
+
+        <div class="register-header">
+            <div class="icon-wrap">🏥</div>
+            <h2>Créer un compte</h2>
+            <p>Rejoignez HospiSmart pour gérer votre santé</p>
         </div>
-        <div class="form-group">
-            <label for="prenom">Prénom *</label>
-            <input type="text" id="prenom" name="prenom" required value="{{ app.request.get('prenom') }}" maxlength="255" data-required-msg="Le prénom est obligatoire.">
-            <span class="field-error" aria-live="polite"></span>
+
+        <div class="register-body">
+            {% if errors %}
+                <div class="errors-box">
+                    <strong>⚠️ Veuillez corriger les erreurs suivantes :</strong>
+                    <ul>
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="post" action="{{ path('app_register') }}" id="register-form">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
+
+                {# Champs obligatoires #}
+                <div class="field-row">
+                    <div class="field-group">
+                        <label for="nom">Nom <span class="required-star">*</span></label>
+                        <input
+                            type="text"
+                            id="nom"
+                            name="nom"
+                            required
+                            placeholder="Votre nom"
+                            value="{{ app.request.request.get('nom', '') }}"
+                            maxlength="180"
+                            autocomplete="family-name"
+                        >
+                    </div>
+                    <div class="field-group">
+                        <label for="prenom">Prénom <span class="required-star">*</span></label>
+                        <input
+                            type="text"
+                            id="prenom"
+                            name="prenom"
+                            required
+                            placeholder="Votre prénom"
+                            value="{{ app.request.request.get('prenom', '') }}"
+                            maxlength="255"
+                            autocomplete="given-name"
+                        >
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label for="email">Adresse Email <span class="required-star">*</span></label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        placeholder="exemple@email.com"
+                        value="{{ app.request.request.get('email', '') }}"
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="field-group">
+                    <label for="password">Mot de passe <span class="required-star">*</span></label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        placeholder="Minimum 6 caractères"
+                        minlength="6"
+                        autocomplete="new-password"
+                    >
+                </div>
+
+                <hr class="divider">
+                <div class="section-label">Informations complémentaires (facultatif)</div>
+
+                <div class="field-row">
+                    <div class="field-group">
+                        <label for="genre">Genre</label>
+                        <select id="genre" name="genre">
+                            <option value="">-- Non spécifié --</option>
+                            <option value="Homme" {{ app.request.request.get('genre') == 'Homme' ? 'selected' : '' }}>Homme</option>
+                            <option value="Femme"  {{ app.request.request.get('genre') == 'Femme'  ? 'selected' : '' }}>Femme</option>
+                            <option value="Autre"  {{ app.request.request.get('genre') == 'Autre'  ? 'selected' : '' }}>Autre</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="groupe_sanguin">Groupe sanguin</label>
+                        <input
+                            type="text"
+                            id="groupe_sanguin"
+                            name="groupe_sanguin"
+                            placeholder="ex: O+"
+                            value="{{ app.request.request.get('groupe_sanguin', '') }}"
+                            maxlength="10"
+                        >
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label for="date_naissance">Date de naissance</label>
+                    <input
+                        type="date"
+                        id="date_naissance"
+                        name="date_naissance"
+                        value="{{ app.request.request.get('date_naissance', '') }}"
+                    >
+                </div>
+
+                <div class="field-group">
+                    <label for="adresse">Adresse</label>
+                    <input
+                        type="text"
+                        id="adresse"
+                        name="adresse"
+                        placeholder="Votre adresse"
+                        value="{{ app.request.request.get('adresse', '') }}"
+                        maxlength="255"
+                    >
+                </div>
+
+                <button type="submit" class="btn-register" id="btn-register">
+                    <i class="bi bi-person-check-fill"></i>
+                    Créer mon compte
+                </button>
+            </form>
+
+            <p class="login-link">
+                Déjà un compte ? <a href="{{ path('app_login') }}">Se connecter</a>
+            </p>
         </div>
-        <div class="form-group">
-            <label for="email">Email *</label>
-            <input type="email" id="email" name="email" required value="{{ app.request.get('email') }}" data-required-msg="L'email est obligatoire." data-email-msg="Email invalide.">
-            <span class="field-error" aria-live="polite"></span>
-        </div>
-        <div class="form-group">
-            <label for="password">Mot de passe *</label>
-            <input type="password" id="password" name="password" required data-required-msg="Le mot de passe est obligatoire." data-minlength="6" data-minlength-msg="Minimum 6 caractères.">
-            <span class="field-error" aria-live="polite"></span>
-        </div>
-        <div class="form-group">
-            <label for="genre">Genre</label>
-            <select id="genre" name="genre">
-                <option value="">-- Non spécifié --</option>
-                <option value="Homme" {{ app.request.get('genre') == 'Homme' ? 'selected' : '' }}>Homme</option>
-                <option value="Femme" {{ app.request.get('genre') == 'Femme' ? 'selected' : '' }}>Femme</option>
-                <option value="Autre" {{ app.request.get('genre') == 'Autre' ? 'selected' : '' }}>Autre</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="date_naissance">Date de naissance</label>
-            <input type="date" id="date_naissance" name="date_naissance" value="{{ app.request.get('date_naissance') }}">
-        </div>
-        <div class="form-group">
-            <label for="groupe_sanguin">Groupe sanguin</label>
-            <input type="text" id="groupe_sanguin" name="groupe_sanguin" value="{{ app.request.get('groupe_sanguin') }}" placeholder="ex: O+">
-        </div>
-        <div class="form-group">
-            <label for="adresse">Adresse</label>
-            <input type="text" id="adresse" name="adresse" value="{{ app.request.get('adresse') }}">
-        </div>
-        <button type="submit" class="btn-primary">Créer le compte</button>
-    </form>
-    <p style="margin-top:1rem;text-align:center;">
-        <a href="{{ path('app_login') }}">Déjà un compte ? Se connecter</a>
-    </p>
+    </div>
 </div>
+
+<script>
+// Désactiver le bouton après soumission pour éviter les doubles clics
+document.getElementById('register-form').addEventListener('submit', function(e) {
+    var btn = document.getElementById('btn-register');
+    // Vérifier la validité HTML5 native
+    if (this.checkValidity()) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Création en cours...';
+    }
+});
+</script>
 {% endblock %}

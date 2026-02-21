@@ -8,7 +8,9 @@
         --primary-color: #0d6efd;
         --hover-color: #4178F5;
     }
-    .navbar { background: transparent !important; padding: 20px 0; }
+    .navbar { background: rgba(255,255,255,0.92) !important; padding: 20px 0; position: fixed; top: 0; left: 0; right: 0; width: 100%; z-index: 9999; backdrop-filter: blur(18px); box-shadow: 0 18px 45px rgba(15,23,42,0.12); pointer-events: auto !important; }
+    .navbar * { pointer-events: auto !important; }
+    .navbar a, .navbar button, .navbar .nav-link { pointer-events: auto !important; cursor: pointer !important; position: relative !important; z-index: 999999 !important; }
     
     /* Style des liens avec animation de soulignement */
     .nav-link { 
@@ -42,12 +44,19 @@
     
     .dropdown-menu { border-radius: 15px; border: none; }
     .footer-oasis { border-top: 1px solid #dee2e6; padding: 2rem 0; margin-top: 3rem; color: #6c757d; font-size: 0.875rem; }
+
+    /* Isolate main content so sticky/positioned children never overlap the navbar */
+    main.container { isolation: isolate; position: relative; z-index: 0; padding-top: 100px !important; }
+    
+    /* Prevent any page content from covering navbar */
+    body > * { max-width: 100%; }
+    .page-wrapper { max-width: 100%; position: relative; z-index: 1; }
 </style>
 {% endblock %}
 
 {% block layout %}
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
+    <nav class="navbar navbar-expand-lg" data-turbo="false" style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; z-index: 999999 !important; pointer-events: auto !important; background: rgba(255,255,255,0.95) !important;">
+        <div class="container" style="pointer-events: auto !important;">
             <a class="navbar-brand d-flex align-items-center" href="{{ path('app_home') }}">
                 <div class="bg-primary text-white rounded-3 p-2 me-3 d-inline-flex shadow-sm">
                     <i class="fa-solid fa-heart-pulse"></i>
@@ -79,7 +88,7 @@
                     {# Lien pour les réclamations #}
                     {% if app.user and is_granted('ROLE_USER') and not is_granted('ROLE_ADMIN') %}
                         <li class="nav-item">
-                            <a class="nav-link {{ app.request.get('_route') in ['front_office_mes_reclamations', 'front_office_nouvelle_reclamation', 'front_office_detail_reclamation'] ? 'active' : '' }}" href="{{ path('front_office_nouvelle_reclamation') }}">Réclamations</a>
+                            <a class="nav-link {{ app.request.get('_route') in ['front_office_index', 'front_office_mes_reclamations', 'front_office_nouvelle_reclamation', 'front_office_detail_reclamation'] ? 'active' : '' }}" href="{{ path('front_office_index') }}">Réclamations</a>
                         </li>
                     {% endif %}
                     {# Ce lien s'affiche pour l'admin OU pour un utilisateur identifié comme médecin #}

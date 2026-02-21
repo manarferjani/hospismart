@@ -38,23 +38,6 @@ class ReponseType extends AbstractType
                     'placeholder' => 'Rédigez votre réponse ici...',
                 ],
             ])
-            ->add('adminNom', TextType::class, [
-                'label' => 'Nom de l\'administrateur',
-                'required' => true,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'Votre nom',
-                ],
-            ])
-            ->add('adminEmail', TextType::class, [
-                'label' => 'Email de l\'administrateur',
-                'required' => true,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'admin@hopital.com',
-                    'type' => 'email',
-                ],
-            ])
         ;
     }
 

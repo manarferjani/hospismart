@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Reclamation;
 use App\Entity\Reponse;
+use App\Entity\User;
 use App\Form\ReponseType;
 use App\Repository\ReclamationRepository;
 use App\Repository\AuditLogRepository;
+use App\Repository\ReponseRepository;
 use App\Service\PdfExportService;
 use App\Service\ExcelExportService;
 use App\Service\AuditService;
@@ -25,93 +27,32 @@ class BackOfficeController extends AbstractController
     #[Route('/', name: 'back_office_dashboard', methods: ['GET'])]
     public function dashboard(Request $request, ReclamationRepository $reclamationRepository): Response
     {
-        // Récupérer les paramètres de tri et filtre
+        // Récupérer les paramètres de tri
         $sortBy = $request->query->get('sortBy', 'date');
         $sortOrder = $request->query->get('sortOrder', 'DESC');
-        $filterStatut = $request->query->get('filterStatut', 'total');
         
-        // Nouveaux paramètres de recherche avancée
-        $searchQuery = $request->query->get('searchQuery', '');
-        $filterCategorie = $request->query->get('filterCategorie', '');
-        $filterPriorite = $request->query->get('filterPriorite', '');
-        $filterStatutSearch = $request->query->get('filterStatutSearch', 'total');
-        
-        // Valider les paramètres
+        // Valider les paramètres de tri
         if (!in_array($sortBy, ['date', 'nomPatient'])) {
             $sortBy = 'date';
         }
         if (!in_array($sortOrder, ['ASC', 'DESC'])) {
             $sortOrder = 'DESC';
         }
-        if (!in_array($filterStatut, ['total', 'En attente', 'En cours', 'Traité'])) {
-            $filterStatut = 'total';
-        }
-        if (!in_array($filterStatutSearch, ['total', 'En attente', 'En cours', 'Traité'])) {
-            $filterStatutSearch = 'total';
-        }
         
         // Mapper les noms de tri vers les colonnes de la base de données
         $orderBy = $sortBy === 'date' ? 'dateCreation' : 'nomPatient';
         
-        // Récupérer toutes les réclamations avec le tri spécifié
+        // Récupérer toutes les réclamations pour les stats
         $allReclamations = $reclamationRepository->findBy([], [$orderBy => $sortOrder]);
         
         // Appliquer les filtres
-        $reclamations = [];
-        foreach ($allReclamations as $reclamation) {
-            $matches = true;
-            
-            // Filtre par statut (si filterStatutSearch est utilisé)
-            if ($filterStatutSearch !== 'total') {
-                if ($reclamation->getStatut() !== $filterStatutSearch) {
-                    $matches = false;
-                }
-            }
-            
-            // Filtre par catégorie
-            if (!empty($filterCategorie)) {
-                if ($reclamation->getCategorie() !== $filterCategorie) {
-                    $matches = false;
-                }
-            }
-            
-            // Filtre par priorité
-            if (!empty($filterPriorite)) {
-                if ($reclamation->getPriorite() !== $filterPriorite) {
-                    $matches = false;
-                }
-            }
-            
-            // Recherche par texte (titre, patient, email)
-            if (!empty($searchQuery)) {
-                $lowerSearchQuery = strtolower($searchQuery);
-                $titre = strtolower($reclamation->getTitre());
-                $patient = strtolower($reclamation->getNomPatient());
-                $email = strtolower($reclamation->getEmail());
-                
-                if (strpos($titre, $lowerSearchQuery) === false &&
-                    strpos($patient, $lowerSearchQuery) === false &&
-                    strpos($email, $lowerSearchQuery) === false) {
-                    $matches = false;
-                }
-            }
-            
-            if ($matches) {
-                $reclamations[] = $reclamation;
-            }
-        }
+        $reclamations = $this->getFilteredReclamations($request, $allReclamations);
         
-        // Appliquer aussi le filtre statut pour les cards de statistiques
-        $filteredReclamations = [];
-        if ($filterStatut === 'total') {
-            $filteredReclamations = $allReclamations;
-        } else {
-            foreach ($allReclamations as $reclamation) {
-                if ($reclamation->getStatut() === $filterStatut) {
-                    $filteredReclamations[] = $reclamation;
-                }
-            }
-        }
+        // Paramètres pour la vue (à renvoyer pour maintenir l'état des filtres)
+        $filterStatut = $request->query->get('filterStatut', 'total');
+        $searchQuery = $request->query->get('searchQuery', '');
+        $filterCategorie = $request->query->get('filterCategorie', '');
+        $filterPriorite = $request->query->get('filterPriorite', '');
         
         $stats = $reclamationRepository->countByStatut();
         
@@ -162,6 +103,32 @@ class BackOfficeController extends AbstractController
         }
         $statsArray['taux_reponse'] = $statsArray['total'] > 0 ? round(($totalWithResponse / $statsArray['total']) * 100, 1) : 0;
 
+        // Statistiques par état mental
+        $etatMentalStats = [
+            'Calme' => 0,
+            'Frustré' => 0,
+            'En colère' => 0,
+            'Anxieux' => 0,
+            'Triste' => 0,
+            'Satisfait' => 0,
+            'Non analysé' => 0,
+        ];
+        $alertesMentales = []; // Réclamations avec état critique
+        foreach ($allReclamations as $reclamation) {
+            $etat = $reclamation->getEtatMental();
+            if ($etat && isset($etatMentalStats[$etat])) {
+                $etatMentalStats[$etat]++;
+            } else {
+                $etatMentalStats['Non analysé']++;
+            }
+            // Alertes pour les états critiques
+            if (in_array($etat, ['En colère', 'Anxieux', 'Triste']) && $reclamation->getStatut() !== 'Traité') {
+                $alertesMentales[] = $reclamation;
+            }
+        }
+        $statsArray['etat_mental'] = $etatMentalStats;
+        $statsArray['alertes_mentales'] = count($alertesMentales);
+
         // Pagination manuelle (10 par page)
         $page = max(1, $request->query->getInt('page', 1));
         $perPage = 10;
@@ -175,13 +142,13 @@ class BackOfficeController extends AbstractController
             'totalPages' => $totalPages,
             'totalReclamations' => $totalReclamations,
             'stats' => $statsArray,
+            'alertesMentales' => $alertesMentales,
             'sortBy' => $sortBy,
             'sortOrder' => $sortOrder,
             'filterStatut' => $filterStatut,
             'searchQuery' => $searchQuery,
             'filterCategorie' => $filterCategorie,
             'filterPriorite' => $filterPriorite,
-            'filterStatutSearch' => $filterStatutSearch,
         ]);
     }
 
@@ -198,6 +165,12 @@ class BackOfficeController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
+            /** @var User $user */
+            $user = $this->getUser();
+            $reponse->setAdminNom($user->getPrenom() . ' ' . $user->getNom());
+            $reponse->setAdminEmail($user->getEmail());
+            $reponse->setAdminAdresse($user->getAdresse());
+            
             // Valider les contraintes de l'entité Reponse
             $errors = $validator->validate($reponse);
             
@@ -278,9 +251,10 @@ class BackOfficeController extends AbstractController
     }
 
     #[Route('/export/pdf', name: 'back_office_export_pdf', methods: ['GET'])]
-    public function exportReclamationsPdf(ReclamationRepository $reclamationRepository, PdfExportService $pdfService): Response
+    public function exportReclamationsPdf(Request $request, ReclamationRepository $reclamationRepository, PdfExportService $pdfService): Response
     {
-        $reclamations = $reclamationRepository->findAll();
+        $allReclamations = $reclamationRepository->findBy([], ['dateCreation' => 'DESC']);
+        $reclamations = $this->getFilteredReclamations($request, $allReclamations);
         
         $pdfContent = $pdfService->generateReclamationsPdf($reclamations);
 
@@ -302,9 +276,10 @@ class BackOfficeController extends AbstractController
     }
 
     #[Route('/export/excel', name: 'back_office_export_excel', methods: ['GET'])]
-    public function exportReclamationsExcel(ReclamationRepository $reclamationRepository, ExcelExportService $excelService)
+    public function exportReclamationsExcel(Request $request, ReclamationRepository $reclamationRepository, ExcelExportService $excelService)
     {
-        $reclamations = $reclamationRepository->findAll();
+        $allReclamations = $reclamationRepository->findBy([], ['dateCreation' => 'DESC']);
+        $reclamations = $this->getFilteredReclamations($request, $allReclamations);
         
         return $excelService->generateReclamationsExcel($reclamations);
     }
@@ -313,5 +288,104 @@ class BackOfficeController extends AbstractController
     public function exportReclamationDetailExcel(Reclamation $reclamation, ExcelExportService $excelService)
     {
         return $excelService->generateReclamationDetailExcel($reclamation);
+    }
+
+    // =============================================
+    // GESTION DES RÉPONSES
+    // =============================================
+
+    #[Route('/reponses', name: 'back_office_reponses_liste', methods: ['GET'])]
+    public function listeReponses(ReponseRepository $reponseRepository): Response
+    {
+        $reponses = $reponseRepository->findBy([], ['dateReponse' => 'DESC']);
+
+        return $this->render('back_office/reponses_liste.html.twig', [
+            'reponses' => $reponses,
+        ]);
+    }
+
+    #[Route('/reponse/{id}/modifier', name: 'back_office_modifier_reponse', methods: ['GET', 'POST'])]
+    public function modifierReponse(Request $request, Reponse $reponse, EntityManagerInterface $entityManager, ValidatorInterface $validator): Response
+    {
+        $form = $this->createForm(ReponseType::class, $reponse, [
+            'include_reclamation' => false,
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $errors = $validator->validate($reponse);
+            if (count($errors) > 0) {
+                foreach ($errors as $error) {
+                    $this->addFlash('error', $error->getMessage());
+                }
+            } else {
+                $entityManager->flush();
+                $this->addFlash('success', 'Réponse modifiée avec succès.');
+                return $this->redirectToRoute('back_office_reponses_liste');
+            }
+        }
+
+        return $this->render('back_office/modifier_reponse.html.twig', [
+            'reponse' => $reponse,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/reponse/{id}/supprimer', name: 'back_office_supprimer_reponse', methods: ['POST'])]
+    public function supprimerReponse(Request $request, Reponse $reponse, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('delete_reponse_' . $reponse->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de sécurité invalide.');
+            return $this->redirectToRoute('back_office_reponses_liste');
+        }
+
+        $reclamationId = $reponse->getReclamation()?->getId();
+        $entityManager->remove($reponse);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Réponse supprimée avec succès.');
+        return $this->redirectToRoute('back_office_reponses_liste');
+    }
+
+    private function getFilteredReclamations(Request $request, array $allReclamations): array
+    {
+        $filterStatut = $request->query->get('filterStatut', 'total');
+        $searchQuery = $request->query->get('searchQuery', '');
+        $filterCategorie = $request->query->get('filterCategorie', '');
+        $filterPriorite = $request->query->get('filterPriorite', '');
+
+        $filtered = [];
+        foreach ($allReclamations as $reclamation) {
+            $matches = true;
+            
+            // Filtre statut/type card
+            if (in_array($filterStatut, ['En attente', 'En cours', 'Traité'])) {
+                if ($reclamation->getStatut() !== $filterStatut) $matches = false;
+            } elseif ($filterStatut === 'non_traitees') {
+                if ($reclamation->getStatut() === 'Traité') $matches = false;
+            } elseif ($filterStatut === 'urgences') {
+                if ($reclamation->getPriorite() !== 'Urgente') $matches = false;
+            }
+
+            // Filtre catégorie
+            if (!empty($filterCategorie) && $reclamation->getCategorie() !== $filterCategorie) $matches = false;
+            
+            // Filtre priorité
+            if (!empty($filterPriorite) && $reclamation->getPriorite() !== $filterPriorite) $matches = false;
+
+            // Filtre recherche texte
+            if (!empty($searchQuery)) {
+                $q = mb_strtolower($searchQuery);
+                if (mb_strpos(mb_strtolower($reclamation->getTitre()), $q) === false &&
+                    mb_strpos(mb_strtolower($reclamation->getNomPatient()), $q) === false &&
+                    mb_strpos(mb_strtolower($reclamation->getEmail()), $q) === false) {
+                    $matches = false;
+                }
+            }
+
+            if ($matches) $filtered[] = $reclamation;
+        }
+
+        return $filtered;
     }
 }

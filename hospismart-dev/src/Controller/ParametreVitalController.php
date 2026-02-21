@@ -12,11 +12,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/parametre-vital', name: 'app_parametre_vital')]
+#[Route('/parametre-vital')]
 #[IsGranted('ROLE_ADMIN')]
 final class ParametreVitalController extends AbstractController
 {
-    #[Route(name: 'app_parametre_vital_index', methods: ['GET'])]
+    #[Route('', name: 'app_parametre_vital_index', methods: ['GET'])]
     public function index(ParametreVitalRepository $parametreVitalRepository): Response
     {
         return $this->render('parametre_vital/index.html.twig', [

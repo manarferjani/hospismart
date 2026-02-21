@@ -194,23 +194,17 @@
                 
                 {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
                     <div class="form-group">
-                        {{ form_label(form.nomPatient) }}
-                        {{ form_widget(form.nomPatient, {'attr': {'class': 'form-control ' ~ (form.nomPatient.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
-                        {% if form.nomPatient.vars.errors|length > 0 %}
-                            {% for error in form.nomPatient.vars.errors %}
-                                <div class="invalid-feedback">{{ error.message }}</div>
-                            {% endfor %}
-                        {% endif %}
+                        <label class="form-label">👤 Nom Complet</label>
+                        <div style="background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.95rem; color: #6b7280; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="bi bi-person-check text-primary"></i>{{ userInfo.nom }}
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        {{ form_label(form.email) }}
-                        {{ form_widget(form.email, {'attr': {'class': 'form-control ' ~ (form.email.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
-                        {% if form.email.vars.errors|length > 0 %}
-                            {% for error in form.email.vars.errors %}
-                                <div class="invalid-feedback">{{ error.message }}</div>
-                            {% endfor %}
-                        {% endif %}
+                        <label class="form-label">📧 Adresse Email</label>
+                        <div style="background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.95rem; color: #6b7280; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="bi bi-envelope-check text-primary"></i>{{ userInfo.email }}
+                        </div>
                     </div>
 
                     <div class="form-group">

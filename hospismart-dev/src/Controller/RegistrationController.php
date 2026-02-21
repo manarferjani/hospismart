@@ -30,93 +30,103 @@ class RegistrationController extends AbstractController
         }
 
         $errors = [];
-        $isJson = $this->isJsonRequest($request);
+        $debugInfo = [];
 
         if ($request->isMethod('POST')) {
-            $data = $this->getRequestData($request);
-            
-            $nom = $data['nom'] ?? null;
-            $prenom = $data['prenom'] ?? null;
-            $email = $data['email'] ?? null;
-            $password = $data['password'] ?? null;
-            $genre = $data['genre'] ?? null;
-            $dateNaissance = $data['date_naissance'] ?? null;
-            $groupeSanguin = $data['groupe_sanguin'] ?? null;
-            $adresse = $data['adresse'] ?? null;
+            // Récupérer TOUTES les données POST brutes
+            $allData = $request->request->all();
+            $debugInfo['post_keys'] = array_keys($allData);
 
-            if (!$nom || !$prenom || !$email || !$password) {
-                $errors[] = 'Les champs nom, prénom, email et mot de passe sont obligatoires.';
+            $nom           = trim($allData['nom'] ?? '');
+            $prenom        = trim($allData['prenom'] ?? '');
+            $email         = trim($allData['email'] ?? '');
+            $password      = $allData['password'] ?? '';
+            $genre         = $allData['genre'] ?? 'Autre';
+            $dateNaissance = $allData['date_naissance'] ?? null;
+            $groupeSanguin = trim($allData['groupe_sanguin'] ?? '');
+            $adresse       = trim($allData['adresse'] ?? '');
+            $csrfToken     = $allData['_csrf_token'] ?? '';
+
+            $debugInfo['nom']    = $nom;
+            $debugInfo['prenom'] = $prenom;
+            $debugInfo['email']  = $email;
+            $debugInfo['csrf_present'] = !empty($csrfToken);
+            $debugInfo['csrf_valid']   = $this->isCsrfTokenValid('register', $csrfToken);
+
+            // Vérification CSRF
+            if (!$this->isCsrfTokenValid('register', $csrfToken)) {
+                $errors[] = 'Token CSRF invalide – veuillez recharger la page (F5) et réessayer.';
+            }
+
+            // Validations de base
+            if (!$nom)    { $errors[] = 'Le nom est obligatoire.'; }
+            if (!$prenom) { $errors[] = 'Le prénom est obligatoire.'; }
+            if (!$email)  { $errors[] = 'L\'email est obligatoire.'; }
+            elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) { $errors[] = 'Email invalide : ' . $email; }
+            if (!$password)           { $errors[] = 'Le mot de passe est obligatoire.'; }
+            elseif (strlen($password) < 6) { $errors[] = 'Le mot de passe doit avoir au moins 6 caractères.'; }
+
+            if (empty($errors)) {
+                // Vérification email unique
+                $existing = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
+                if ($existing) {
+                    $errors[] = 'Un compte existe déjà avec l\'email : ' . $email;
+                }
             }
 
             if (empty($errors)) {
                 $user = new User();
-                $user->setNom((string) $nom);
-                $user->setPrenom((string) $prenom);
-                $user->setEmail((string) $email);
-                $user->setPassword($passwordHasher->hashPassword($user, (string) $password));
-                
-                // Logique unifiée dans User
+                $user->setNom($nom);
+                $user->setPrenom($prenom);
+                $user->setEmail($email);
+                $user->setPassword($passwordHasher->hashPassword($user, $password));
                 $user->setRoles(['ROLE_PATIENT']);
                 $user->setType('PATIENT');
                 $user->setGenre($genre ?: 'Autre');
 
                 if ($dateNaissance) {
-                    $user->setDateNaissance(new \DateTime($dateNaissance));
+                    try {
+                        $user->setDateNaissance(new \DateTime($dateNaissance));
+                    } catch (\Exception $e) {
+                        $user->setDateNaissance((new \DateTime())->modify('-18 years'));
+                    }
                 } else {
                     $user->setDateNaissance((new \DateTime())->modify('-18 years'));
                 }
 
                 if ($groupeSanguin) {
-                    $user->setGroupeSanguin(strtoupper(trim($groupeSanguin)));
+                    $user->setGroupeSanguin(strtoupper(substr($groupeSanguin, 0, 5)));
                 }
-
                 if ($adresse) {
                     $user->setAdresse($adresse);
                 }
 
-                // Vérification email unique
-                $userRepo = $entityManager->getRepository(User::class);
-                if ($userRepo->findOneBy(['email' => $email])) {
-                    $errors[] = 'Un compte existe déjà avec cet email.';
-                }
-
-                // Validation finale
+                // Validation Symfony entity
                 $validationErrors = $validator->validate($user);
-                foreach ($validationErrors as $error) {
-                    $errors[] = $error->getMessage();
+                foreach ($validationErrors as $err) {
+                    $errors[] = '[Validation] ' . $err->getPropertyPath() . ': ' . $err->getMessage();
                 }
 
                 if (empty($errors)) {
-                    $entityManager->persist($user);
-                    $entityManager->flush();
-
-                    if ($isJson) {
-                        return new JsonResponse(['success' => true, 'message' => 'Compte créé.'], Response::HTTP_CREATED);
+                    try {
+                        $entityManager->persist($user);
+                        $entityManager->flush();
+                        $this->addFlash('success', 'Compte créé avec succès ! Connectez-vous.');
+                        return $this->redirectToRoute('app_login');
+                    } catch (\Exception $e) {
+                        $errors[] = 'Erreur base de données : ' . $e->getMessage();
+                        $logger->error('Erreur création compte: ' . $e->getMessage());
                     }
-                    $this->addFlash('success', 'Compte créé avec succès. Connectez-vous.');
-                    return $this->redirectToRoute('app_login');
                 }
             }
-        }
 
-        if ($isJson && $request->isMethod('POST')) {
-            return new JsonResponse(['success' => false, 'errors' => $errors], Response::HTTP_BAD_REQUEST);
+            $debugInfo['errors'] = $errors;
         }
 
         return $this->render('security/register.html.twig', [
-            'errors' => $errors,
-            'services' => $serviceRepository->findBy([], ['nom' => 'ASC']),
+            'errors'    => $errors,
+            'debugInfo' => $debugInfo,
+            'services'  => $serviceRepository->findBy([], ['nom' => 'ASC']),
         ]);
-    }
-
-    private function isJsonRequest(Request $request): bool {
-        return str_contains($request->headers->get('Content-Type', ''), 'application/json');
-    }
-
-    private function getRequestData(Request $request): array {
-        if ($this->isJsonRequest($request)) {
-            return json_decode($request->getContent(), true) ?? [];
-        }
-        return $request->request->all();
     }
 }
