@@ -1,0 +1,198 @@
+# Diagramme de Séquence d'Objets — Module Événements
+
+## 1. Lister les événements (avec recherche + pagination)
+
+```mermaid
+sequenceDiagram
+    actor Utilisateur
+    participant Navigateur
+    participant EvenementController
+    participant EvenementRepository
+    participant PaginatorInterface
+    participant BaseDeDonnées
+
+    Utilisateur->>Navigateur: GET /evenement?search=&type=&page=1
+    Navigateur->>EvenementController: index(request)
+    EvenementController->>EvenementRepository: searchQueryBuilder(searchTerm, type, statut)
+    EvenementRepository->>BaseDeDonnées: SELECT * FROM evenement WHERE ... ORDER BY date_debut DESC
+    BaseDeDonnées-->>EvenementRepository: QueryBuilder
+    EvenementRepository-->>EvenementController: QueryBuilder
+    EvenementController->>PaginatorInterface: paginate(queryBuilder, page, 4)
+    PaginatorInterface->>BaseDeDonnées: SELECT avec LIMIT/OFFSET
+    BaseDeDonnées-->>PaginatorInterface: résultats paginés
+    PaginatorInterface-->>EvenementController: PaginationInterface
+    EvenementController-->>Navigateur: index.html.twig (pagination)
+    Navigateur-->>Utilisateur: Page avec liste + pagination
+```
+
+---
+
+## 2. Créer un événement (avec génération IA)
+
+```mermaid
+sequenceDiagram
+    actor Utilisateur
+    participant Navigateur
+    participant EvenementController
+    participant EvenementType as "EvenementType (Form)"
+    participant Evenement as "Evenement (Entity)"
+    participant EntityManager
+    participant BaseDeDonnées
+
+    Note over Utilisateur, Navigateur: Étape 1 — Affichage du formulaire
+    Utilisateur->>Navigateur: GET /evenement/new
+    Navigateur->>EvenementController: new(request)
+    EvenementController->>Evenement: new Evenement()
+    EvenementController->>EvenementType: createForm(EvenementType, evenement)
+    EvenementType-->>EvenementController: FormInterface
+    EvenementController-->>Navigateur: new.html.twig (formulaire)
+
+    Note over Utilisateur, Navigateur: Étape 2 (optionnel) — Génération IA description
+    Utilisateur->>Navigateur: Clic "Générer description IA"
+    Navigateur->>AiDescriptionController: POST /api/evenement/generate-description
+    AiDescriptionController->>AiDescriptionService: generateDescription(eventInfo)
+    
+    alt Clé Gemini configurée
+        AiDescriptionService->>GeminiAPI: POST generativelanguage.googleapis.com
+        GeminiAPI-->>AiDescriptionService: texte généré
+    else Fallback local
+        AiDescriptionService->>AiDescriptionService: generateLocalDescription(templates)
+    end
+    
+    AiDescriptionService-->>AiDescriptionController: description
+    AiDescriptionController-->>Navigateur: JSON {description: "..."}
+    Navigateur-->>Utilisateur: Description insérée dans le champ
+
+    Note over Utilisateur, Navigateur: Étape 3 — Soumission du formulaire
+    Utilisateur->>Navigateur: POST /evenement/new (données du formulaire)
+    Navigateur->>EvenementController: new(request)
+    EvenementController->>EvenementType: handleRequest(request)
+    EvenementType->>Evenement: setTitre(), setDescription(), setDateDebut(), setLieu()...
+    EvenementController->>EvenementController: isSubmitted() && isValid()
+    EvenementController->>EntityManager: persist(evenement)
+    EvenementController->>EntityManager: flush()
+    EntityManager->>BaseDeDonnées: INSERT INTO evenement (...)
+    BaseDeDonnées-->>EntityManager: OK
+    EvenementController-->>Navigateur: redirect → /evenement
+```
+
+---
+
+## 3. Afficher un événement
+
+```mermaid
+sequenceDiagram
+    actor Utilisateur
+    participant Navigateur
+    participant EvenementController
+    participant ParamConverter
+    participant BaseDeDonnées
+    participant Evenement as "Evenement (Entity)"
+
+    Utilisateur->>Navigateur: GET /evenement/{id}
+    Navigateur->>EvenementController: show(evenement)
+    EvenementController->>ParamConverter: résoudre Evenement depuis {id}
+    ParamConverter->>BaseDeDonnées: SELECT * FROM evenement WHERE id = ?
+    BaseDeDonnées-->>ParamConverter: données
+    ParamConverter-->>EvenementController: objet Evenement
+    EvenementController-->>Navigateur: show.html.twig (evenement + carte)
+    Navigateur-->>Utilisateur: Page détail avec carte OpenStreetMap
+```
+
+---
+
+## 4. Modifier un événement
+
+```mermaid
+sequenceDiagram
+    actor Utilisateur
+    participant Navigateur
+    participant EvenementController
+    participant EvenementType as "EvenementType (Form)"
+    participant Evenement as "Evenement (Entity)"
+    participant EntityManager
+    participant BaseDeDonnées
+
+    Utilisateur->>Navigateur: GET /evenement/{id}/edit
+    Navigateur->>EvenementController: edit(request, evenement)
+    EvenementController->>EvenementType: createForm(EvenementType, evenement)
+    EvenementType-->>EvenementController: FormInterface (pré-rempli)
+    EvenementController-->>Navigateur: edit.html.twig
+
+    Utilisateur->>Navigateur: POST /evenement/{id}/edit (données modifiées)
+    Navigateur->>EvenementController: edit(request, evenement)
+    EvenementController->>EvenementType: handleRequest(request)
+    EvenementType->>Evenement: setTitre(), setDescription()...
+    EvenementController->>EvenementController: isSubmitted() && isValid()
+    EvenementController->>EntityManager: flush()
+    EntityManager->>BaseDeDonnées: UPDATE evenement SET ... WHERE id = ?
+    BaseDeDonnées-->>EntityManager: OK
+    EvenementController-->>Navigateur: redirect → /evenement
+```
+
+---
+
+## 5. Supprimer un événement
+
+```mermaid
+sequenceDiagram
+    actor Utilisateur
+    participant Navigateur
+    participant EvenementController
+    participant Evenement as "Evenement (Entity)"
+    participant EntityManager
+    participant BaseDeDonnées
+
+    Utilisateur->>Navigateur: POST /evenement/{id} (_token CSRF)
+    Navigateur->>EvenementController: delete(request, evenement)
+    EvenementController->>EvenementController: isCsrfTokenValid("delete" + id, token)
+    alt Token valide
+        EvenementController->>EntityManager: remove(evenement)
+        EvenementController->>EntityManager: flush()
+        EntityManager->>BaseDeDonnées: DELETE FROM evenement WHERE id = ?
+        BaseDeDonnées-->>EntityManager: OK
+        EvenementController->>EvenementController: addFlash("success")
+    end
+    EvenementController-->>Navigateur: redirect → /evenement
+```
+
+---
+
+## 6. Dashboard — Analyses IA
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant Navigateur
+    participant DashboardController
+    participant Repositories
+    participant BaseDeDonnées
+
+    Admin->>Navigateur: GET /dashboard
+    Navigateur->>DashboardController: index()
+    DashboardController->>Repositories: count() pour users, événements, réclamations, etc.
+    Repositories->>BaseDeDonnées: SELECT COUNT(*) FROM ...
+    BaseDeDonnées-->>Repositories: résultats
+    Repositories-->>DashboardController: statistiques
+    DashboardController-->>Navigateur: index.html.twig
+
+    Note over Navigateur: Chargement asynchrone des analytics IA
+    Navigateur->>EventAnalyticsController: GET /api/evenement/analytics
+    EventAnalyticsController->>EventAnalyticsService: getAnalytics()
+    EventAnalyticsService->>EvenementRepository: findBy([], date_debut DESC)
+    EvenementRepository->>BaseDeDonnées: SELECT * FROM evenement
+    BaseDeDonnées-->>EvenementRepository: tous les événements
+    EvenementRepository-->>EventAnalyticsService: array Evenement[]
+    
+    EventAnalyticsService->>EventAnalyticsService: getOverview() — total, upcoming, budget
+    EventAnalyticsService->>EventAnalyticsService: getTypeDistribution() — répartition par type
+    EventAnalyticsService->>EventAnalyticsService: getMonthlyTrend() — tendance 6 mois
+    EventAnalyticsService->>EventAnalyticsService: getBudgetAnalysis() — budget par type
+    EventAnalyticsService->>EventAnalyticsService: generateInsights() — recommandations IA
+    EventAnalyticsService->>EventAnalyticsService: getParticipationStats() — top 5
+
+    EventAnalyticsService-->>EventAnalyticsController: JSON analytics
+    EventAnalyticsController-->>Navigateur: JSON response
+    Navigateur->>Navigateur: Chart.js — doughnut + barres + tableau
+    Navigateur-->>Admin: Dashboard avec cartes IA + graphiques
+```

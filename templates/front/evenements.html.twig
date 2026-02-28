@@ -42,6 +42,21 @@
                             <p class="mb-1 small"><i class="fa-solid fa-coins text-info"></i> <strong>Budget:</strong> {{ evenement.budgetAlloue }} TND</p>
                         {% endif %}
                         <p class="mb-3 small"><i class="fa-solid fa-users text-secondary"></i> <strong>Participants:</strong> {{ evenement.participants|length }}</p>
+                        {% if weatherData[evenement.id] is defined and weatherData[evenement.id] %}
+                            {% set w = weatherData[evenement.id] %}
+                            <div class="d-flex align-items-center gap-2 mb-3 p-2" style="background: linear-gradient(135deg, #e0f2fe, #f0f9ff); border-radius: 8px; font-size: 0.85rem;">
+                                {% if w.condition_icon %}
+                                    <img src="https:{{ w.condition_icon }}" alt="{{ w.condition_text }}" style="width: 36px; height: 36px;">
+                                {% endif %}
+                                <div>
+                                    <span style="font-weight: 700; color: #1e293b;">{{ w.temp_c }}°C</span>
+                                    <span class="text-muted ms-1">{{ w.condition_text }}</span>
+                                </div>
+                                {% if w.chance_of_rain is not null and w.chance_of_rain > 0 %}
+                                    <span class="ms-auto text-muted" title="Risque de pluie"><i class="fa-solid fa-umbrella"></i> {{ w.chance_of_rain }}%</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
                         <a href="{{ path('app_evenement_inscription', {'id': evenement.id}) }}" class="btn btn-primary w-100">
                             <i class="fa-solid fa-user-plus"></i> M'inscrire
                         </a>

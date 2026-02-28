@@ -43,8 +43,8 @@
                                     </span>
                                 </td>
                                 <td>
-                                    {% if rdv.patient and rdv.patient.user %}
-                                        {{ rdv.patient.user.nom }} {{ rdv.patient.user.prenom }}
+                                    {% if rdv.patient %}
+                                        {{ rdv.patient.nom }} {{ rdv.patient.prenom }}
                                     {% else %}
                                         <span class="text-muted">—</span>
                                     {% endif %}

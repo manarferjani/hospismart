@@ -3,8 +3,8 @@
 namespace App\Form;
 
 use App\Entity\Consultation;
-use App\Entity\Medecin;
-use App\Entity\Patient;
+use App\Entity\User;
+use App\Repository\UserRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -19,13 +19,29 @@ class ConsultationType extends AbstractType
             ->add('statut')
             ->add('motif')
             ->add('observations')
-            ->add('patient', EntityType::class, [
-                'class' => Patient::class,
-                'choice_label' => 'id',
+             ->add('patient', EntityType::class, [
+                'class' => User::class,
+                'choice_label' => function (User $user) {
+                    return $user->getNom() . ' ' . $user->getPrenom();
+                },
+                'query_builder' => function (UserRepository $er) {
+                    return $er->createQueryBuilder('u')
+                        ->where('u.type = :type')
+                        ->setParameter('type', 'PATIENT')
+                        ->orderBy('u.nom', 'ASC');
+                },
             ])
             ->add('medecin', EntityType::class, [
-                'class' => Medecin::class,
-                'choice_label' => 'id',
+                'class' => User::class,
+                'choice_label' => function (User $user) {
+                    return 'Dr. ' . $user->getNom() . ' ' . $user->getPrenom();
+                },
+                'query_builder' => function (UserRepository $er) {
+                    return $er->createQueryBuilder('u')
+                        ->where('u.type = :type')
+                        ->setParameter('type', 'MEDECIN')
+                        ->orderBy('u.nom', 'ASC');
+                },
             ])
         ;
     }

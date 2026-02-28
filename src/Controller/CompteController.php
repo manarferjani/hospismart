@@ -2,8 +2,6 @@
 
 namespace App\Controller;
 
-use App\Repository\MedecinRepository;
-use App\Repository\PatientRepository;
 use App\Repository\ServiceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,8 +19,6 @@ class CompteController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         UserPasswordHasherInterface $passwordHasher,
-        PatientRepository $patientRepository,
-        MedecinRepository $medecinRepository,
         ServiceRepository $serviceRepository,
         ValidatorInterface $validator
     ): Response {
@@ -30,110 +26,83 @@ class CompteController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
-        $patient = $patientRepository->findOneByUser($user);
-        $medecin = $medecinRepository->findOneByUser($user);
+
+        // Identifier le type d'utilisateur pour adapter l'affichage/traitement
+        $isPatient = in_array('ROLE_PATIENT', $user->getRoles()) || $user->getType() === 'PATIENT';
+        $isMedecin = in_array('ROLE_MEDECIN', $user->getRoles()) || $user->getType() === 'MEDECIN';
+
         $errors = [];
 
         if ($request->isMethod('POST')) {
+            // Champs communs
             $user->setNom($request->request->get('nom', $user->getNom()));
             $user->setPrenom($request->request->get('prenom', $user->getPrenom()));
             $user->setEmail($request->request->get('email', $user->getEmail()));
             $user->setTelephone($request->request->get('telephone') ?: null);
 
+            // Mot de passe
             $newPassword = $request->request->get('password');
             if ($newPassword !== null && $newPassword !== '') {
                 $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
             }
 
-            if ($patient) {
-                $patient->setGenre($request->request->get('genre', $patient->getGenre()));
+            // Champs Patient
+            if ($isPatient) {
+                $user->setGenre($request->request->get('genre', $user->getGenre()));
                 $dateNaiss = $request->request->get('date_naissance');
                 if ($dateNaiss) {
-                    $patient->setDateNaissance(new \DateTime($dateNaiss));
+                    $user->setDateNaissance(new \DateTime($dateNaiss));
                 }
-                $patient->setGroupeSanguin($request->request->get('groupe_sanguin'));
-                $patient->setAdresse($request->request->get('adresse'));
+                $user->setGroupeSanguin($request->request->get('groupe_sanguin'));
+                $user->setAdresse($request->request->get('adresse'));
             }
 
-            if ($medecin) {
+            // Champs Médecin
+            if ($isMedecin) {
                 $user->setSpecialite($request->request->get('specialite', $user->getSpecialite()));
                 $user->setMatricule($request->request->get('matricule', $user->getMatricule()));
-                $user->setTelephone($request->request->get('medecin_telephone', $user->getTelephone()));
+                // Si le téléphone médecin est différent ou spécifique, adapter ici, sinon on utilise le commun
+                if ($request->request->get('medecin_telephone')) {
+                    $user->setTelephone($request->request->get('medecin_telephone'));
+                }
+                
                 $serviceId = $request->request->get('service');
                 if ($serviceId) {
                     $service = $serviceRepository->find($serviceId);
                     if ($service) {
-                        $user->setService($service);
+                        $user->setServiceEntity($service);
                     }
                 }
             }
 
-            // Valider l'entité User
-            $fieldErrors = [];
+            // Validation
             $userErrors = $validator->validate($user);
-            foreach ($userErrors as $error) {
-                $propertyPath = $error->getPropertyPath();
-                if (!isset($fieldErrors[$propertyPath])) {
-                    $fieldErrors[$propertyPath] = [];
-                }
-                $fieldErrors[$propertyPath][] = $error->getMessage();
-            }
-
-            // Valider l'entité Patient si elle existe
-            if ($patient) {
-                $patientErrors = $validator->validate($patient);
-                foreach ($patientErrors as $error) {
-                    $propertyPath = $error->getPropertyPath();
-                    if (!isset($fieldErrors[$propertyPath])) {
-                        $fieldErrors[$propertyPath] = [];
-                    }
-                    $fieldErrors[$propertyPath][] = $error->getMessage();
+            if (count($userErrors) > 0) {
+                foreach ($userErrors as $error) {
+                    $errors[] = $error->getMessage();
                 }
             }
 
-            // Valider l'entité Medecin si elle existe
-            if ($medecin) {
-                $medecinErrors = $validator->validate($medecin);
-                foreach ($medecinErrors as $error) {
-                    $propertyPath = $error->getPropertyPath();
-                    if (!isset($fieldErrors[$propertyPath])) {
-                        $fieldErrors[$propertyPath] = [];
-                    }
-                    $fieldErrors[$propertyPath][] = $error->getMessage();
-                }
-            }
-
-            // Convertir les erreurs de champs pour le template
-            foreach ($fieldErrors as $field => $messages) {
-                foreach ($messages as $message) {
-                    $errors[] = $message;
-                }
-            }
-
-            if (empty($fieldErrors)) {
-                // S'assurer que Doctrine track les entités modifiées
+            if (empty($errors)) {
                 $em->persist($user);
-                if ($patient) {
-                    $em->persist($patient);
-                }
-                if ($medecin) {
-                    $em->persist($medecin);
-                }
                 $em->flush();
                 $this->addFlash('success', 'Votre compte a été mis à jour.');
-                if ($this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_MEDECIN')) {
+                
+                if ($this->isGranted('ROLE_ADMIN') || $isMedecin) {
                     return $this->redirectToRoute('app_dashboard');
                 }
-                return $this->redirectToRoute('app_patient_coordonnees');
+                // Redirection par défaut pour patient ou autre
+                return $this->redirectToRoute('app_home'); 
             }
         }
 
         $services = $serviceRepository->findBy([], ['nom' => 'ASC']);
-        $isBack = $this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_MEDECIN');
-        return $this->render($isBack ? 'back/compte/edit.html.twig' : 'front/compte/edit.html.twig', [
+        $isAdminOrMedecin = $this->isGranted('ROLE_ADMIN') || $isMedecin;
+
+        return $this->render($isAdminOrMedecin ? 'back/compte/edit.html.twig' : 'front/compte/edit.html.twig', [
             'user' => $user,
-            'patient' => $patient,
-            'medecin' => $medecin,
+            'isPatient' => $isPatient,
+            'isMedecin' => $isMedecin,
             'services' => $services,
             'errors' => $errors,
         ]);

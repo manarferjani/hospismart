@@ -1,0 +1,51 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Détails Réclamation #{{ reclamation.id }}{% endblock %}
+
+{% block content %}
+<div class="back-page-header">
+    <h1 class="back-page-title">🔍 Détails Réclamation #{{ reclamation.id }}</h1>
+    <a href="{{ path('app_dashboard_reclamations') }}" class="btn" style="background:#64748b;color:white;">← Retour</a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 mb-4" style="border-radius:15px;">
+            <div class="card-body p-4">
+                <h3 class="mb-3 text-primary">{{ reclamation.titre }}</h3>
+                <div class="mb-3">
+                    <span class="badge {{ reclamation.statut == 'Traité' ? 'bg-success' : (reclamation.statut == 'En cours' ? 'bg-primary' : 'bg-warning text-dark') }}">
+                        {{ reclamation.statut }}
+                    </span>
+                    <span class="badge bg-light text-dark border ms-2">Priorité : {{ reclamation.priorite }}</span>
+                    <span class="badge bg-light text-dark border ms-2">Catégorie : {{ reclamation.categorie }}</span>
+                </div>
+                <hr>
+                <h5 class="text-muted mb-3">Description</h5>
+                <p class="lead fs-6">{{ reclamation.description|nl2br }}</p>
+                
+                <div class="mt-4 text-muted small">
+                    <i class="fa-regular fa-clock me-1"></i> Créée le {{ reclamation.dateCreation|date('d/m/Y à H:i') }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 mb-4" style="border-radius:15px;">
+            <div class="card-body p-4">
+                <h5 class="mb-3"><i class="fa-solid fa-user me-2"></i>Patient</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><strong>Nom :</strong> {{ reclamation.nomPatient }}</li>
+                    <li class="mb-2"><strong>Email :</strong> <a href="mailto:{{ reclamation.email }}">{{ reclamation.email }}</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="d-grid gap-2">
+            <a href="{{ path('app_dashboard_reclamations_edit', { id: reclamation.id }) }}" class="btn btn-warning text-white fw-bold">
+                <i class="fa-solid fa-pen-to-square me-2"></i>Mettre à jour le statut
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@
 
 {% block title %}Mon compte - Hospismart{% endblock %}
 
-{% block content %}
+{% block body %}
 <h1 class="front-title">Mon compte</h1>
 
 {% if errors %}
@@ -43,34 +43,34 @@
         <input type="password" id="password" name="password" placeholder="••••••••" data-minlength="6" data-minlength-msg="Le mot de passe doit contenir au moins 6 caractères.">
     </div>
 
-    {% if patient %}
+    {% if isPatient %}
     <h2 style="margin-top:1.5rem;">Profil patient</h2>
     <div class="form-group">
         <label for="genre">Genre *</label>
         <select id="genre" name="genre" required data-required-msg="Le genre est obligatoire.">
             <option value="">-- Sélectionner --</option>
-            <option value="Homme" {{ patient.genre == 'Homme' ? 'selected' : '' }}>Homme</option>
-            <option value="Femme" {{ patient.genre == 'Femme' ? 'selected' : '' }}>Femme</option>
-            <option value="Autre" {{ patient.genre == 'Autre' ? 'selected' : '' }}>Autre</option>
+            <option value="Homme" {{ user.genre == 'Homme' ? 'selected' : '' }}>Homme</option>
+            <option value="Femme" {{ user.genre == 'Femme' ? 'selected' : '' }}>Femme</option>
+            <option value="Autre" {{ user.genre == 'Autre' ? 'selected' : '' }}>Autre</option>
         </select>
         <span class="field-error" aria-live="polite"></span>
     </div>
     <div class="form-group">
         <label for="date_naissance">Date de naissance *</label>
-        <input type="date" id="date_naissance" name="date_naissance" value="{{ patient.dateNaissance ? patient.dateNaissance|date('Y-m-d') : '' }}" required data-required-msg="La date de naissance est obligatoire.">
+        <input type="date" id="date_naissance" name="date_naissance" value="{{ user.dateNaissance ? user.dateNaissance|date('Y-m-d') : '' }}" required data-required-msg="La date de naissance est obligatoire.">
         <span class="field-error" aria-live="polite"></span>
     </div>
     <div class="form-group">
         <label for="groupe_sanguin">Groupe sanguin</label>
-        <input type="text" id="groupe_sanguin" name="groupe_sanguin" value="{{ patient.groupeSanguin }}" placeholder="ex: O+">
+        <input type="text" id="groupe_sanguin" name="groupe_sanguin" value="{{ user.groupeSanguin }}" placeholder="ex: O+">
     </div>
     <div class="form-group">
         <label for="adresse">Adresse</label>
-        <input type="text" id="adresse" name="adresse" value="{{ patient.adresse }}" data-maxlength="1000" maxlength="1000">
+        <input type="text" id="adresse" name="adresse" value="{{ user.adresse }}" data-maxlength="1000" maxlength="1000">
     </div>
     {% endif %}
 
-    {% if medecin %}
+    {% if isMedecin %}
     <h2 style="margin-top:1.5rem;">Profil médecin</h2>
     <div class="form-group">
         <label for="specialite">Spécialité *</label>
@@ -91,7 +91,7 @@
         <select id="service" name="service" required data-required-msg="Le service est obligatoire.">
             <option value="">-- Sélectionner --</option>
             {% for s in services %}
-            <option value="{{ s.id }}" {{ user.service and user.service.id == s.id ? 'selected' : '' }}>{{ s.nom }}</option>
+            <option value="{{ s.id }}" {{ user.serviceEntity and user.serviceEntity.id == s.id ? 'selected' : '' }}>{{ s.nom }}</option>
             {% endfor %}
         </select>
         <span class="field-error" aria-live="polite"></span>

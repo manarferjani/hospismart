@@ -6,9 +6,8 @@ use App\Entity\RendezVous;
 use App\Entity\Disponibilite;
 use App\Entity\User; // On utilise User à la place de Patient
 use App\Form\RendezVousType;
-use App\Repository\UserRepository; // Import du UserRepository
+use App\Repository\UserRepository;
 use App\Repository\DisponibiliteRepository;
-use App\Repository\MedecinRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,9 +17,9 @@ use Symfony\Component\Routing\Attribute\Route;
 class RendezVousController extends AbstractController
 {
 #[Route('/rendezvous/dispo/{id}', name: 'app_rendezvous_dispo')]
-public function afficherDispos(int $id, MedecinRepository $medecinRepo, DisponibiliteRepository $dispoRepo): Response 
+public function afficherDispos(int $id, UserRepository $userRepo, DisponibiliteRepository $dispoRepo): Response 
 {
-    $medecin = $medecinRepo->find($id);
+    $medecin = $userRepo->find($id);
 
     $dispos = $dispoRepo->findBy(
         [
@@ -69,7 +68,7 @@ public function afficherDispos(int $id, MedecinRepository $medecinRepo, Disponib
             $em->persist($rdv);
             $em->flush();
 
-            $this->addFlash('success', 'Demande de rendez-vous envoyée au Dr. ' . $rdv->getMedecin()->getUser()->getNom() . '. Vous serez notifié dès qu\'il aura accepté ou refusé.');
+            $this->addFlash('success', 'Demande de rendez-vous envoyée au Dr. ' . $rdv->getMedecin()->getNom() . '. Vous serez notifié dès qu\'il aura accepté ou refusé.');
             return $this->redirectToRoute('app_medecin_recherche'); 
         }
 

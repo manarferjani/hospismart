@@ -31,11 +31,11 @@
                                     <div class="avatar-sm me-3 bg-light rounded-circle p-2">
                                         <i class="fa-solid fa-user text-secondary"></i>
                                     </div>
-                                    <span class="fw-bold">{{ patient.user.nom }} {{ patient.user.prenom }}</span>
+                                    <span class="fw-bold">{{ patient.nom }} {{ patient.prenom }}</span>
                                 </div>
                             </td>
                             <td>{{ "now"|date("d/m/Y") }}</td>
-                            <td class="text-muted">{{ patient.user.email }}</td>
+                            <td class="text-muted">{{ patient.email }}</td>
                             <td class="text-center">
 <a href="{{ path('app_medecin_patient_show', {'id': patient.id}) }}" 
        class="btn btn-sm btn-outline-primary rounded-pill px-3">
