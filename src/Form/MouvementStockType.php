@@ -20,6 +20,7 @@ class MouvementStockType extends AbstractType
         $builder
             ->add('type', ChoiceType::class, [
                 'label' => 'Type de mouvement',
+                'required' => false,
                 'choices' => [
                     'Entrée de stock' => 'ENTREE',
                     'Sortie de stock' => 'SORTIE',
@@ -30,6 +31,7 @@ class MouvementStockType extends AbstractType
             ])
             ->add('quantite', IntegerType::class, [
                 'label' => 'Quantité',
+                'required' => false,
                 'attr' => [
                     'class' => 'form-control form-control-lg',
                     'placeholder' => 'Ex : 50',
@@ -38,6 +40,7 @@ class MouvementStockType extends AbstractType
             ->add('dateMouvement', DateTimeType::class, [
                 'label' => 'Date et heure',
                 'widget' => 'single_text',
+                'required' => false,
                 'attr' => [
                     'class' => 'form-control form-control-lg',
                 ],
@@ -56,6 +59,7 @@ class MouvementStockType extends AbstractType
                 'label' => 'Médicament',
                 'choice_label' => 'nom',
                 'placeholder' => 'Choisir un médicament',
+                'required' => false,
                 'attr' => [
                     'class' => 'form-select form-select-lg',
                 ],
@@ -67,7 +71,7 @@ class MouvementStockType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => MouvementStock::class,
-            'csrf_protection' => false,
+            'csrf_protection' => true,
         ]);
     }
 }

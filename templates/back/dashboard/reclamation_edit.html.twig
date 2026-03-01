@@ -1,0 +1,43 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Traiter Réclamation #{{ reclamation.id }}{% endblock %}
+
+{% block content %}
+<div class="back-page-header">
+    <h1 class="back-page-title">✏️ Traiter la réclamation #{{ reclamation.id }}</h1>
+    <a href="{{ path('app_dashboard_reclamations') }}" class="btn" style="background:#64748b;color:white;">← Annuler</a>
+</div>
+
+<div class="card shadow-sm border-0" style="border-radius:15px; max-width:800px; margin:0 auto;">
+    <div class="card-body p-5">
+        <h4 class="mb-4">{{ reclamation.titre }}</h4>
+        
+        <form method="post">
+            <div class="mb-4">
+                <label class="form-label fw-bold">Statut actuel</label>
+                <select name="statut" class="form-select form-select-lg">
+                    <option value="En attente" {{ reclamation.statut == 'En attente' ? 'selected' : '' }}>En attente</option>
+                    <option value="En cours" {{ reclamation.statut == 'En cours' ? 'selected' : '' }}>En cours</option>
+                    <option value="Traité" {{ reclamation.statut == 'Traité' ? 'selected' : '' }}>Traité</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Priorité</label>
+                <select name="priorite" class="form-select">
+                    <option value="Basse" {{ reclamation.priorite == 'Basse' ? 'selected' : '' }}>Basse</option>
+                    <option value="Normale" {{ reclamation.priorite == 'Normale' ? 'selected' : '' }}>Normale</option>
+                    <option value="Haute" {{ reclamation.priorite == 'Haute' ? 'selected' : '' }}>Haute</option>
+                    <option value="Urgente" {{ reclamation.priorite == 'Urgente' ? 'selected' : '' }}>Urgente</option>
+                </select>
+            </div>
+
+            <div class="d-flex justify-content-end mt-5">
+                <button type="submit" class="btn btn-success btn-lg px-5">
+                    <i class="fa-solid fa-save me-2"></i>Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

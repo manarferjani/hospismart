@@ -1,0 +1,49 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Mes Événements - Hospismart{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <h1 class="front-title mb-4"><i class="fa-solid fa-calendar-check me-2 text-primary"></i>Mes Événements</h1>
+
+    {% if participations|length > 0 %}
+        <div class="row g-4">
+            {% for p in participations %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; transition: transform 0.2s;">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-primary">{{ p.evenement.titre }}</h5>
+                            <p class="card-text text-muted small mb-2">
+                                <i class="fa-solid fa-clock me-1"></i> {{ p.evenement.dateDebut|date('d/m/Y H:i') }}
+                            </p>
+                            <p class="card-text text-muted small">
+                                <i class="fa-solid fa-location-dot me-1"></i> {{ p.evenement.lieu }}
+                            </p>
+                            
+                            <hr class="my-3" style="opacity: 0.1;">
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge {{ p.confirmePresence ? 'bg-success' : 'bg-warning text-dark' }}">
+                                    {{ p.confirmePresence ? 'Confirmé' : 'Inscrit' }}
+                                </span>
+                                
+                                <form method="post" action="{{ path('app_mes_evenements_annuler', {'id': p.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler votre participation ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('annuler' ~ p.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger" style="border-radius: 8px;">
+                                        <i class="fa-solid fa-xmark me-1"></i>Annuler
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info shadow-sm border-0" style="border-radius: 12px;">
+            <i class="fa-solid fa-info-circle me-2"></i>Vous n'êtes inscrit à aucun événement pour le moment. 
+            <a href="{{ path('app_evenement_public') }}" class="fw-bold text-decoration-none">Voir les événements disponibles</a>.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

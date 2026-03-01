@@ -3,9 +3,9 @@
 namespace App\Controller\Dashboard;
 
 
+
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Repository\PatientRepository;
 use App\Repository\ServiceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -55,146 +55,89 @@ class UtilisateurCrudController extends AbstractController
         $formData = [];
         
         if ($request->isMethod('POST')) {
-            error_log('DEBUG: POST request received');
             $nom = trim((string) $request->request->get('nom'));
             $prenom = trim((string) $request->request->get('prenom'));
             $email = trim((string) $request->request->get('email'));
             $telephone = $request->request->get('telephone') ? trim((string) $request->request->get('telephone')) : null;
             $password = trim((string) ($request->request->get('password') ?? ''));
             $role = $request->request->get('role', 'ROLE_PATIENT');
-            $genre = $request->request->get('genre') ?: null;
-            $dateNaissance = $request->request->get('date_naissance') ?: null;
-            $groupeSanguin = $request->request->get('groupe_sanguin') ?: null;
-            $adresse = $request->request->get('adresse') ?: null;
-            $specialite = $request->request->get('specialite') ?: null;
-            $matricule = $request->request->get('matricule') ?: null;
+            
+            // Récupération des champs spécifiques
+            $genre = $request->request->get('genre');
+            $dateNaissanceStr = $request->request->get('date_naissance');
+            $groupeSanguin = $request->request->get('groupe_sanguin');
+            $adresse = $request->request->get('adresse');
+            $specialite = $request->request->get('specialite');
+            $matricule = $request->request->get('matricule');
+            $serviceId = $request->request->get('service');
 
-            error_log('DEBUG: nom=' . $nom . ', email=' . $email . ', role=' . $role . ', password_length=' . strlen($password));
+            $formData = compact('nom', 'prenom', 'email', 'telephone', 'role', 'genre', 'dateNaissanceStr', 'groupeSanguin', 'adresse', 'specialite', 'matricule', 'serviceId');
 
-            // Stocker les données pour le re-affichage du formulaire
-            $formData = compact('nom', 'prenom', 'email', 'telephone', 'role', 'genre', 'dateNaissance', 'groupeSanguin', 'adresse', 'specialite', 'matricule');
-
-            // Créer le User pour le valider
             $user = new User();
             $user->setNom($nom);
             $user->setPrenom($prenom);
             $user->setEmail($email);
             $user->setTelephone($telephone);
             $user->setPassword($passwordHasher->hashPassword($user, $password));
-            $user->setRoles([$role]);  // Assignez le rôle AVANT la validation
+            $user->setRoles([$role]);
+            
+            // Assignation des champs spécifiques (Tous sur User maintenant)
+            $user->setGenre($genre);
+            if ($dateNaissanceStr) {
+                try {
+                    $user->setDateNaissance(new \DateTime($dateNaissanceStr));
+                } catch (\Exception $e) {}
+            }
+            $user->setGroupeSanguin($groupeSanguin);
+            $user->setAdresse($adresse);
+            
+            $user->setSpecialite($specialite);
+            $user->setMatricule($matricule);
+            
+            if ($role === 'ROLE_MEDECIN') {
+                 // Gestion Service
+                if ($serviceId) {
+                    $service = $serviceRepository->find($serviceId);
+                    if ($service) {
+                        $user->setServiceEntity($service);
+                    }
+                } else {
+                     // Si pas de service sélectionné pour un médecin, peut-être une erreur ?
+                     // On laisse passer pour l'instant ou on met une erreur.
+                }
+                // Si matricule vide, on en génère un
+                if (!$matricule) {
+                    $user->setMatricule('MAT' . uniqid());
+                }
+                // Spécialité par défaut
+                if (!$specialite) {
+                    $user->setSpecialite('Généraliste');
+                }
+            }
 
-            // Valider l'objet User
+            // Validation
             $userErrors = $validator->validate($user);
             foreach ($userErrors as $error) {
                 $errors[] = $error->getMessage();
             }
-            error_log('DEBUG: User validation errors: ' . count($userErrors));
 
             if (empty($errors)) {
-                // Vérifier les doublons
                 if ($userRepository->findOneBy(['email' => $email])) {
                     $errors[] = 'Un utilisateur existe déjà avec cet email.';
                 }
-                if ($userRepository->findOneBy(['nom' => $nom])) {
-                    $errors[] = 'Ce nom d\'utilisateur est déjà utilisé.';
-                }
             }
 
-            error_log('DEBUG: Errors after duplicate check: ' . count($errors));
-
             if (empty($errors)) {
-                error_log('DEBUG: Processing role: ' . $role);
-
-                // Gérer Patient
-                if ($role === 'ROLE_PATIENT') {
-                    error_log('DEBUG: Creating patient');
-                    $patient = new Patient();
-                    $patient->setUser($user);
-                    $patient->setGenre($request->request->get('genre') ?: 'Autre');
-                    
-                    $dateNaiss = $request->request->get('date_naissance');
-                    if ($dateNaiss) {
-                        $patient->setDateNaissance(new \DateTime($dateNaiss));
-                    } else {
-                        $defaultDate = new \DateTime();
-                        $defaultDate->modify('-18 years');
-                        $patient->setDateNaissance($defaultDate);
-                    }
-                    $patient->setGroupeSanguin($request->request->get('groupe_sanguin') ?: null);
-                    $patient->setAdresse($request->request->get('adresse') ?: null);
-
-                    $patientErrors = $validator->validate($patient);
-                    foreach ($patientErrors as $error) {
-                        $errors[] = $error->getMessage();
-                    }
-                    
-                    if (empty($errors)) {
-                        try {
-                            $em->persist($user);
-                            $em->persist($patient);
-                            $em->flush();
-                            $this->addFlash('success', 'Patient créé avec succès.');
-                            return $this->redirectToRoute('app_dashboard_utilisateurs_show', ['id' => $user->getId()]);
-                        } catch (\Exception $e) {
-                            $errors[] = 'Erreur lors de la création: ' . $e->getMessage();
-                        }
-                    }
-                }
-                // Gérer Médecin
-                elseif ($role === 'ROLE_MEDECIN') {
-                    error_log('DEBUG: Creating medecin');
-                    $service = $serviceRepository->findOneBy([]);
-                    if (!$service) {
-                        error_log('DEBUG: No service found');
-                        $errors[] = 'Aucun service disponible. Veuillez créer un service d\'abord.';
-                    } else {
-                        error_log('DEBUG: Service found, creating medecin object');
-                        $medecin = new Medecin();
-                        $medecin->setUser($user);
-                        $medecin->setSpecialite($request->request->get('specialite') ?: 'Généraliste');
-                        $medecin->setMatricule($request->request->get('matricule') ?: 'MAT' . uniqid());
-                        $medecin->setTelephone($request->request->get('telephone') ? trim((string) $request->request->get('telephone')) : null);
-                        $medecin->setService($service);
-
-                        $medecinErrors = $validator->validate($medecin);
-                        error_log('DEBUG: Medecin validation errors: ' . count($medecinErrors));
-                        foreach ($medecinErrors as $error) {
-                            $errors[] = $error->getMessage();
-                        }
-                        
-                        if (empty($errors)) {
-                            error_log('DEBUG: About to persist Medecin');
-                            try {
-                                $em->persist($user);
-                                $em->persist($medecin);
-                                $em->flush();
-                                error_log('DEBUG: Medecin created successfully');
-                                $this->addFlash('success', 'Médecin créé avec succès.');
-                                return $this->redirectToRoute('app_dashboard_utilisateurs_show', ['id' => $user->getId()]);
-                            } catch (\Exception $e) {
-                                error_log('DEBUG: Exception on medecin flush: ' . $e->getMessage());
-                                $errors[] = 'Erreur lors de la création: ' . $e->getMessage();
-                            }
-                        }
-                    }
-                }
-                // Gérer Admin
-                else {
-                    error_log('DEBUG: Creating admin');
-                    try {
-                        $em->persist($user);
-                        $em->flush();
-                        error_log('DEBUG: Admin created successfully');
-                        $this->addFlash('success', 'Admin créé avec succès.');
-                        return $this->redirectToRoute('app_dashboard_utilisateurs_show', ['id' => $user->getId()]);
-                    } catch (\Exception $e) {
-                        error_log('DEBUG: Exception on admin flush: ' . $e->getMessage());
-                        $errors[] = 'Erreur lors de la création: ' . $e->getMessage();
-                    }
+                try {
+                    $em->persist($user);
+                    $em->flush();
+                    $this->addFlash('success', 'Utilisateur créé avec succès.');
+                    return $this->redirectToRoute('app_dashboard_utilisateurs_show', ['id' => $user->getId()]);
+                } catch (\Exception $e) {
+                    $errors[] = 'Erreur lors de la création: ' . $e->getMessage();
                 }
             }
         }
-        error_log('DEBUG: Rendering template with errors: ' . count($errors));
 
         $services = $serviceRepository->findBy([], ['nom' => 'ASC']);
         return $this->render('back/utilisateurs/new.html.twig', [
@@ -205,15 +148,15 @@ class UtilisateurCrudController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_dashboard_utilisateurs_show', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function show(User $user, PatientRepository $patientRepository, UserRepository $UserRepository): Response
+    public function show(User $user): Response
     {
-        $patient = $patientRepository->findOneByUser($user);
-        $medecin = $UserRepository->findOneByUser($user);
+        // On passe l'utilisateur user comme "patient" et "medecin" car les champs sont maintenant sur User.
+        // Les templates utilisent patient.genre etc, qui sont dispos sur User.
 
         return $this->render('back/utilisateurs/show.html.twig', [
             'user' => $user,
-            'patient' => $patient,
-            'medecin' => $medecin,
+            'patient' => $user, // Hack de compatibilité template
+            'medecin' => $user, // Hack de compatibilité template
         ]);
     }
 
@@ -222,14 +165,9 @@ class UtilisateurCrudController extends AbstractController
         Request $request,
         User $user,
         EntityManagerInterface $em,
-        PatientRepository $patientRepository,
-        UserRepository $UserRepository,
         ServiceRepository $serviceRepository,
         UserPasswordHasherInterface $passwordHasher
     ): Response {
-        $patient = $patientRepository->findOneByUser($user);
-        $medecin = $UserRepository->findOneByUser($user);
-
         if ($request->isMethod('POST')) {
             $user->setNom($request->request->get('nom', $user->getNom()));
             $user->setPrenom($request->request->get('prenom', $user->getPrenom()));
@@ -241,23 +179,27 @@ class UtilisateurCrudController extends AbstractController
                 $user->setPassword($passwordHasher->hashPassword($user, $newPassword));
             }
 
-            if ($patient) {
-                $patient->setGenre($request->request->get('genre', $patient->getGenre()));
-                $patient->setDateNaissance($request->request->get('date_naissance') ? new \DateTime($request->request->get('date_naissance')) : $patient->getDateNaissance());
-                $patient->setGroupeSanguin($request->request->get('groupe_sanguin'));
-                $patient->setAdresse($request->request->get('adresse'));
+            // Champs Patient
+            $user->setGenre($request->request->get('genre', $user->getGenre()));
+            if ($request->request->get('date_naissance')) {
+                $user->setDateNaissance(new \DateTime($request->request->get('date_naissance')));
+            }
+            $user->setGroupeSanguin($request->request->get('groupe_sanguin', $user->getGroupeSanguin()));
+            $user->setAdresse($request->request->get('adresse', $user->getAdresse()));
+
+            // Champs Medecin
+            $user->setSpecialite($request->request->get('specialite', $user->getSpecialite()));
+            $user->setMatricule($request->request->get('matricule', $user->getMatricule()));
+            // Le téléphone médecin (user_telephone dans le form) est le même que le user telephone
+            if ($request->request->get('user_telephone')) {
+                 $user->setTelephone($request->request->get('user_telephone'));
             }
 
-            if ($medecin) {
-                $medecin->setSpecialite($request->request->get('specialite', $medecin->getSpecialite()));
-                $medecin->setMatricule($request->request->get('matricule', $medecin->getMatricule()));
-                $medecin->setTelephone($request->request->get('medecin_telephone', $medecin->getTelephone()));
-                $serviceId = $request->request->get('service');
-                if ($serviceId) {
-                    $service = $serviceRepository->find($serviceId);
-                    if ($service) {
-                        $medecin->setService($service);
-                    }
+            $serviceId = $request->request->get('service');
+            if ($serviceId) {
+                $service = $serviceRepository->find($serviceId);
+                if ($service) {
+                    $user->setServiceEntity($service);
                 }
             }
 
@@ -269,28 +211,21 @@ class UtilisateurCrudController extends AbstractController
         $services = $serviceRepository->findBy([], ['nom' => 'ASC']);
         return $this->render('back/utilisateurs/edit.html.twig', [
             'user' => $user,
-            'patient' => $patient,
-            'medecin' => $medecin,
+            'patient' => $user, // Compatibilité
+            'medecin' => $user, // Compatibilité
             'services' => $services,
         ]);
     }
 
     #[Route('/{id}/supprimer', name: 'app_dashboard_utilisateurs_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function delete(Request $request, User $user, EntityManagerInterface $em, PatientRepository $patientRepository, UserRepository $UserRepository): Response
+    public function delete(Request $request, User $user, EntityManagerInterface $em): Response
     {
         if ($user->getId() === $this->getUser()?->getId()) {
             $this->addFlash('error', 'Vous ne pouvez pas supprimer votre propre compte.');
             return $this->redirectToRoute('app_dashboard_utilisateurs_list');
         }
         if ($this->isCsrfTokenValid('delete_user_' . $user->getId(), (string) $request->request->get('_token'))) {
-            $patient = $patientRepository->findOneByUser($user);
-            $medecin = $UserRepository->findOneByUser($user);
-            if ($patient) {
-                $em->remove($patient);
-            }
-            if ($medecin) {
-                $em->remove($medecin);
-            }
+
             $em->remove($user);
             $em->flush();
             $this->addFlash('success', 'Utilisateur supprimé.');

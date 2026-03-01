@@ -5,7 +5,6 @@
 {% block stylesheets %}
 {{ parent() }}
 <style>
-    /* Harmonisation avec le style Oasis */
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -53,7 +52,6 @@
         color: #94a3b8;
     }
 
-    /* Style du tableau */
     .custom-table { width: 100%; border-collapse: collapse; }
     .custom-table th { background: #f8fafc; padding: 15px; text-align: left; color: #64748b; font-weight: 600; font-size: 13px; border-bottom: 2px solid #edf2f7; }
     .custom-table td { padding: 15px; border-top: 1px solid #f1f5f9; vertical-align: middle; }
@@ -108,6 +106,7 @@
                 <tr>
                     <th>{{ _self.sort_link('ID', 'id', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
                     <th>{{ _self.sort_link('Désignation', 'nom', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                    <th>Catégorie</th>
                     <th>{{ _self.sort_link('Stock', 'quantite', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
                     <th>{{ _self.sort_link('Seuil', 'seuilAlerte', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
                     <th>Prix Unit.</th>
@@ -123,6 +122,13 @@
                             <a href="{{ path('app_medicament_show', {id: medicament.id}) }}" class="text-decoration-none fw-bold text-dark">
                                 {{ medicament.nom }}
                             </a>
+                        </td>
+                        <td>
+                            {% if medicament.categorie %}
+                                <span class="badge bg-secondary"><i class="fa-solid fa-tag me-1"></i>{{ medicament.categorie.nom }}</span>
+                            {% else %}
+                                <span class="text-muted small">Non classé</span>
+                            {% endif %}
                         </td>
                         <td>
                             <span class="badge {{ medicament.quantite <= medicament.seuilAlerte ? 'bg-danger' : 'bg-success' }}">
@@ -142,12 +148,16 @@
                             <div class="btn-group-actions justify-content-end">
                                 <a href="{{ path('app_medicament_show', {id: medicament.id}) }}" class="btn btn-sm btn-info text-white btn-sm-custom" title="Voir"><i class="fas fa-eye"></i></a>
                                 <a href="{{ path('app_medicament_edit', {id: medicament.id}) }}" class="btn btn-sm btn-primary btn-sm-custom" title="Modifier"><i class="fas fa-edit"></i></a>
+                                <form method="post" action="{{ path('app_medicament_delete', {id: medicament.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer « {{ medicament.nom }} » ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ medicament.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-danger btn-sm-custom" title="Supprimer"><i class="fas fa-trash"></i></button>
+                                </form>
                             </div>
                         </td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">
+                        <td colspan="8" class="text-center py-5 text-muted">
                             <i class="fa-solid fa-box-open fa-2x mb-3 d-block"></i>
                             Aucun médicament trouvé.
                         </td>

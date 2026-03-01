@@ -6,6 +6,7 @@ use App\Entity\Evenement;
 use App\Entity\ParticipantEvenement;
 use App\Form\InscriptionParticipantType;
 use App\Repository\ParticipantEvenementRepository;
+use App\Service\WeatherService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,8 +21,13 @@ use Symfony\Component\Routing\Attribute\Route;
 class InscriptionController extends AbstractController
 {
     #[Route('/{id}/inscription', name: 'app_evenement_inscription', methods: ['GET', 'POST'])]
-    public function inscription(Request $request, Evenement $evenement, EntityManagerInterface $entityManager, ParticipantEvenementRepository $participantRepo): Response
-    {
+    public function inscription(
+        Request $request,
+        Evenement $evenement,
+        EntityManagerInterface $entityManager,
+        ParticipantEvenementRepository $participantRepo,
+        WeatherService $weatherService
+    ): Response {
         $user = $this->getUser();
         $participantEvenement = new ParticipantEvenement();
         $participantEvenement->setEvenement($evenement);
@@ -62,10 +68,14 @@ class InscriptionController extends AbstractController
             return $this->redirectToRoute('app_evenement_public');
         }
 
+        // Fetch weather forecast for the event
+        $weather = $weatherService->getForecastForEvent($evenement);
+
         return $this->render('front/inscription.html.twig', [
             'evenement' => $evenement,
             'form' => $form,
             'user_connected' => $user !== null,
+            'weather' => $weather,
         ]);
     }
 }

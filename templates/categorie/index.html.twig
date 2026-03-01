@@ -1,0 +1,79 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Catégories{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1><i class="fa-solid fa-tags me-2" style="color: var(--accent);"></i>Catégories</h1>
+                <p>Organisez vos médicaments par catégorie</p>
+            </div>
+            <a href="{{ path('app_categorie_new') }}" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Nouvelle catégorie
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Nom</th>
+                            <th>Description</th>
+                            <th class="text-center">Médicaments</th>
+                            <th style="width: 180px;" class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for categorie in categories %}
+                            <tr>
+                                <td><span class="text-muted">#{{ categorie.id }}</span></td>
+                                <td>
+                                    <a href="{{ path('app_categorie_show', {id: categorie.id}) }}" class="text-decoration-none fw-semibold" style="color: var(--text-primary);">
+                                        <i class="fa-solid fa-tag me-1" style="color: var(--accent);"></i>{{ categorie.nom }}
+                                    </a>
+                                </td>
+                                <td>{{ categorie.description|default('—') }}</td>
+                                <td class="text-center">
+                                    <span class="badge bg-info text-white">{{ categorie.medicaments|length }}</span>
+                                </td>
+                                <td>
+                                    <div class="action-btns justify-content-center">
+                                        <a href="{{ path('app_categorie_show', {id: categorie.id}) }}" class="btn btn-sm btn-info" title="Voir">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ path('app_categorie_edit', {id: categorie.id}) }}" class="btn btn-sm btn-secondary" title="Modifier">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="post" action="{{ path('app_categorie_delete', {id: categorie.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer la catégorie « {{ categorie.nom }} » ? Les médicaments associés ne seront pas supprimés.');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ categorie.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-tags d-block"></i>
+                                        <p class="mb-2"><strong>Aucune catégorie</strong></p>
+                                        <a href="{{ path('app_categorie_new') }}" class="btn btn-primary btn-sm">
+                                            <i class="fa-solid fa-plus me-1"></i> Créer une catégorie
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

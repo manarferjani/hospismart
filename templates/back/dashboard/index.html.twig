@@ -142,6 +142,53 @@
         </div>
         <div class="back-card-icon">%</div>
     </div>
+
+    <!-- NOUVELLES CARTES -->
+    <div class="back-card" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">
+        <div>
+            <div class="back-card-value">{{ totalUsers }}</div>
+            <div class="back-card-label">Utilisateurs Total</div>
+        </div>
+        <div class="back-card-icon">👥</div>
+    </div>
+    <div class="back-card" style="background: linear-gradient(135deg, #2980b9, #3498db);">
+        <div>
+            <div class="back-card-value">{{ nbMedecins }}</div>
+            <div class="back-card-label">Médecins</div>
+        </div>
+        <div class="back-card-icon">👨‍⚕️</div>
+    </div>
+        <div class="back-card" style="background: linear-gradient(135deg, #d35400, #e67e22);">
+        <div>
+            <div class="back-card-value">{{ nbPatients }}</div>
+            <div class="back-card-label">Patients</div>
+        </div>
+        <div class="back-card-icon">🤕</div>
+    </div>
+
+    <div class="back-card" style="background: linear-gradient(135deg, #16a085, #1abc9c);">
+        <div>
+            <div class="back-card-value">{{ totalEvenements }}</div>
+            <div class="back-card-label">Événements</div>
+        </div>
+        <div class="back-card-icon">🎉</div>
+    </div>
+
+    <div class="back-card" style="background: linear-gradient(135deg, #c0392b, #e74c3c);">
+        <div>
+            <div class="back-card-value">{{ reclamationsAttente }} / {{ totalReclamations }}</div>
+            <div class="back-card-label">Récl. en Attente</div>
+        </div>
+        <div class="back-card-icon">📢</div>
+    </div>
+
+    <div class="back-card" style="background: linear-gradient(135deg, #7f8c8d, #95a5a6);">
+        <div>
+            <div class="back-card-value">{{ totalEquipements }}</div>
+            <div class="back-card-label">Équipements</div>
+        </div>
+        <div class="back-card-icon">🏥</div>
+    </div>
 </div>
 
 <form method="GET" action="{{ path('app_dashboard_reclamations') }}" class="back-filters">
@@ -189,4 +236,136 @@
         </div>
     </div>
 </div>
+
+{# ===== Event Analytics AI Section ===== #}
+<div class="card shadow-sm border-0 mt-4" style="border-radius: 15px;">
+    <div class="card-body">
+        <h5 class="card-title mb-4">🤖 Analyses IA — Module Événements</h5>
+        
+        <div id="analytics-loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted mt-2">Analyse IA en cours...</p>
+        </div>
+
+        <div id="analytics-content" style="display: none;">
+            {# AI Insights #}
+            <div id="ai-insights" class="mb-4"></div>
+
+            <div class="row g-4">
+                {# Overview cards #}
+                <div class="col-md-8">
+                    <div class="row g-3" id="overview-cards"></div>
+                </div>
+
+                {# Pie chart #}
+                <div class="col-md-4">
+                    <div class="p-3 rounded" style="background: #f8fafc;">
+                        <h6 class="fw-bold mb-3"><i class="fa-solid fa-chart-pie text-primary"></i> Types d'événements</h6>
+                        <canvas id="typePieChart" width="250" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            {# Monthly trend #}
+            <div class="mt-4 p-3 rounded" style="background: #f8fafc;">
+                <h6 class="fw-bold mb-3"><i class="fa-solid fa-chart-line text-success"></i> Tendance mensuelle</h6>
+                <div id="monthly-trend" class="d-flex gap-3 overflow-auto"></div>
+            </div>
+
+            {# Top events by participation #}
+            <div class="mt-4">
+                <h6 class="fw-bold mb-3"><i class="fa-solid fa-trophy text-warning"></i> Top événements par participation</h6>
+                <div id="top-events"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+(async function() {
+    try {
+        const resp = await fetch('/api/evenement/analytics');
+        const data = await resp.json();
+        
+        document.getElementById('analytics-loading').style.display = 'none';
+        document.getElementById('analytics-content').style.display = 'block';
+
+        // AI Insights
+        const insightsDiv = document.getElementById('ai-insights');
+        const insightColors = { success: '#dcfce7', warning: '#fef3c7', alert: '#fee2e2', info: '#dbeafe' };
+        const insightTextColors = { success: '#166534', warning: '#92400e', alert: '#991b1b', info: '#1e40af' };
+        let insightsHtml = '';
+        (data.aiInsights || []).forEach(i => {
+            const bg = insightColors[i.type] || '#f1f5f9';
+            const color = insightTextColors[i.type] || '#475569';
+            insightsHtml += `<div class="p-3 mb-2 rounded-3 d-flex align-items-start gap-2" style="background:${bg};color:${color}">
+                <span style="font-size:20px">${i.icon}</span>
+                <span style="font-size:13px">${i.text}</span>
+            </div>`;
+        });
+        insightsDiv.innerHTML = insightsHtml;
+
+        // Overview cards
+        const ov = data.overview || {};
+        const cards = [
+            { label: 'Total', value: ov.total, icon: '📊', bg: 'linear-gradient(135deg, #6366f1, #818cf8)' },
+            { label: 'À venir', value: ov.upcoming, icon: '📅', bg: 'linear-gradient(135deg, #3b82f6, #60a5fa)' },
+            { label: 'Moy. participants', value: ov.avgParticipants, icon: '👥', bg: 'linear-gradient(135deg, #10b981, #34d399)' },
+            { label: 'Budget total', value: Number(ov.totalBudget).toLocaleString('fr') + ' TND', icon: '💰', bg: 'linear-gradient(135deg, #f59e0b, #fbbf24)' },
+        ];
+        let cardsHtml = '';
+        cards.forEach(c => {
+            cardsHtml += `<div class="col-6">
+                <div class="p-3 rounded-3 text-white d-flex justify-content-between align-items-center" style="background:${c.bg}">
+                    <div><div style="font-size:22px;font-weight:800">${c.value}</div><div style="font-size:12px;opacity:0.8">${c.label}</div></div>
+                    <span style="font-size:28px;opacity:0.4">${c.icon}</span>
+                </div>
+            </div>`;
+        });
+        document.getElementById('overview-cards').innerHTML = cardsHtml;
+
+        // Pie chart
+        const typeData = data.typeDistribution || {};
+        const labels = Object.keys(typeData);
+        const values = Object.values(typeData);
+        const colors = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+        if (labels.length > 0) {
+            new Chart(document.getElementById('typePieChart'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(0, labels.length), borderWidth: 0 }] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } } }
+            });
+        }
+
+        // Monthly trend
+        const trendDiv = document.getElementById('monthly-trend');
+        let trendHtml = '';
+        (data.monthlyTrend || []).forEach(m => {
+            const barH = Math.max(10, m.count * 30);
+            trendHtml += `<div class="text-center flex-shrink-0" style="min-width:80px">
+                <div style="height:100px;display:flex;align-items:flex-end;justify-content:center">
+                    <div style="width:35px;height:${barH}px;background:linear-gradient(180deg,#818cf8,#6366f1);border-radius:6px 6px 0 0"></div>
+                </div>
+                <div style="font-size:18px;font-weight:800;color:#1e293b;margin-top:4px">${m.count}</div>
+                <div style="font-size:11px;color:#64748b">${m.label}</div>
+            </div>`;
+        });
+        trendDiv.innerHTML = trendHtml;
+
+        // Top events
+        const topDiv = document.getElementById('top-events');
+        let topHtml = '<div class="table-responsive"><table class="table table-sm"><thead class="table-light"><tr><th>Événement</th><th>Type</th><th>Participants</th><th>Budget</th></tr></thead><tbody>';
+        (data.participationStats || []).forEach((e, i) => {
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+            topHtml += `<tr><td>${medal} <strong>${e.titre}</strong></td><td><span class="badge bg-light text-dark">${e.type}</span></td><td><strong>${e.participants}</strong></td><td>${Number(e.budget).toLocaleString('fr')} TND</td></tr>`;
+        });
+        topHtml += '</tbody></table></div>';
+        topDiv.innerHTML = topHtml;
+
+    } catch (e) {
+        document.getElementById('analytics-loading').innerHTML = '<p class="text-danger">Erreur de chargement des analyses</p>';
+    }
+})();
+</script>
 {% endblock %}

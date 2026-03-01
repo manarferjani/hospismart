@@ -1,0 +1,84 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Gestion des Réclamations{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-3 shadow-sm">
+    <h1 class="h3 mb-0 text-gray-800"><i class="fa-solid fa-list-check me-2 text-primary"></i>Réclamations</h1>
+    <div>
+        <a href="{{ path('app_back_reclamation_export_excel') }}" class="btn btn-success shadow-sm me-2">
+            <i class="fa-solid fa-file-excel me-1"></i> Export Excel
+        </a>
+        <a href="{{ path('app_back_reclamation_export_pdf') }}" class="btn btn-danger shadow-sm">
+            <i class="fa-solid fa-file-pdf me-1"></i> Export PDF
+        </a>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-white">
+        <h6 class="m-0 font-weight-bold text-primary">Liste complète</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Titre</th>
+                        <th>Patient</th>
+                        <th>Catégorie</th>
+                        <th>Priorité</th>
+                        <th>Statut</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rec in reclamations %}
+                    <tr>
+                        <td class="small">{{ rec.dateCreation|date('d/m/Y H:i') }}</td>
+                        <td class="fw-bold text-dark">{{ rec.titre|u.truncate(30, '...') }}</td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold">{{ rec.nomPatient }}</span>
+                                <small class="text-muted">{{ rec.email }}</small>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ rec.categorie }}</span></td>
+                        <td>
+                            {% if rec.priorite == 'Urgente' %}
+                                <span class="badge bg-danger">Urgente</span>
+                            {% elseif rec.priorite == 'Haute' %}
+                                <span class="badge bg-warning text-dark">Haute</span>
+                            {% else %}
+                                <span class="badge bg-info text-dark">{{ rec.priorite }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if rec.statut == 'Traité' %}
+                                <span class="badge bg-success rounded-pill">Traité</span>
+                            {% elseif rec.statut == 'En cours' %}
+                                <span class="badge bg-primary rounded-pill">En cours</span>
+                            {% else %}
+                                <span class="badge bg-secondary rounded-pill">En attente</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ path('app_back_reclamation_show', {'id': rec.id}) }}" class="btn btn-sm btn-outline-primary" title="Voir & Répondre">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            Aucune réclamation trouvée.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

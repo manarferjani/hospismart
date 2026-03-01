@@ -1,0 +1,102 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Détail Réclamation #{{ reclamation.id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
+                <h6 class="m-0 font-weight-bold text-primary">Détail de la réclamation #{{ reclamation.id }}</h6>
+                <span class="badge {{ reclamation.statut == 'Traité' ? 'bg-success' : 'bg-warning text-dark' }}">
+                    {{ reclamation.statut }}
+                </span>
+            </div>
+            <div class="card-body">
+                <h4 class="fw-bold mb-3">{{ reclamation.titre }}</h4>
+                <div class="mb-4 text-justify bg-light p-3 rounded">
+                    {{ reclamation.description|nl2br }}
+                </div>
+
+                <div class="row g-3 small text-muted mb-4">
+                    <div class="col-6"><i class="fa-solid fa-user me-2"></i>De : <strong>{{ reclamation.nomPatient }}</strong></div>
+                    <div class="col-6"><i class="fa-solid fa-envelope me-2"></i>Email : <a href="mailto:{{ reclamation.email }}">{{ reclamation.email }}</a></div>
+                    <div class="col-6"><i class="fa-solid fa-folder me-2"></i>Catégorie : {{ reclamation.categorie }}</div>
+                    <div class="col-6"><i class="fa-solid fa-calendar me-2"></i>Date : {{ reclamation.dateCreation|date('d/m/Y à H:i') }}</div>
+                </div>
+
+                <hr>
+
+                <h5 class="mt-4 mb-3"><i class="fa-solid fa-comments me-2"></i>Historique des réponses</h5>
+                
+                {% for reponse in reclamation.reponses %}
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0 me-3">
+                           <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="fa-solid fa-user-shield"></i>
+                           </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <h6 class="card-title fw-bold mb-0">{{ reponse.adminNom }} <small class="text-muted fw-normal">({{ reponse.dateReponse|date('d/m/Y H:i') }})</small></h6>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                     <form action="{{ path('app_back_reponse_delete', {'id': reponse.id}) }}" method="post" onsubmit="return confirm('Supprimer cette réponse ?');">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reponse.id) }}">
+                                                        <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-trash me-2"></i>Supprimer</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <p class="card-text mb-0">{{ reponse.contenu|nl2br }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted fst-italic">Aucune réponse pour le moment.</p>
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+             <div class="card-header py-3 bg-white">
+                <h6 class="m-0 font-weight-bold text-primary">Ajouter une réponse</h6>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+                    <div class="mb-3">
+                        {{ form_label(form.contenu, 'Votre réponse', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(form.contenu, {'attr': {'class': 'form-control', 'rows': 5, 'placeholder': 'Rédigez votre réponse ici...'}}) }}
+                        <div class="text-danger small">{{ form_errors(form.contenu) }}</div>
+                    </div>
+                    
+                    {# Les champs adminNom et adminEmail sont gérés automatiquement dans le contrôleur #}
+                    <div class="d-none">
+                        {{ form_widget(form.adminNom, {'value': 'Admin'}) }}
+                        {{ form_widget(form.adminEmail, {'value': 'admin@example.com'}) }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fa-solid fa-paper-plane me-2"></i>Envoyer la réponse
+                    </button>
+                {{ form_end(form) }}
+            </div>
+        </div>
+
+        <a href="{{ path('app_back_reclamation_index') }}" class="btn btn-secondary w-100">
+            <i class="fa-solid fa-arrow-left me-2"></i>Retour à la liste
+        </a>
+    </div>
+</div>
+{% endblock %}

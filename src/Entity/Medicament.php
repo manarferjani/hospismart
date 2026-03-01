@@ -53,9 +53,18 @@ class Medicament
     #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'medicament', cascade: ['persist'])]
     private Collection $mouvements;
 
+    #[ORM\ManyToOne(inversedBy: 'medicaments')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Categorie $categorie = null;
+
     public function __construct()
     {
         $this->mouvements = new ArrayCollection();
+    }
+
+    public function __toString(): string
+    {
+        return $this->nom ?? '';
     }
 
     public function getId(): ?int
@@ -79,7 +88,7 @@ class Medicament
         return $this->quantite;
     }
 
-    public function setQuantite(int $quantite): static
+    public function setQuantite(?int $quantite): static
     {
         $this->quantite = $quantite;
         return $this;
@@ -90,7 +99,7 @@ class Medicament
         return $this->seuil_alerte;
     }
 
-    public function setSeuilAlerte(int $seuil_alerte): static
+    public function setSeuilAlerte(?int $seuil_alerte): static
     {
         $this->seuil_alerte = $seuil_alerte;
         return $this;
@@ -101,7 +110,7 @@ class Medicament
         return $this->prix_unitaire;
     }
 
-    public function setPrixUnitaire(float $prix_unitaire): static
+    public function setPrixUnitaire(?float $prix_unitaire): static
     {
         $this->prix_unitaire = $prix_unitaire;
         return $this;
@@ -112,7 +121,7 @@ class Medicament
         return $this->date_peremption;
     }
 
-    public function setDatePeremption(\DateTime $date_peremption): static
+    public function setDatePeremption(?\DateTime $date_peremption): static
     {
         $this->date_peremption = $date_peremption;
         return $this;
@@ -142,6 +151,17 @@ class Medicament
                 $mouvement->setMedicament(null);
             }
         }
+        return $this;
+    }
+    public function getCategorie(): ?Categorie
+    {
+        return $this->categorie;
+    }
+
+    public function setCategorie(?Categorie $categorie): static
+    {
+        $this->categorie = $categorie;
+
         return $this;
     }
 }

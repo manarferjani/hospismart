@@ -10,6 +10,29 @@
 {% endblock %}
 
 {% block body %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+    #map-picker-edit { width:100%; height:300px; border-radius:12px; border:1px solid #e2e8f0; margin-top:10px; }
+    .map-search-wrapper { position:relative; }
+    #map-search-edit {
+        width:100%; padding:10px 14px; border-radius:10px;
+        border:1px solid #e2e8f0; font-size:0.95rem; margin-bottom:6px;
+    }
+    #map-search-edit:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+    #ac-list-edit {
+        position:absolute; top:100%; left:0; right:0; z-index:9999;
+        background:white; border:1px solid #e2e8f0; border-radius:10px;
+        box-shadow:0 8px 24px rgba(0,0,0,0.12); max-height:200px;
+        overflow-y:auto; display:none;
+    }
+    .autocomplete-item { padding:10px 15px; cursor:pointer; font-size:0.9rem; border-bottom:1px solid #f1f5f9; }
+    .autocomplete-item:hover { background:#eff6ff; }
+    .autocomplete-item:last-child { border-bottom:none; }
+    .map-hint { font-size:0.82rem; color:#94a3b8; margin-top:6px; }
+    .coords-hidden { display:none; }
+</style>
+
+
 <div class="row">
     <div class="col-md-12">
         <div class="card card-warning">
@@ -20,38 +43,51 @@
                 {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
                     {{ form_errors(form) }}
                     <div class="row">
-                        <div class="col-md-6">
-                            {{ form_row(form.titre) }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form_row(form.type_evenement) }}
-                        </div>
+                        <div class="col-md-6">{{ form_row(form.titre) }}</div>
+                        <div class="col-md-6">{{ form_row(form.type_evenement) }}</div>
                     </div>
                     <div class="row">
                         <div class="col-md-12">
-                            {{ form_row(form.description) }}
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label class="form-label fw-bold mb-0">Description</label>
+                                <button type="button" id="btn-ai-generate" class="btn btn-sm" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; border: none; border-radius: 8px; padding: 6px 16px; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s; box-shadow: 0 2px 8px rgba(99,102,241,0.3);" title="Générer une description avec l'IA">
+                                    <i class="fa-solid fa-wand-magic-sparkles"></i> Générer avec IA
+                                </button>
+                            </div>
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '4', 'id': 'evenement_description'}}) }}
+                            <div id="ai-status" style="display:none; margin-top: 6px; font-size: 0.82rem;"></div>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6">
-                            {{ form_row(form.date_debut) }}
-                        </div>
-                        <div class="col-md-6">
-                            {{ form_row(form.date_fin) }}
+                        <div class="col-md-6">{{ form_row(form.date_debut) }}</div>
+                        <div class="col-md-6">{{ form_row(form.date_fin) }}</div>
+                    </div>
+
+                    {# ── Map picker ── #}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold">📍 Localisation sur la carte</label>
+                            <div class="map-search-wrapper">
+                                <input id="map-search-edit" type="text" placeholder="🔍 Rechercher un lieu...">
+                                <div id="ac-list-edit"></div>
+                            </div>
+                            <div id="map-picker-edit"></div>
+                            <p class="map-hint"><i class="fas fa-info-circle"></i> Cliquez sur la carte ou cherchez pour déplacer le marqueur.</p>
                         </div>
                     </div>
+
                     <div class="row">
-                        <div class="col-md-6">
-                            {{ form_row(form.lieu) }}
-                        </div>
-                        <div class="col-md-3">
-                            {{ form_row(form.statut) }}
-                        </div>
-                        <div class="col-md-3">
-                            {{ form_row(form.budget_alloue) }}
-                        </div>
+                        <div class="col-md-6">{{ form_row(form.lieu) }}</div>
+                        <div class="col-md-3">{{ form_row(form.statut) }}</div>
+                        <div class="col-md-3">{{ form_row(form.budget_alloue) }}</div>
                     </div>
-                    <div class="form-group">
+
+                    <div class="coords-hidden">
+                        {{ form_widget(form.latitude) }}
+                        {{ form_widget(form.longitude) }}
+                    </div>
+
+                    <div class="form-group mt-3">
                         <button type="submit" class="btn btn-warning">
                             <i class="fas fa-save"></i> Enregistrer
                         </button>
@@ -64,4 +100,138 @@
         </div>
     </div>
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const GEOAPIFY_KEY = '{{ google_maps_api_key }}';
+
+const savedLat = {{ evenement.latitude is not null ? evenement.latitude : 36.8065 }};
+const savedLng = {{ evenement.longitude is not null ? evenement.longitude : 10.1815 }};
+const hasCoords = {{ evenement.latitude is not null ? 'true' : 'false' }};
+
+const map = L.map('map-picker-edit').setView([savedLat, savedLng], hasCoords ? 16 : 12);
+
+L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19 }
+).addTo(map);
+
+setTimeout(() => map.invalidateSize(), 300);
+
+let marker = hasCoords
+    ? L.marker([savedLat, savedLng], { draggable: true }).addTo(map)
+    : null;
+
+if (marker) {
+    marker.on('dragend', e => reverseGeocode(e.target.getLatLng().lat, e.target.getLatLng().lng));
+}
+
+function setMarker(lat, lng) {
+    if (marker) { marker.setLatLng([lat, lng]); }
+    else { marker = L.marker([lat, lng], { draggable: true }).addTo(map); marker.on('dragend', e => reverseGeocode(e.target.getLatLng().lat, e.target.getLatLng().lng)); }
+    map.setView([lat, lng], 16);
+    setCoords(lat, lng);
+}
+
+function setCoords(lat, lng) {
+    document.getElementById('evenement_latitude').value = lat;
+    document.getElementById('evenement_longitude').value = lng;
+}
+
+map.on('click', e => { setMarker(e.latlng.lat, e.latlng.lng); reverseGeocode(e.latlng.lat, e.latlng.lng); });
+
+function reverseGeocode(lat, lng) {
+    fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_KEY}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.features && data.features.length > 0) {
+                const lieuField = document.querySelector('[name$="[lieu]"]');
+                if (lieuField) lieuField.value = data.features[0].properties.formatted || '';
+            }
+        });
+}
+
+// Autocomplete
+let searchTimeout;
+const searchInput = document.getElementById('map-search-edit');
+const acList = document.getElementById('ac-list-edit');
+
+searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    const q = searchInput.value.trim();
+    if (q.length < 3) { acList.style.display = 'none'; return; }
+    searchTimeout = setTimeout(() => {
+        fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(q)}&limit=6&apiKey=${GEOAPIFY_KEY}`)
+            .then(r => r.json())
+            .then(data => {
+                acList.innerHTML = '';
+                if (!data.features || data.features.length === 0) { acList.style.display = 'none'; return; }
+                data.features.forEach(f => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.textContent = f.properties.formatted;
+                    item.addEventListener('click', () => {
+                        searchInput.value = f.properties.formatted;
+                        const lieuField = document.querySelector('[name$="[lieu]"]');
+                        if (lieuField) lieuField.value = f.properties.formatted;
+                        acList.style.display = 'none';
+                        setMarker(f.geometry.coordinates[1], f.geometry.coordinates[0]);
+                    });
+                    acList.appendChild(item);
+                });
+                acList.style.display = 'block';
+            });
+    }, 300);
+});
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('.map-search-wrapper')) acList.style.display = 'none';
+});
+
+// ── AI Description Generator ──────────────────────────────────
+document.getElementById('btn-ai-generate').addEventListener('click', async function() {
+    const btn = this;
+    const statusEl = document.getElementById('ai-status');
+    const descEl = document.getElementById('evenement_description');
+
+    const titre = document.querySelector('[id$="_titre"]')?.value || '';
+    const type = document.querySelector('[id$="_type_evenement"]')?.value || '';
+    const dateDebut = document.querySelector('[id$="_date_debut"]')?.value || '';
+    const dateFin = document.querySelector('[id$="_date_fin"]')?.value || '';
+    const lieu = document.querySelector('[name$="[lieu]"]')?.value || '';
+    const budget = document.querySelector('[id$="_budget_alloue"]')?.value || '';
+
+    if (!titre.trim()) {
+        statusEl.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-circle-exclamation me-1"></i>Veuillez d\'abord saisir un titre.</span>';
+        statusEl.style.display = 'block';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Génération...';
+    statusEl.innerHTML = '<span style="color:#6366f1;"><i class="fa-solid fa-brain me-1"></i>L\'IA génère une description...</span>';
+    statusEl.style.display = 'block';
+
+    try {
+        const response = await fetch('/api/evenement/generate-description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titre, type, lieu, dateDebut, dateFin, budget })
+        });
+        const data = await response.json();
+        if (response.ok && data.description) {
+            descEl.value = data.description;
+            statusEl.innerHTML = '<span style="color:#22c55e;"><i class="fa-solid fa-check-circle me-1"></i>Description générée !</span>';
+            setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
+        } else {
+            statusEl.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-circle-exclamation me-1"></i>' + (data.error || 'Erreur.') + '</span>';
+        }
+    } catch (err) {
+        statusEl.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-circle-exclamation me-1"></i>Erreur réseau.</span>';
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Générer avec IA';
+});
+</script>
 {% endblock %}

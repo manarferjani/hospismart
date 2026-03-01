@@ -42,6 +42,8 @@ final class MedicamentController extends AbstractController
             $entityManager->persist($medicament);
             $entityManager->flush();
 
+            $this->addFlash('success', sprintf("Médicament '%s' créé avec succès.", $medicament->getNom()));
+
             return $this->redirectToRoute('app_medicament_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -68,6 +70,8 @@ final class MedicamentController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
+            $this->addFlash('success', sprintf("Médicament '%s' modifié avec succès.", $medicament->getNom()));
+
             return $this->redirectToRoute('app_medicament_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -88,12 +92,23 @@ final class MedicamentController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_medicament_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'app_medicament_delete', methods: ['POST'])]
     public function delete(Request $request, Medicament $medicament, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$medicament->getId(), $request->getPayload()->getString('_token'))) {
+        $submittedToken = $request->request->get('_token') ?? $request->get('_token');
+
+        if ($this->isCsrfTokenValid('delete'.$medicament->getId(), $submittedToken)) {
+            // Remove all related movements first to avoid foreign key constraint errors
+            foreach ($medicament->getMouvements() as $mouvement) {
+                $entityManager->remove($mouvement);
+            }
+
             $entityManager->remove($medicament);
             $entityManager->flush();
+
+            $this->addFlash('success', sprintf("Médicament '%s' (id=%d) et ses mouvements associés supprimés.", $medicament->getNom(), $medicament->getId()));
+        } else {
+            $this->addFlash('error', 'Jeton CSRF invalide — suppression annulée. Rechargez la page et réessayez.');
         }
 
         return $this->redirectToRoute('app_medicament_index', [], Response::HTTP_SEE_OTHER);

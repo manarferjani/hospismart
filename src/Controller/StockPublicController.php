@@ -13,12 +13,14 @@ use Symfony\Component\Routing\Attribute\Route;
 final class StockPublicController extends AbstractController
 {
     #[Route('/stock', name: 'app_stock_public', methods: ['GET'])]
-    public function index(MedicamentRepository $medicamentRepository): Response
+    public function index(MedicamentRepository $medicamentRepository, \App\Repository\CategorieRepository $categorieRepository): Response
     {
-        $medicaments = $medicamentRepository->findBy([], ['nom' => 'ASC']);
+        $medicaments = $medicamentRepository->findForPublic();
+        $categories = $categorieRepository->findBy([], ['nom' => 'ASC']);
 
         return $this->render('stock_public/index.html.twig', [
             'medicaments' => $medicaments,
+            'categories' => $categories,
         ]);
     }
 }

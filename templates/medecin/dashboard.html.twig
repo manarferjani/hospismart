@@ -84,7 +84,6 @@
                             <h4 class="fw-bold mb-1">{{ prochain_rdv.patient.prenom }} {{ prochain_rdv.patient.nom }}</h4>
                             <span class="badge bg-primary-soft text-primary rounded-pill px-3">À {{ prochain_rdv.datetime|date('H:i') }}</span>
                         </div>
-
                         <div class="bg-white p-3 rounded-3 shadow-sm mb-4 border">
                             <p class="small text-muted mb-1"><i class="fa-solid fa-comment-medical me-2"></i>Motif :</p>
                             <p class="mb-0 fw-medium">{{ prochain_rdv.motif|default('Consultation générale') }}</p>
@@ -238,7 +237,7 @@
                     },
                     events: [
                         {% for rdv in demandes %}
-                            {% if rdv.statut == 'CONFIRME' and rdv.patient and rdv.patient %}
+                            {% if rdv.statut == 'CONFIRME' and rdv.patient %}
                                 {
                                     title: "{{ rdv.patient.prenom|e('js') }} {{ rdv.patient.nom|e('js') }}",
                                     start: "{{ rdv.datetime|date('Y-m-d\\TH:i:s') }}",

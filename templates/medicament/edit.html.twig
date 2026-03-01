@@ -16,7 +16,9 @@
             <i class="fa-solid fa-pen-to-square me-2"></i> Modifier le médicament
         </div>
         <div class="card-body">
-            {{ form_start(form, { attr: { class: 'form-hospi' } }) }}
+            {{ form_start(form, { attr: { class: 'form-hospi', novalidate: 'novalidate' } }) }}
+            {# Rendu explicite du champ CSRF pour debug/compatibilité #}
+            {{ form_widget(form._token) }}
             
             {# Afficher les erreurs globales du formulaire #}
             {% if form.vars.errors|length > 0 %}
@@ -46,6 +48,9 @@
                 </div>
                 <div class="col-md-6">
                     {{ form_row(form.datePeremption) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.categorie) }}
                 </div>
             </div>
             <div class="form-actions-hospi">

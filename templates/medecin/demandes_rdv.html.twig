@@ -9,6 +9,7 @@
             </div>
         {% endfor %}
     {% endfor %}
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0" style="color: #1a1a2e; font-weight: 700;">
             <i class="fas fa-bell me-2" style="color: #4178F5;"></i>
@@ -22,7 +23,7 @@
     {% if demandes|length > 0 %}
         <div class="card shadow-sm border-0 p-4" style="border-radius: 20px;">
             <p class="text-muted mb-4">
-                <strong>{{ demandes|length }}</strong> demande(s) en attente de votre réponse.
+                <strong>{{ demandes|length }}</strong> demande(s) enregistrée(s).
             </p>
             <div class="table-responsive">
             <table class="table align-middle">
@@ -37,7 +38,7 @@
                 </thead>
                 <tbody>
                     {% for rdv in demandes %}
-                        {# FILTRE : On vérifie les majuscules selon votre contrôleur PHP #}
+                        {# Filtre pour n'afficher que les rendez-vous actifs ou à traiter #}
                         {% if rdv.statut == 'EN_ATTENTE' or rdv.statut == 'CONFIRME' %}
                             <tr>
                                 <td>
@@ -52,9 +53,8 @@
                                         <span class="text-muted">—</span>
                                     {% endif %}
                                 </td>
-                                <td class="small">{{ rdv.motif|u.truncate(50) }}</td>
+                                <td class="small">{{ rdv.motif|u.truncate(50, '...') }}</td>
                                 
-                                {# AFFICHAGE DU STATUT #}
                                 <td>
                                     {% if rdv.statut == 'CONFIRME' %}
                                         <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
@@ -82,7 +82,7 @@
                                             </button>
                                         </form>
                                     {% else %}
-                                        <small class="text-muted">Rendez-vous validé</small>
+                                        <small class="text-muted italic">Validé</small>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -96,7 +96,7 @@
         <div class="card shadow-sm border-0 p-5 text-center" style="border-radius: 20px;">
             <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
             <h5 class="text-muted">Aucune demande en attente</h5>
-            <p class="text-muted mb-0">Les demandes de rendez-vous apparaîtront ici lorsque des patients réserveront un de vos créneaux.</p>
+            <p class="text-muted mb-0">Vos demandes apparaîtront ici dès qu'un patient réservera un créneau.</p>
             <a href="{{ path('app_medecin_dispo_index') }}" class="btn btn-primary mt-3" style="border-radius: 12px; background: #4178F5;">
                 Gérer mes créneaux
             </a>

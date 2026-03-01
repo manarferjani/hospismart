@@ -1,4 +1,6 @@
-{{ form_start(form, { attr: { class: 'form-hospi' } }) }}
+{{ form_start(form, { attr: { class: 'form-hospi', novalidate: 'novalidate' } }) }}
+{# Rendu explicite du champ CSRF pour debug/compatibilité #}
+{{ form_widget(form._token) }}
 <div class="row g-4">
     <div class="col-md-6">
         {{ form_row(form.type) }}

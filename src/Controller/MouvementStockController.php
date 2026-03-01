@@ -80,6 +80,9 @@ final class MouvementStockController extends AbstractController
             $entityManager->persist($mouvementStock);
             $entityManager->flush();
 
+            $medicamentNom = $mouvementStock->getMedicament() ? $mouvementStock->getMedicament()->getNom() : 'N/A';
+            $this->addFlash('success', sprintf("Mouvement de stock pour '%s' créé avec succès.", $medicamentNom));
+
             return $this->redirectToRoute('app_mouvement_stock_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -126,6 +129,9 @@ final class MouvementStockController extends AbstractController
             }
             $entityManager->flush();
 
+            $medicamentNom = $mouvementStock->getMedicament() ? $mouvementStock->getMedicament()->getNom() : 'N/A';
+            $this->addFlash('success', sprintf("Mouvement de stock pour '%s' modifié avec succès.", $medicamentNom));
+
             return $this->redirectToRoute('app_mouvement_stock_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -138,10 +144,15 @@ final class MouvementStockController extends AbstractController
     #[Route('/{id}', name: 'app_mouvement_stock_delete', methods: ['POST'])]
     public function delete(Request $request, MouvementStock $mouvementStock, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$mouvementStock->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$mouvementStock->getId(), $request->request->get('_token') ?? $request->get('_token'))) {
+            $medicamentNom = $mouvementStock->getMedicament() ? $mouvementStock->getMedicament()->getNom() : 'N/A';
             $this->annulerMouvementSurStock($mouvementStock);
             $entityManager->remove($mouvementStock);
             $entityManager->flush();
+            
+            $this->addFlash('success', sprintf("Mouvement de stock pour '%s' supprimé avec succès.", $medicamentNom));
+        } else {
+            $this->addFlash('error', 'Jeton CSRF invalide — suppression annulée. Rechargez la page et réessayez.');
         }
 
         return $this->redirectToRoute('app_mouvement_stock_index', [], Response::HTTP_SEE_OTHER);

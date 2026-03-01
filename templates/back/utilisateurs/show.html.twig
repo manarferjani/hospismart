@@ -2,52 +2,240 @@
 
 {% block title %}{{ user.prenom }} {{ user.nom }} - Hospismart{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .show-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        background: white;
+        padding: 20px 25px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .show-header h1 {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        color: #1e293b;
+    }
+    .header-actions { display: flex; gap: 10px; }
+    .btn-edit-user {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+    .btn-edit-user:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,0.3); color: white; }
+    .btn-back {
+        background: #64748b;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+    .btn-back:hover { background: #475569; color: white; }
+
+    .profile-banner {
+        background: linear-gradient(135deg, #1e293b, #334155);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        color: white;
+    }
+    .profile-banner img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.2);
+    }
+    .profile-banner h2 { margin: 0 0 5px 0; font-size: 20px; font-weight: 700; }
+    .profile-banner .email { opacity: 0.7; font-size: 14px; }
+    .profile-banner .role-badge {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .role-admin { background: #fee2e2; color: #dc2626; }
+    .role-medecin { background: #dbeafe; color: #2563eb; }
+    .role-patient { background: #dcfce7; color: #16a34a; }
+
+    .info-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 25px 30px;
+        margin-bottom: 25px;
+    }
+    .info-card h3 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .info-card h3 i { color: #0d6efd; font-size: 18px; }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    .info-item {
+        padding: 12px 15px;
+        background: #f8fafc;
+        border-radius: 10px;
+        border-left: 3px solid #e2e8f0;
+    }
+    .info-item label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .info-item span {
+        font-size: 15px;
+        color: #334155;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .info-grid { grid-template-columns: 1fr; }
+        .show-header { flex-direction: column; gap: 15px; }
+        .profile-banner { flex-direction: column; text-align: center; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="back-page-header">
-    <h1 class="back-page-title">👤 Fiche utilisateur</h1>
-    <div class="back-page-actions">
-        <a href="{{ path('app_dashboard_utilisateurs_edit', { id: user.id }) }}" class="btn btn-edit" style="background:#3498db;color:#fff;">✎ Modifier</a>
-        <a href="{{ path('app_dashboard_utilisateurs_list') }}" class="btn" style="background:#95a5a6;color:#fff;">← Liste</a>
+<div class="show-header">
+    <h1><i class="fa-solid fa-user me-2 text-primary"></i>Fiche utilisateur</h1>
+    <div class="header-actions">
+        <a href="{{ path('app_dashboard_utilisateurs_edit', { id: user.id }) }}" class="btn-edit-user">
+            <i class="fa-solid fa-pen-to-square me-1"></i> Modifier
+        </a>
+        <a href="{{ path('app_dashboard_utilisateurs_list') }}" class="btn-back">
+            <i class="fa-solid fa-arrow-left me-1"></i> Liste
+        </a>
     </div>
 </div>
 
-<div class="back-form-card">
-    <h3>Compte</h3>
-    <table class="back-detail-table">
-        <tr><td><strong>Id</strong></td><td>{{ user.id }}</td></tr>
-        <tr><td><strong>Nom d'utilisateur</strong></td><td>{{ user.nom }}</td></tr>
-        <tr><td><strong>Prénom</strong></td><td>{{ user.prenom }}</td></tr>
-        <tr><td><strong>Email</strong></td><td>{{ user.email }}</td></tr>
-        <tr><td><strong>Téléphone</strong></td><td>{{ user.telephone ?? '—' }}</td></tr>
-        <tr><td><strong>Rôle(s)</strong></td><td>
-            {% if 'ROLE_ADMIN' in user.roles %}<span class="badge badge-red">Admin</span>{% endif %}
-            {% if 'ROLE_MEDECIN' in user.roles %}<span class="badge badge-blue">Médecin</span>{% endif %}
-            {% if 'ROLE_PATIENT' in user.roles %}<span class="badge badge-green">Patient</span>{% endif %}
-        </td></tr>
-    </table>
+{# Bannière Profil #}
+<div class="profile-banner">
+    <img src="https://ui-avatars.com/api/?name={{ user.prenom }}+{{ user.nom }}&size=160&background=0d6efd&color=fff" alt="avatar">
+    <div>
+        <h2>{{ user.prenom }} {{ user.nom }}</h2>
+        <div class="email"><i class="fa-solid fa-envelope me-1"></i> {{ user.email }}</div>
+        {% if 'ROLE_ADMIN' in user.roles %}
+            <span class="role-badge role-admin"><i class="fa-solid fa-shield-halved me-1"></i>Administrateur</span>
+        {% endif %}
+        {% if 'ROLE_MEDECIN' in user.roles %}
+            <span class="role-badge role-medecin"><i class="fa-solid fa-user-doctor me-1"></i>Médecin</span>
+        {% endif %}
+        {% if 'ROLE_PATIENT' in user.roles or 'ROLE_USER' in user.roles %}
+            <span class="role-badge role-patient"><i class="fa-solid fa-hospital-user me-1"></i>Patient</span>
+        {% endif %}
+    </div>
 </div>
 
+{# Informations du Compte #}
+<div class="info-card">
+    <h3><i class="fa-solid fa-circle-user"></i> Informations du compte</h3>
+    <div class="info-grid">
+        <div class="info-item">
+            <label>ID</label>
+            <span>#{{ user.id }}</span>
+        </div>
+        <div class="info-item">
+            <label>Nom</label>
+            <span>{{ user.nom }}</span>
+        </div>
+        <div class="info-item">
+            <label>Prénom</label>
+            <span>{{ user.prenom }}</span>
+        </div>
+        <div class="info-item">
+            <label>Email</label>
+            <span>{{ user.email }}</span>
+        </div>
+        <div class="info-item">
+            <label>Téléphone</label>
+            <span>{{ user.telephone ?? '—' }}</span>
+        </div>
+    </div>
+</div>
+
+{# Profil Patient #}
 {% if patient %}
-<div class="back-form-card">
-    <h3>Profil patient</h3>
-    <table class="back-detail-table">
-        <tr><td><strong>Genre</strong></td><td>{{ patient.genre }}</td></tr>
-        <tr><td><strong>Date de naissance</strong></td><td>{{ patient.dateNaissance ? patient.dateNaissance|date('d/m/Y') : '—' }}</td></tr>
-        <tr><td><strong>Groupe sanguin</strong></td><td>{{ patient.groupeSanguin ?? '—' }}</td></tr>
-        <tr><td><strong>Adresse</strong></td><td>{{ patient.adresse ?? '—' }}</td></tr>
-    </table>
+<div class="info-card">
+    <h3><i class="fa-solid fa-hospital-user"></i> Profil patient</h3>
+    <div class="info-grid">
+        <div class="info-item">
+            <label>Genre</label>
+            <span>{{ patient.genre ?? '—' }}</span>
+        </div>
+        <div class="info-item">
+            <label>Date de naissance</label>
+            <span>{{ patient.dateNaissance ? patient.dateNaissance|date('d/m/Y') : '—' }}</span>
+        </div>
+        <div class="info-item">
+            <label>Groupe sanguin</label>
+            <span>{{ patient.groupeSanguin ?? '—' }}</span>
+        </div>
+        <div class="info-item">
+            <label>Adresse</label>
+            <span>{{ patient.adresse ?? '—' }}</span>
+        </div>
+    </div>
 </div>
 {% endif %}
 
-{% if medecin %}
-<div class="back-form-card">
-    <h3>Profil médecin</h3>
-    <table class="back-detail-table">
-        <tr><td><strong>Spécialité</strong></td><td>{{ user.specialite }}</td></tr>
-        <tr><td><strong>Matricule</strong></td><td>{{ user.matricule }}</td></tr>
-        <tr><td><strong>Téléphone</strong></td><td>{{ user.telephone }}</td></tr>
-        <tr><td><strong>Service</strong></td><td>{{ user.service ? user.service.nom : '—' }}</td></tr>
-    </table>
+{# Profil Médecin #}
+{% if 'ROLE_MEDECIN' in user.roles %}
+<div class="info-card">
+    <h3><i class="fa-solid fa-user-doctor"></i> Profil médecin</h3>
+    <div class="info-grid">
+        <div class="info-item">
+            <label>Spécialité</label>
+            <span>{{ user.specialite ?? '—' }}</span>
+        </div>
+        <div class="info-item">
+            <label>Matricule</label>
+            <span>{{ user.matricule ?? '—' }}</span>
+        </div>
+        <div class="info-item">
+            <label>Téléphone</label>
+            <span>{{ user.telephone ?? '—' }}</span>
+        </div>
+        <div class="info-item">
+            <label>Service</label>
+            <span>{{ user.serviceEntity ? user.serviceEntity.nom : '—' }}</span>
+        </div>
+    </div>
 </div>
 {% endif %}
 {% endblock %}

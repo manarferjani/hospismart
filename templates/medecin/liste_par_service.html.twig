@@ -77,54 +77,54 @@
 </div>
 
 <div class="doctors-grid-section">
-<div class="doctors-grid">
-    {% for medecin in medecins %}
-        <div class="medecin-card">
-            
-            <div class="avatar-container">
-                {# On utilise medecin.image et non user.image #}
-                {% if medecin.image %}
-                    <img src="{{ asset('images/medecins/' ~ medecin.image) }}" 
-                         class="avatar-img" 
-                         alt="Dr. {{ medecin.nom }}"
-                         onerror="this.src='https://ui-avatars.com/api/?name={{ medecin.nom|url_encode }}+{{ medecin.prenom|url_encode }}&background=EBF2FF&color=4178F5&size=150&bold=true'">
-                {% else %}
-                    <img src="https://ui-avatars.com/api/?name={{ medecin.nom|url_encode }}+{{ medecin.prenom|url_encode }}&background=EBF2FF&color=4178F5&size=150&bold=true"
-                         class="avatar-img" alt="Dr. {{ medecin.nom }}">
-                {% endif %}
-            </div>
-            
-            <h4 style="color: #1a1a2e; font-size: 22px; font-weight: 700; margin-bottom: 5px;">
-                Dr. {{ medecin.nom|upper }} {{ medecin.prenom }}
-            </h4>
-            
-            <p style="color: #4178F5; font-weight: 600; margin-bottom: 15px;">{{ medecin.specialite }}</p>
-            
-            <div style="color: #f59e0b; font-size: 14px; margin-bottom: 20px;">
-                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-            </div>
-            
-            <div style="text-align: left; background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 25px;">
-                <p style="font-size: 13px; margin: 0; color: #64748b;">
-                    <i class="fas fa-envelope" style="color:#4178F5; margin-right: 10px;"></i> {{ medecin.email }}
-                </p>
-            </div>
+    <div class="doctors-grid">
+        {% for medecin in medecins %}
+            <div class="medecin-card">
+                
+                <div class="avatar-container">
+                    {# On utilise medecin.image et non user.image #}
+                    {% if medecin.image %}
+                        <img src="{{ asset('images/medecins/' ~ medecin.image) }}" 
+                             class="avatar-img" 
+                             alt="Dr. {{ medecin.nom }}"
+                             onerror="this.src='https://ui-avatars.com/api/?name={{ medecin.nom|url_encode }}+{{ medecin.prenom|url_encode }}&background=EBF2FF&color=4178F5&size=150&bold=true'">
+                    {% else %}
+                        <img src="https://ui-avatars.com/api/?name={{ medecin.nom|url_encode }}+{{ medecin.prenom|url_encode }}&background=EBF2FF&color=4178F5&size=150&bold=true"
+                             class="avatar-img" alt="Dr. {{ medecin.nom }}">
+                    {% endif %}
+                </div>
+                
+                <h4 style="color: #1a1a2e; font-size: 22px; font-weight: 700; margin-bottom: 5px;">
+                    Dr. {{ medecin.nom|upper }} {{ medecin.prenom }}
+                </h4>
+                
+                <p style="color: #4178F5; font-weight: 600; margin-bottom: 15px;">{{ medecin.specialite }}</p>
+                
+                <div style="color: #f59e0b; font-size: 14px; margin-bottom: 20px;">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                </div>
+                
+                <div style="text-align: left; background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 25px;">
+                    <p style="font-size: 13px; margin: 0; color: #64748b;">
+                        <i class="fas fa-envelope" style="color:#4178F5; margin-right: 10px;"></i> {{ medecin.email }}
+                    </p>
+                </div>
 
-            <a href="{{ path('app_rendezvous_dispo', {'id': medecin.id}) }}" class="btn-rdv">
-                Prendre rendez-vous
-            </a>
-            
-            <a href="{{ path('app_medecin_show', {'id': medecin.id}) }}" style="color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none;">
-                Consulter le profil complet
-            </a>
-        </div>
-    {% else %}
-        {# Ce bloc s'affiche si la variable medecins est vraiment vide #}
-        <div style="grid-column: 1/-1; text-align: center; padding: 100px 20px; background: white; border-radius: 40px;">
-            <h3 style="color: #1a1a2e;">Aucun spécialiste trouvé</h3>
-            <p style="color: #64748b;">Il n'y a pas encore de médecins dans le service {{ service.nom }}.</p>
-        </div>
-    {% endfor %}
-</div>
+                <a href="{{ path('app_rendezvous_dispo', {'id': medecin.id}) }}" class="btn-rdv">
+                    Prendre rendez-vous
+                </a>
+                
+                <a href="{{ path('app_medecin_show', {'id': medecin.id}) }}" style="color: #64748b; font-size: 13px; font-weight: 500; text-decoration: none;">
+                    Consulter le profil complet
+                </a>
+            </div>
+        {% else %}
+            {# Ce bloc s'affiche si la variable medecins est vraiment vide #}
+            <div style="grid-column: 1/-1; text-align: center; padding: 100px 20px; background: white; border-radius: 40px;">
+                <h3 style="color: #1a1a2e;">Aucun spécialiste trouvé</h3>
+                <p style="color: #64748b;">Il n'y a pas encore de médecins dans le service {{ service.nom }}.</p>
+            </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

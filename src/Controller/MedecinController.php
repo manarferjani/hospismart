@@ -9,7 +9,7 @@ use App\Entity\Disponibilite;
 use App\Entity\RendezVous;
 use App\Entity\Service;
 use App\Enum\RendezVousStatut;
-use App\Form\MedecinType;
+
 use App\Repository\RendezVousRepository;
 use App\Repository\ServiceRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,12 +31,12 @@ final class MedecinController extends AbstractController
      * MÉTHODE PRIVÉE : Centralise la récupération du médecin
      */
     private function getConnectedMedecin(): ?User
-        {
-            /** @var User $user */
-            $user = $this->getUser();
-            // On vérifie que l'utilisateur est bien un médecin
-            return ($user && $user->getType() === 'MEDECIN') ? $user : null;
-        }
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        // On vérifie que l'utilisateur est bien un médecin
+        return ($user && $user->getType() === 'MEDECIN') ? $user : null;
+    }
 
     /**
      * DASHBOARD
@@ -98,27 +98,29 @@ final class MedecinController extends AbstractController
      */
     #[Route('/demandes-rendezvous', name: 'app_medecin_demandes_rdv', methods: ['GET'])]
     public function demandesRendezVous(RendezVousRepository $rdvRepo): Response
-        {
-            $medecin = $this->getConnectedMedecin();
-            if (!$medecin) return $this->redirectToRoute('app_login');
+    {
+        $medecin = $this->getConnectedMedecin();
+        if (!$medecin) return $this->redirectToRoute('app_login');
 
-            $demandes = $rdvRepo->findBy(['medecin' => $medecin], ['datetime' => 'DESC']);
+        $demandes = $rdvRepo->findBy(['medecin' => $medecin], ['datetime' => 'DESC']);
 
-            return $this->render('medecin/mesRendezvous.html.twig', [
-                'demandes' => $demandes,
-                'medecin' => $medecin,
-                'totalRDV' => count($demandes)
-            ]);
-        }
+        return $this->render('medecin/mesRendezvous.html.twig', [
+            'demandes' => $demandes,
+            'medecin' => $medecin,
+            'totalRDV' => count($demandes)
+        ]);
+    }
 
     /**
-     * MES PATIENTS (Correction Route et Données)
+     * MES PATIENTS
      */
     #[Route('/mes-patients', name: 'app_medecin_patients', methods: ['GET'])]
     public function listPatients(UserRepository $userRepo): Response
     {
         $medecin = $this->getConnectedMedecin();
-        $patients = $userRepo->findBy(['type' => 'PATIENT']); 
+        if (!$medecin) return $this->redirectToRoute('app_login');
+        
+        $patients = $userRepo->findBy(['type' => 'PATIENT']);
 
         return $this->render('medecin/patients.html.twig', [
             'medecin' => $medecin,
@@ -127,12 +129,13 @@ final class MedecinController extends AbstractController
     }
 
     /**
-     * MON PROFIL (Correction Affichage Nom)
+     * MON PROFIL
      */
     #[Route('/mon-profil', name: 'app_medecin_profil', methods: ['GET'])]
-    public function profil(UserRepository $medecinRepo): Response
+    public function profil(): Response
     {
-        $medecin = $this->getConnectedMedecin($medecinRepo);
+        $medecin = $this->getConnectedMedecin();
+        if (!$medecin) return $this->redirectToRoute('app_login');
 
         return $this->render('medecin/profil.html.twig', [
             'medecin' => $medecin
@@ -144,64 +147,62 @@ final class MedecinController extends AbstractController
      */
     #[Route('/mes-dispos/gestion', name: 'app_medecin_dispo_index')]
     public function mesDispos(EntityManagerInterface $em, Request $request, RendezVousRepository $rdvRepo): Response
-        {
-            $medecin = $this->getConnectedMedecin();
-            if (!$medecin) return $this->redirectToRoute('app_login');
+    {
+        $medecin = $this->getConnectedMedecin();
+        if (!$medecin) return $this->redirectToRoute('app_login');
 
-            $dispo = new Disponibilite();
-            $dispo->setMedecin($medecin);
-            $dispo->setEstReserve(false);
+        $dispo = new Disponibilite();
+        $dispo->setMedecin($medecin);
+        $dispo->setEstReserve(false);
 
-            $form = $this->createForm(\App\Form\DisponibiliteType::class, $dispo);
-            $form->handleRequest($request);
+        $form = $this->createForm(\App\Form\DisponibiliteType::class, $dispo);
+        $form->handleRequest($request);
 
-            if ($form->isSubmitted() && $form->isValid()) {
-                if ($dispo->getDateDebut() < new \DateTime()) {
-                    $this->addFlash('danger', 'Date passée impossible.');
-                } else {
-                    $em->persist($dispo);
-                    $em->flush();
-                    $this->addFlash('success', 'Créneau ajouté.');
-                }
-                return $this->redirectToRoute('app_medecin_dispo_index');
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($dispo->getDateDebut() < new \DateTime()) {
+                $this->addFlash('danger', 'Date passée impossible.');
+            } else {
+                $em->persist($dispo);
+                $em->flush();
+                $this->addFlash('success', 'Créneau ajouté.');
             }
-
-            $dispos = $em->getRepository(Disponibilite::class)->findBy(['medecin' => $medecin], ['date_debut' => 'ASC']);
-
-            return $this->render('medecin/dispo.html.twig', [
-                'form' => $form->createView(),
-                'dispos' => $dispos,
-                'medecin' => $medecin,
-                'nbDemandesEnAttente' => count($rdvRepo->findBy(['medecin' => $medecin, 'statut' => 'EN_ATTENTE'])),
-            ]);
+            return $this->redirectToRoute('app_medecin_dispo_index');
         }
 
+        $dispos = $em->getRepository(Disponibilite::class)->findBy(['medecin' => $medecin], ['date_debut' => 'ASC']);
 
+        return $this->render('medecin/dispo.html.twig', [
+            'form' => $form->createView(),
+            'dispos' => $dispos,
+            'medecin' => $medecin,
+            'nbDemandesEnAttente' => count($rdvRepo->findBy(['medecin' => $medecin, 'statut' => 'EN_ATTENTE'])),
+        ]);
+    }
 
     #[Route('/profil/{id}', name: 'app_medecin_show', methods: ['GET'])]
     public function show(User $medecin): Response
-        {
-            if ($medecin->getType() !== 'MEDECIN') throw $this->createNotFoundException();
-            return $this->render('medecin/show.html.twig', ['medecin' => $medecin]);
-        }
+    {
+        if ($medecin->getType() !== 'MEDECIN') throw $this->createNotFoundException();
+        return $this->render('medecin/show.html.twig', ['medecin' => $medecin]);
+    }
+
     /**
      * FILTRE PAR SERVICE
      */
     #[Route('/recherche-patient/service/{id}', name: 'app_medecins_par_service', methods: ['GET'])]
-    public function parService(Service $service, UserRepository $UserRepository): Response
+    public function parService(Service $service, UserRepository $userRepository): Response
     {
-        // On utilise 'service_entity' car c'est le nom de la propriété dans ton entité User
-        $medecins = $UserRepository->findBy([
-            'service_entity' => $service,
-            'type' => 'MEDECIN' // On s'assure de ne prendre que les médecins
-        ]);
+        // On récupère les médecins liés à ce service
+        // Mapping: user.service_entity
+        $medecins = $userRepository->findBy(['service_entity' => $service, 'type' => 'MEDECIN']);
 
         return $this->render('medecin/liste_par_service.html.twig', [
             'medecins' => $medecins,
-            'service' => $service,
+            'service' => $service, 
         ]);
     }
-    #[Route('/patient/{id}', name: 'app_medecin_patient_show')]
+
+    #[Route('/medecin/patient/{id}', name: 'app_medecin_patient_show')]
     public function showPatient(User $patient): Response
     {
         // Décommentez la ligne suivante pour voir ce que contient réellement le type de cet utilisateur
@@ -216,11 +217,11 @@ final class MedecinController extends AbstractController
         ]);
     }
 
-/**
- * ACTIONS RDV (ACCEPTR)
- */
-#[Route('/rendezvous/{id}/accepter', name: 'app_medecin_rdv_accepter', methods: ['POST'])]
-public function accepterRendezVous(RendezVous $rendezVous, Request $request, EntityManagerInterface $em): Response
+    /**
+     * ACTIONS RDV (ACCEPTER)
+     */
+    #[Route('/rendezvous/{id}/accepter', name: 'app_medecin_rdv_accepter', methods: ['POST'])]
+    public function accepterRendezVous(RendezVous $rendezVous, Request $request, EntityManagerInterface $em): Response
     {
         if ($this->isCsrfTokenValid('accepter' . $rendezVous->getId(), $request->request->get('_token'))) {
             $rendezVous->setStatut(RendezVousStatut::CONFIRME->value);
@@ -238,185 +239,142 @@ public function accepterRendezVous(RendezVous $rendezVous, Request $request, Ent
             return $this->redirect($request->headers->get('referer', $this->generateUrl('app_medecin_dashboard')));
     }
 
-/**
- * ACTIONS RDV (REFUSER)
- */
-#[Route('/rendezvous/{id}/refuser', name: 'app_medecin_rdv_refuser', methods: ['POST'])]
-public function refuserRendezVous(RendezVous $rendezVous, Request $request, EntityManagerInterface $em): Response
-{
-    if ($this->isCsrfTokenValid('refuser' . $rendezVous->getId(), $request->request->get('_token'))) {
-        $rendezVous->setStatut(RendezVousStatut::REFUSE->value);
-        if ($dispo = $rendezVous->getDisponibilite()) { 
-            $dispo->setEstReserve(false); 
-        }
-
-        $notification = new Notification();
-        $notification->setPatient($rendezVous->getPatient());
-        $notification->setContent("❌ Votre demande de RDV du " . $rendezVous->getDatetime()->format('d/m') . " a été refusée.");
-        $notification->setCreatedAt(new \DateTimeImmutable());
-        $notification->setIsRead(false);
-        
-        $em->persist($notification);
-        $em->flush();
-        $this->addFlash('info', 'Rendez-vous refusé.');
-    }
-    return $this->redirect($request->headers->get('referer') ?: $this->generateUrl('app_medecin_demandes_rdv'));
-}
-
-/**
- * ACTIONS RDV (ANNULER)
- */
-#[Route('/medecin/rdv/{id}/annuler', name: 'app_medecin_rdv_annuler', methods: ['POST'])]
-public function annulerRdv(Request $request, RendezVous $rdv, EntityManagerInterface $em): Response
-{
-    if ($this->isCsrfTokenValid('annuler' . $rdv->getId(), $request->request->get('_token'))) {
-        $rdv->setStatut('ANNULE'); 
-
-        $notification = new Notification();
-        $notification->setPatient($rdv->getPatient());
-        $notification->setContent("⚠️ Le Dr. " . $rdv->getMedecin()->getNom() . " a annulé le RDV du " . $rdv->getDatetime()->format('d/m') . ".");
-        $notification->setCreatedAt(new \DateTimeImmutable());
-        $notification->setIsRead(false);
-        
-        $em->persist($notification);
-        $em->flush();
-        $this->addFlash('info', 'Le rendez-vous a été annulé.');
-    }
-    return $this->redirectToRoute('app_medecin_demandes_rdv');
-}
-
-#[Route('/medecin/disponibilite/{id}/delete', name: 'app_medecin_dispo_delete', methods: ['POST'])]
-public function deleteDisponibilite(
-    int $id, 
-    Request $request, 
-    EntityManagerInterface $em
-): Response {
-  
-    $dispo = $em->getRepository(Disponibilite::class)->find($id);
-
-    if (!$dispo) {
-        $this->addFlash('danger', 'Ce créneau n\'existe plus ou a déjà été supprimé.');
-        return $this->redirectToRoute('app_medecin_dispo_index');
-    }
-
-    // Vérification de sécurité avec le jeton CSRF
-    if ($this->isCsrfTokenValid('delete' . $dispo->getId(), $request->request->get('_token'))) {
-        
-        if ($dispo->isEstReserve()) {
-            $this->addFlash('danger', 'Impossible de supprimer un créneau déjà réservé.');
-        } else {
-            $em->remove($dispo);
-            $em->flush();
-            $this->addFlash('success', 'Le créneau a été supprimé avec succès.');
-        }
-    }
-
-    return $this->redirectToRoute('app_medecin_dispo_index');
-}
-#[Route('/consultation/{id}/envoyer', name: 'app_medecin_envoyer_ordonnance')]
-public function envoyerOrdonnance(Consultation $consultation, MailerInterface $mailer): Response
-{
-    // 1. Préparation du PDF
-    $pdfOptions = new Options();
-    $dompdf = new Dompdf($pdfOptions);
-    
-    $html = $this->renderView('medecin/consultation/ordonnance_pdf.html.twig', [
-        'consultation' => $consultation,
-    ]);
-    
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
-
-    // 2. Création de l'Email
-    $email = (new Email())
-        ->from('manarferjanii@gmail.com')
-        ->to($consultation->getPatient()->getEmail())
-        ->addBcc('manarferjanii@gmail.com')
-        ->subject('Votre Ordonnance - Hospismart')
-        ->html('<p>Bonjour, vous trouverez ci-joint votre ordonnance.</p>')
-        ->attach($dompdf->output(), "ordonnance.pdf", 'application/pdf');
-
-    // 3. Envoi avec capture d'erreur
-    try {
-        $mailer->send($email);
-        $this->addFlash('success', 'Email envoyé au patient avec succès !');
-    } catch (TransportExceptionInterface $e) {
-        // Cela affichera l'erreur technique précise (ex: problème de mot de passe Gmail)
-        $this->addFlash('error', 'Erreur lors de l\'envoi : ' . $e->getMessage());
-    }
-
-    return $this->redirectToRoute('app_medecin_dashboard');
-}
-
-#[Route('/medecin/disponibilite/{id}/edit', name: 'app_medecin_dispo_edit', methods: ['POST'])]
-public function editDispo(int $id, Request $request, EntityManagerInterface $em): Response
-{
-    $dispo = $em->getRepository(Disponibilite::class)->find($id);
-
-    if (!$dispo || $dispo->isEstReserve()) {
-        $this->addFlash('danger', 'Modification impossible.');
-        return $this->redirectToRoute('app_medecin_dispo_index');
-    }
-
-    // Récupération des données du formulaire envoyé en POST
-    $dateDebut = new \DateTime($request->request->get('date_debut'));
-    $dateFin = new \DateTime($request->request->get('date_fin'));
-
-    $dispo->setDateDebut($dateDebut);
-    $dispo->setDateFin($dateFin);
-    
-    $em->flush();
-    $this->addFlash('success', 'Créneau mis à jour avec succès !');
-
-    return $this->redirectToRoute('app_medecin_dispo_index');
-}
-
     /**
-     * CRUD MÉDECINS (INDEX, NEW, SHOW, EDIT, DELETE)
+     * ACTIONS RDV (REFUSER)
      */
+    #[Route('/rendezvous/{id}/refuser', name: 'app_medecin_rdv_refuser', methods: ['POST'])]
+    public function refuserRendezVous(RendezVous $rendezVous, Request $request, EntityManagerInterface $em): Response
+    {
+        if ($this->isCsrfTokenValid('refuser' . $rendezVous->getId(), $request->request->get('_token'))) {
+            $rendezVous->setStatut(RendezVousStatut::REFUSE->value);
+            if ($dispo = $rendezVous->getDisponibilite()) { 
+                $dispo->setEstReserve(false); 
+            }
+
+            $notification = new Notification();
+            $notification->setUser($rendezVous->getPatient());
+            $notification->setContent("❌ Votre demande de RDV du " . $rendezVous->getDatetime()->format('d/m') . " a été refusée.");
+            $notification->setCreatedAt(new \DateTimeImmutable());
+            $notification->setIsRead(false);
+            
+            $em->persist($notification);
+            $em->flush();
+            $this->addFlash('info', 'Rendez-vous refusé.');
+        }
+        return $this->redirect($request->headers->get('referer') ?: $this->generateUrl('app_medecin_demandes_rdv'));
+    }
+
+    #[Route('/consultation/{id}/envoyer', name: 'app_medecin_envoyer_ordonnance')]
+    public function envoyerOrdonnance(Consultation $consultation, MailerInterface $mailer): Response
+    {
+        // 1. Préparation du PDF
+        $pdfOptions = new Options();
+        $dompdf = new Dompdf($pdfOptions);
+        
+        $html = $this->renderView('medecin/consultation/ordonnance_pdf.html.twig', [
+            'consultation' => $consultation,
+        ]);
+        
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        // 2. Création de l'Email
+        $email = (new Email())
+            ->from('manarferjanii@gmail.com')
+            ->to($consultation->getPatient()->getEmail())
+            ->addBcc('manarferjanii@gmail.com')
+            ->subject('Votre Ordonnance - Hospismart')
+            ->html('<p>Bonjour, vous trouverez ci-joint votre ordonnance.</p>')
+            ->attach($dompdf->output(), "ordonnance.pdf", 'application/pdf');
+
+        // 3. Envoi avec capture d'erreur
+        try {
+            $mailer->send($email);
+            $this->addFlash('success', 'Email envoyé au patient avec succès !');
+        } catch (TransportExceptionInterface $e) {
+            // Cela affichera l'erreur technique précise (ex: problème de mot de passe Gmail)
+            $this->addFlash('error', 'Erreur lors de l\'envoi : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_medecin_dashboard');
+    }
     #[Route('/', name: 'app_medecin_index', methods: ['GET'])]
     public function index(UserRepository $UserRepository): Response
     {
         return $this->render('medecin/index.html.twig', ['medecins' => $UserRepository->findAll()]);
     }
 
-    #[Route('/new', name: 'app_medecin_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    /**
+     * ACTIONS RDV (ANNULER)
+     */
+    #[Route('/medecin/rdv/{id}/annuler', name: 'app_medecin_rdv_annuler', methods: ['POST'])]
+    public function annulerRdv(Request $request, RendezVous $rdv, EntityManagerInterface $em): Response
     {
-        $medecin = new Medecin();
-        $form = $this->createForm(MedecinType::class, $medecin);
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($medecin);
-            $entityManager->flush();
-            return $this->redirectToRoute('app_medecin_index', [], Response::HTTP_SEE_OTHER);
+        if ($this->isCsrfTokenValid('annuler' . $rdv->getId(), $request->request->get('_token'))) {
+            $rdv->setStatut('ANNULE'); 
+
+            $notification = new Notification();
+            $notification->setUser($rdv->getPatient());
+            $notification->setContent("⚠️ Le Dr. " . $rdv->getMedecin()->getNom() . " a annulé le RDV du " . $rdv->getDatetime()->format('d/m') . ".");
+            $notification->setCreatedAt(new \DateTimeImmutable());
+            $notification->setIsRead(false);
+            
+            $em->persist($notification);
+            $em->flush();
+            $this->addFlash('info', 'Le rendez-vous a été annulé.');
         }
-        return $this->render('medecin/new.html.twig', ['medecin' => $medecin, 'form' => $form]);
+        return $this->redirectToRoute('app_medecin_demandes_rdv');
     }
 
+    #[Route('/medecin/disponibilite/{id}/delete', name: 'app_medecin_dispo_delete', methods: ['POST'])]
+    public function deleteDisponibilite(
+        int $id, 
+        Request $request, 
+        EntityManagerInterface $em
+    ): Response {
+      
+        $dispo = $em->getRepository(Disponibilite::class)->find($id);
 
-
-    #[Route('/{id}/edit', name: 'app_medecin_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Medecin $medecin, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(MedecinType::class, $medecin);
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-            return $this->redirectToRoute('app_medecin_index', [], Response::HTTP_SEE_OTHER);
+        if (!$dispo) {
+            $this->addFlash('danger', 'Ce créneau n\'existe plus ou a déjà été supprimé.');
+            return $this->redirectToRoute('app_medecin_dispo_index');
         }
-        return $this->render('medecin/edit.html.twig', ['medecin' => $medecin, 'form' => $form]);
+
+        if ($this->isCsrfTokenValid('delete' . $dispo->getId(), $request->request->get('_token'))) {
+            
+            if ($dispo->isEstReserve()) {
+                $this->addFlash('danger', 'Impossible de supprimer un créneau déjà réservé.');
+            } else {
+                $em->remove($dispo);
+                $em->flush();
+                $this->addFlash('success', 'Le créneau a été supprimé avec succès.');
+            }
+        }
+
+        return $this->redirectToRoute('app_medecin_dispo_index');
     }
 
-    #[Route('/{id}/delete', name: 'app_medecin_delete', methods: ['POST'])]
-    public function delete(Request $request, Medecin $medecin, EntityManagerInterface $entityManager): Response
+    #[Route('/medecin/disponibilite/{id}/edit', name: 'app_medecin_dispo_edit', methods: ['POST'])]
+    public function editDispo(int $id, Request $request, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$medecin->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($medecin);
-            $entityManager->flush();
+        $dispo = $em->getRepository(Disponibilite::class)->find($id);
+
+        if (!$dispo || $dispo->isEstReserve()) {
+            $this->addFlash('danger', 'Modification impossible.');
+            return $this->redirectToRoute('app_medecin_dispo_index');
         }
-        return $this->redirectToRoute('app_medecin_index', [], Response::HTTP_SEE_OTHER);
+
+        $dateDebut = new \DateTime($request->request->get('date_debut'));
+        $dateFin = new \DateTime($request->request->get('date_fin'));
+
+        $dispo->setDateDebut($dateDebut);
+        $dispo->setDateFin($dateFin);
+        
+        $em->flush();
+        $this->addFlash('success', 'Créneau mis à jour avec succès !');
+
+        return $this->redirectToRoute('app_medecin_dispo_index');
     }
 
 
