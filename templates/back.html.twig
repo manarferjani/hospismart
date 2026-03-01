@@ -93,28 +93,49 @@
 {% block layout %}
 <div class="admin-wrapper">
     <aside class="sidebar">
-        <div class="sidebar-brand">
-            <i class="fa-solid fa-heart-pulse"></i> Hospismart 
-            <small class="ms-2 text-muted" style="font-size: 10px;">OASIS</small>
+        <div class="sidebar-brand mb-5">
+            <i class="fa-solid fa-heart-pulse fa-lg text-primary"></i> 
+            <span class="ms-2">HospiSmart</span>
+            <span class="badge bg-primary-subtle text-primary ms-auto" style="font-size: 10px; border: 1px solid rgba(99, 102, 241, 0.2);">PREMIUM</span>
         </div>
 
         <nav class="sidebar-nav">
             <ul class="sidebar-menu">
                 {# Menu Général / Dashboard #}
-                <li><a href="{{ path('app_dashboard') }}" class="{{ app.request.get('_route') == 'app_dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+                <li class="menu-header">Overview</li>
+                <li>
+                    <a href="{{ path('app_dashboard') }}" class="{{ app.request.get('_route') == 'app_dashboard' ? 'active' : '' }}">
+                        <i class="fa-solid fa-grid-2 me-2"></i> Dashboard
+                    </a>
+                </li>
 
                 {# Section Logistique #}
-                <div class="menu-header">Gestion</div>
-                <li><a href="{{ path('app_medicament_index') }}" class="{{ app.request.get('_route') starts with 'app_medicament' ? 'active' : '' }}"><i class="fa-solid fa-pills"></i> Médicaments</a></li>
-                <li><a href="{{ path('app_categorie_index') }}" class="{{ app.request.get('_route') starts with 'app_categorie' ? 'active' : '' }}"><i class="fa-solid fa-tags"></i> Catégories</a></li>
-                <li><a href="{{ path('app_mouvement_stock_index') }}" class="{{ app.request.get('_route') starts with 'app_mouvement' ? 'active' : '' }}"><i class="fa-solid fa-arrows-rotate"></i> Mouvements Stock</a></li>
+                <li class="menu-header">inventory</li>
+                <li>
+                    <a href="{{ path('app_medicament_index') }}" class="{{ app.request.get('_route') starts with 'app_medicament' ? 'active' : '' }}">
+                        <i class="fa-solid fa-pills me-2"></i> Médicaments
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_categorie_index') }}" class="{{ app.request.get('_route') starts with 'app_categorie' ? 'active' : '' }}">
+                        <i class="fa-solid fa-tags me-2"></i> Catégories
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_mouvement_stock_index') }}" class="{{ app.request.get('_route') starts with 'app_mouvement' ? 'active' : '' }}">
+                        <i class="fa-solid fa-clock-rotate-left me-2"></i> Historique
+                    </a>
+                </li>
             </ul>
         </nav>
 
-        <div class="logout-box">
+        <div class="logout-box mt-auto">
             <ul class="sidebar-menu">
-                <li><a href="{{ path('app_stock_public') }}" class="text-info"><i class="fa-solid fa-globe"></i> Voir le site</a></li>
-                {# <li><a href="{{ path('app_logout') }}" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li> #}
+                <li>
+                    <a href="{{ path('app_stock_public') }}" class="text-light opacity-75">
+                        <i class="fa-solid fa-arrow-up-right-from-square me-2"></i> Live Portal
+                    </a>
+                </li>
             </ul>
         </div>
     </aside>

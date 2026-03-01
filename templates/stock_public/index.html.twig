@@ -3,123 +3,143 @@
 {% block title %}Stock Médicaments - Hospismart OASIS{% endblock %}
 
 {% block body %}
-    <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold text-primary mb-3">
-            <i class="fa-solid fa-prescription-bottle-medical me-2"></i> Stocks Pharmaceutiques
+    <div class="text-center mb-5 animate-fade-up">
+        <h1 class="display-4 fw-bold text-dark mb-3" style="letter-spacing: -1px;">
+            <i class="fa-solid fa-prescription-bottle-medical text-primary me-2 opacity-75"></i>Stocks Pharmaceutiques
         </h1>
-        <p class="lead text-muted">Consultez la disponibilité de nos médicaments en temps réel.</p>
+        <p class="lead text-muted mx-auto" style="max-width: 600px;">Consultez la disponibilité de nos médicaments en temps réel avec notre interface intelligente OASIS.</p>
     </div>
 
-    {# Barre de Recherche et Filtres #}
-    <div class="row justify-content-center mb-5">
-        <div class="col-md-8">
-            <div class="card shadow-sm border-0" style="border-radius: 20px;">
-                <div class="card-body p-2">
-                    <div class="row g-2 align-items-center">
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-0 ps-3"><i class="fa-solid fa-search text-muted"></i></span>
-                                <input type="text" id="searchInput" class="form-control border-0 shadow-none" placeholder="Rechercher un médicament...">
-                            </div>
+    {# Barre de Recherche et Filtres Premium #}
+    <div class="row justify-content-center mb-5 animate-fade-up" style="animation-delay: 0.1s;">
+        <div class="col-lg-10">
+            <div class="premium-card p-2 glass-effect shadow-sm">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-6 border-end border-opacity-10 divider-mobile-none">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-0 ps-3"><i class="fa-solid fa-search text-primary opacity-50"></i></span>
+                            <input type="text" id="searchInput" class="form-control border-0 shadow-none bg-transparent fs-5" placeholder="Rechercher un médicament..." style="height: 50px;">
                         </div>
-                        <div class="col-md-4">
-                            <select id="categoryFilter" class="form-select border-0 shadow-none" style="background-color: #f8f9fa; border-radius: 10px;">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-0 ps-3"><i class="fa-solid fa-filter text-muted small"></i></span>
+                            <select id="categoryFilter" class="form-select border-0 shadow-none bg-transparent fw-medium">
                                 <option value="">Toutes les catégories</option>
                                 {% for category in categories %}
                                     <option value="{{ category.id }}">{{ category.nom }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-2 text-end">
-                             <span class="badge bg-light text-dark rounded-pill px-3 py-2 border">
-                                <span id="countMed">{{ medicaments|length }}</span> résultats
-                             </span>
-                        </div>
+                    </div>
+                    <div class="col-md-2 text-center border-start border-opacity-10 divider-mobile-none">
+                        <span class="text-muted small fw-bold text-uppercase d-block" style="letter-spacing: 1px;">Résultats</span>
+                        <span id="countMed" class="text-primary fw-bold fs-5">{{ medicaments|length }}</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {# Grille des Médicaments #}
+    {# Grille des Médicaments Premium #}
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="medGrid">
         {% for medicament in medicaments %}
-            <div class="col med-item" data-name="{{ medicament.nom|lower }}" data-category="{{ medicament.categorie ? medicament.categorie.id : '' }}">
-                <div class="card h-100 border-0 shadow-sm hover-shadow transition-all" style="border-radius: 15px; overflow: hidden;">
-                    <div class="card-body p-4 position-relative">
-                        {# Badge Statut #}
-                        <div class="position-absolute top-0 end-0 m-3">
+            <div class="col med-item animate-fade-up" data-name="{{ medicament.nom|lower }}" data-category="{{ medicament.categorie ? medicament.categorie.id : '' }}" style="animation-delay: {{ 0.1 + (loop.index0 * 0.05) }}s;">
+                <div class="premium-card h-100 p-0 overflow-hidden">
+                    <div class="p-4">
+                        {# Badge Statut Raffiné #}
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+                            <div class="rounded-xl bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px; border: 1px solid rgba(99, 102, 241, 0.1);">
+                                {% if medicament.imageFilename %}
+                                    <img src="{{ asset('uploads/medicaments/' ~ medicament.imageFilename) }}" alt="{{ medicament.nom }}" class="w-100 h-100 object-fit-cover rounded-xl shadow-sm">
+                                {% else %}
+                                    <i class="fa-solid fa-pills text-primary fs-4"></i>
+                                {% endif %}
+                            </div>
+                            
                             {% if medicament.quantite <= medicament.seuilAlerte %}
-                                <span class="badge bg-danger shadow-sm rounded-pill"><i class="fas fa-exclamation-circle me-1"></i>Critique</span>
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-10 rounded-pill px-3 py-2">
+                                    <i class="fa-solid fa-fire-flame-curved me-1"></i>Critique
+                                </span>
                             {% elseif medicament.quantite < medicament.seuilAlerte * 2 %}
-                                <span class="badge bg-warning text-dark shadow-sm rounded-pill"><i class="fas fa-exclamation-triangle me-1"></i>Faible</span>
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-10 rounded-pill px-3 py-2">
+                                    <i class="fa-solid fa-clock me-1"></i>Faible
+                                </span>
                             {% else %}
-                                <span class="badge bg-success shadow-sm rounded-pill"><i class="fas fa-check-circle me-1"></i>Dispo</span>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-10 rounded-pill px-3 py-2">
+                                    <i class="fa-solid fa-check-double me-1"></i>Disponible
+                                </span>
                             {% endif %}
                         </div>
 
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                                <i class="fa-solid fa-pills text-primary fa-lg"></i>
-                            </div>
-                            <div>
-                                <h5 class="card-title fw-bold mb-0 text-dark">{{ medicament.nom }}</h5>
-                                <small class="text-muted">
-                                    {% if medicament.categorie %}
-                                        {{ medicament.categorie.nom }}
-                                    {% else %}
-                                        Non classé
-                                    {% endif %}
-                                </small>
+                        <div class="mb-4">
+                            <h5 class="fw-bold text-dark mb-1 fs-4">{{ medicament.nom }}</h5>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-muted small d-flex align-items-center">
+                                    <i class="fa-solid fa-tag me-1 opacity-50"></i>
+                                    {{ medicament.categorie ? medicament.categorie.nom : 'Non classé' }}
+                                </span>
+                                <span class="text-muted opacity-25">|</span>
+                                <span class="text-muted small">REF-{{ medicament.id|format("%04d") }}</span>
                             </div>
                         </div>
 
-                        <div class="row g-2 mt-4">
-                            <div class="col-6">
-                                <div class="p-2 rounded bg-light text-center">
-                                    <small class="d-block text-muted text-uppercase" style="font-size: 10px; letter-spacing: 1px;">Quantité</small>
-                                    <span class="fw-bold fs-5 {{ medicament.quantite <= medicament.seuilAlerte ? 'text-danger' : 'text-dark' }}">{{ medicament.quantite }}</span>
-                                </div>
+                        <div class="glass-effect rounded-lg p-3 d-flex justify-content-between align-items-center border-0" style="background: rgba(248, 250, 252, 0.8);">
+                            <div>
+                                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 10px; letter-spacing: 0.5px;">Quantité</small>
+                                <span class="fs-4 fw-bold {{ medicament.quantite <= medicament.seuilAlerte ? 'text-danger' : 'text-primary' }}">{{ medicament.quantite }}</span>
+                                <small class="text-muted ms-1">unités</small>
                             </div>
-                            <div class="col-6">
-                                <div class="p-2 rounded bg-light text-center">
-                                    <small class="d-block text-muted text-uppercase" style="font-size: 10px; letter-spacing: 1px;">Prix</small>
-                                    <span class="fw-bold fs-5">{{ medicament.prixUnitaire|number_format(2, ',', ' ') }} €</span>
-                                </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 10px; letter-spacing: 0.5px;">Prix Unitaire</small>
+                                <span class="fs-4 fw-bold text-dark">{{ medicament.prixUnitaire|number_format(2, ',', ' ') }}<small class="fs-6 ms-1">€</small></span>
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer bg-transparent border-0 p-3 pt-0">
-                         <div class="d-flex justify-content-between align-items-center">
-                            <small class="text-muted" style="font-size: 11px;">
-                                <i class="fa-regular fa-calendar me-1"></i> Exp: {{ medicament.datePeremption|date('d/m/Y') }}
-                            </small>
-                            {# <button class="btn btn-sm btn-outline-primary rounded-pill px-3">Détails</button> #}
-                         </div>
+                    
+                    <div class="px-4 pb-4 mt-2">
+                        <div class="d-flex justify-content-between align-items-center py-3 border-top border-opacity-10">
+                            <div class="d-flex align-items-center text-muted small">
+                                <i class="fa-regular fa-calendar-check me-2 text-primary opacity-50"></i>
+                                <span>Exp: <strong>{{ medicament.datePeremption|date('M Y') }}</strong></span>
+                            </div>
+                            <a href="{{ path('app_stock_public_show', {id: medicament.id}) }}" class="btn btn-sm btn-light border py-2 px-3 fw-bold text-primary text-decoration-none">
+                                Détails <i class="fa-solid fa-arrow-right ms-1 small"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         {% else %}
-            <div class="col-12 text-center py-5">
-                <i class="fa-solid fa-box-open fa-3x text-muted mb-3 opacity-25"></i>
-                <h4 class="text-muted">Aucun médicament disponible.</h4>
+            <div class="col-12 text-center py-5 glass-effect rounded-xl">
+                <div class="mb-3 opacity-25">
+                    <i class="fa-solid fa-box-open fa-4x text-muted"></i>
+                </div>
+                <h4 class="text-muted fw-bold">Aucun médicament disponible.</h4>
+                <p class="text-muted">Veuillez revenir plus tard ou contacter l'administration.</p>
             </div>
         {% endfor %}
     </div>
 
-    {# Empty State pour la recherche (caché par défaut) #}
-    <div id="noResults" class="text-center py-5 d-none">
-        <i class="fa-solid fa-magnifying-glass fa-3x text-muted mb-3 opacity-25"></i>
-        <h4 class="text-muted">Aucun résultat trouvé.</h4>
-        <button class="btn btn-link text-decoration-none" onclick="resetFilters()">Réinitialiser la recherche</button>
+    {# Empty State Premium (Affiché par le JS) #}
+    <div id="noResults" class="text-center py-5 glass-effect rounded-xl d-none animate-fade-up">
+        <div class="mb-4 opacity-50">
+            <i class="fa-solid fa-magnifying-glass fa-4x text-primary"></i>
+        </div>
+        <h4 class="text-dark fw-bold">Aucun résultat trouvé</h4>
+        <p class="text-muted">Essayez d'ajuster vos critères de recherche ou la catégorie.</p>
+        <button class="btn btn-primary rounded-pill px-4" onclick="resetFilters()">
+            Réinitialiser les filtres
+        </button>
     </div>
 
+    {# Style spécifique additionnel #}
     <style>
-        .hover-shadow:hover { 
-            transform: translateY(-5px); 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        .rounded-xl { border-radius: 1.25rem; }
+        .rounded-lg { border-radius: 1rem; }
+        @media (max-width: 767.98px) {
+            .divider-mobile-none { border: none !important; }
         }
-        .transition-all { transition: all 0.3s ease; }
     </style>
 {% endblock %}
 

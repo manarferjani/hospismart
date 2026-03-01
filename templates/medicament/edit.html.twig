@@ -53,12 +53,14 @@
                     {{ form_row(form.categorie) }}
                 </div>
             </div>
-            <div class="form-actions-hospi">
+            <div class="form-actions-hospi d-flex gap-2 flex-wrap align-items-center">
                 <button type="submit" class="btn btn-primary btn-hospi-primary">
                     <i class="fa-solid fa-check me-2"></i> Mettre à jour
                 </button>
-                <a href="{{ path('app_medicament_show', {id: medicament.id}) }}" class="btn btn-light btn-hospi-outline">Voir la fiche</a>
-                <a href="{{ path('app_medicament_index') }}" class="btn btn-light btn-hospi-outline">
+                <a href="{{ path('app_medicament_show', {id: medicament.id}) }}" class="btn btn-outline-info btn-hospi-outline">
+                    <i class="fa-solid fa-eye me-2"></i> Voir la fiche
+                </a>
+                <a href="{{ path('app_medicament_index') }}" class="btn btn-outline-secondary btn-hospi-outline">
                     <i class="fa-solid fa-arrow-left me-2"></i> Retour
                 </a>
                 <span class="ms-auto">{{ include('medicament/_delete_form.html.twig') }}</span>

@@ -23,4 +23,12 @@ final class StockPublicController extends AbstractController
             'categories' => $categories,
         ]);
     }
+
+    #[Route('/stock/{id}', name: 'app_stock_public_show', methods: ['GET'])]
+    public function show(\App\Entity\Medicament $medicament): Response
+    {
+        return $this->render('stock_public/show.html.twig', [
+            'medicament' => $medicament,
+        ]);
+    }
 }
