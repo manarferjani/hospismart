@@ -5,6 +5,7 @@ use App\Entity\ParticipantEvenement;
 use App\Entity\User;
 use App\Form\EvenementType;
 use App\Repository\EvenementRepository;
+use App\Service\WeatherService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -97,8 +98,14 @@ class EvenementController extends AbstractController
      * LISTE DES ÉVÉNEMENTS CÔTÉ PUBLIC
      */
     #[Route('/evenement/public', name: 'app_evenement_public', methods: ['GET'])]
-    public function public(EvenementRepository $evenementRepository): Response {
-        return $this->render('front/evenements.html.twig', ['evenements' => $evenementRepository->findProchainsEvenements(20)]);
+    public function public(EvenementRepository $evenementRepository, WeatherService $weatherService): Response {
+        $evenements = $evenementRepository->findProchainsEvenements(20);
+        $weatherData = $weatherService->getForecastsForEvents($evenements);
+
+        return $this->render('front/evenements.html.twig', [
+            'evenements' => $evenements,
+            'weatherData' => $weatherData,
+        ]);
     }
 
     /**
