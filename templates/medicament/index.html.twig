@@ -2,6 +2,7 @@
 
 {% block title %}Liste des médicaments - Hospismart{% endblock %}
 
+
 {% block stylesheets %}
 {{ parent() }}
 <style>
@@ -84,9 +85,31 @@
         <a href="{{ path('app_mouvement_stock_new') }}" class="btn btn-outline-primary shadow-sm">
             <i class="fa-solid fa-arrows-rotate me-1"></i> Stock
         </a>
+
+{% block body %}
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1><i class="fa-solid fa-pills me-2" style="color: var(--accent);"></i>Médicaments</h1>
+                <p>Gérez votre stock de médicaments</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <a href="{{ path('app_medicament_export_pdf') }}" class="btn btn-success btn-sm" target="_blank">
+                    <i class="fa-solid fa-file-pdf me-1"></i> Exporter PDF
+                </a>
+                <a href="{{ path('app_mouvement_stock_new') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="fa-solid fa-arrows-rotate me-1"></i> Nouveau mouvement
+                </a>
+                <a href="{{ path('app_medicament_new') }}" class="btn btn-primary">
+                    <i class="fa-solid fa-plus me-1"></i> Nouveau médicament
+                </a>
+            </div>
+        </div>
+
     </div>
 </div>
 
+<<<<<<< HEAD
 <div class="medicament-card">
     <div class="action-bar">
         <form method="get" action="{{ path('app_medicament_index') }}" class="search-box">
@@ -97,6 +120,150 @@
         </form>
         <div class="text-muted small">
             Affichage de <strong>{{ medicaments|length }}</strong> médicament(s)
+
+    {# Search bar Premium #}
+    <div class="premium-card shadow-sm p-3 mb-5 animate-fade-up">
+        <form method="get" action="{{ path('app_medicament_index') }}" class="row g-2 align-items-center">
+            <div class="col-lg-7">
+                <div class="input-group input-group-lg border rounded-pill overflow-hidden bg-white">
+                    <span class="input-group-text bg-transparent border-0 pe-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="search" class="form-control bg-transparent border-0 fs-5" placeholder="Rechercher un médicament..." value="{{ search|default('') }}" style="box-shadow:none;">
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="input-group input-group-lg border rounded-pill overflow-hidden bg-white">
+                    <span class="input-group-text bg-transparent border-0 pe-0"><i class="fas fa-filter text-muted small"></i></span>
+                    <select name="sort" class="form-select bg-transparent border-0 fs-6" style="box-shadow:none;" onchange="this.form.submit()">
+                        <option value="nom" {{ sortBy|default('nom') == 'nom' ? 'selected' : '' }}>Nom (A-Z)</option>
+                        <option value="quantite" {{ sortBy|default('nom') == 'quantite' ? 'selected' : '' }}>Quantité</option>
+                        <option value="prix_unitaire" {{ sortBy|default('nom') == 'prix_unitaire' ? 'selected' : '' }}>Prix</option>
+                        <option value="id" {{ sortBy|default('nom') == 'id' ? 'selected' : '' }}>Récent</option>
+                    </select>
+                </div>
+                <input type="hidden" name="order" value="{{ order|default('ASC') }}">
+            </div>
+            <div class="col-lg-2">
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill shadow-sm">
+                    Rechercher
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {# Table Premium #}
+    <div class="premium-card shadow-lg border-0 animate-fade-up" style="animation-delay: 0.1s;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light border-bottom">
+                        <tr>
+                            <th class="ps-4 border-0 py-3">{{ _self.sort_link('ID', 'id', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                            <th class="border-0 py-3">{{ _self.sort_link('MÉDICAMENT', 'nom', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                            <th class="border-0 py-3">CATÉGORIE</th>
+                            <th class="text-center border-0 py-3">{{ _self.sort_link('QUANTITÉ', 'quantite', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                            <th class="text-end border-0 py-3">{{ _self.sort_link('PRIX', 'prix_unitaire', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                            <th class="border-0 py-3">{{ _self.sort_link('EXPIRATION', 'date_peremption', sortBy|default('nom'), order|default('ASC'), search|default('')) }}</th>
+                            <th class="border-0 py-3">STATUT</th>
+                            <th class="text-center pe-4 border-0 py-3">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for medicament in medicaments %}
+                            <tr class="{% if medicament.quantite <= medicament.seuilAlerte %}bg-danger bg-opacity-10{% endif %}">
+                                <td class="ps-4"><span class="text-muted small fw-bold">#{{ medicament.id }}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="position-relative">
+                                            {% if medicament.imageFilename %}
+                                                <img src="{{ asset('uploads/medicaments/' ~ medicament.imageFilename) }}" 
+                                                     alt="{{ medicament.nom }}" 
+                                                     class="rounded-circle border"
+                                                     style="width: 48px; height: 48px; object-fit: cover; box-shadow: var(--shadow-sm);">
+                                            {% else %}
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center bg-light border" style="width: 48px; height: 48px; font-size: 20px;">
+                                                    💊
+                                                </div>
+                                            {% endif %}
+                                            {% if medicament.quantite <= medicament.seuilAlerte %}
+                                                <span class="position-absolute bottom-0 end-0 p-1 bg-danger border border-light rounded-circle" style="width:12px; height:12px;"></span>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <a href="{{ path('app_medicament_show', {id: medicament.id}) }}" class="text-decoration-none text-dark fw-bold h6 mb-0 d-block">
+                                                {{ medicament.nom }}
+                                            </a>
+                                            <span class="text-muted small">Batch #{{ medicament.id * 123 }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if medicament.categorie %}
+                                        <span class="badge bg-primary-subtle text-primary border border-primary border-opacity-10">
+                                            <i class="fa-solid fa-folder-open me-1 small"></i>{{ medicament.categorie.nom }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted small italic">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold {% if medicament.quantite <= medicament.seuilAlerte %}text-danger{% else %}text-dark{% endif %}">
+                                        {{ medicament.quantite }}
+                                    </span>
+                                    <div class="progress mt-1" style="height: 4px; border-radius: 2px;">
+                                        <div class="progress-bar {% if medicament.quantite <= medicament.seuilAlerte %}bg-danger{% else %}bg-primary{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ min(100, (medicament.quantite / (medicament.seuilAlerte * 2)) * 100) }}%"></div>
+                                    </div>
+                                </td>
+                                <td class="text-end fw-bold text-dark">{{ medicament.prixUnitaire|number_format(2, ',', ' ') }} €</td>
+                                <td>
+                                    <div class="small fw-medium {{ (medicament.datePeremption and medicament.datePeremption < date('+30 days')) ? 'text-danger' : 'text-muted' }}">
+                                        {{ medicament.datePeremption ? medicament.datePeremption|date('d M Y') : '—' }}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if medicament.quantite <= medicament.seuilAlerte %}
+                                        <span class="badge bg-danger shadow-sm">Critique</span>
+                                    {% elseif medicament.quantite > medicament.seuilAlerte * 3 %}
+                                        <span class="badge bg-success shadow-sm">Optimisé</span>
+                                    {% else %}
+                                        <span class="badge bg-info text-white shadow-sm">Stable</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4">
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <a href="{{ path('app_medicament_show', {id: medicament.id}) }}" class="btn btn-sm btn-light border" title="Details">
+                                            <i class="fa-solid fa-eye text-primary"></i>
+                                        </a>
+                                        <a href="{{ path('app_medicament_edit', {id: medicament.id}) }}" class="btn btn-sm btn-light border" title="Edit">
+                                            <i class="fa-solid fa-pen text-muted"></i>
+                                        </a>
+                                        <form method="post" action="{{ path('app_medicament_delete', {id: medicament.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer « {{ medicament.nom }} » ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ medicament.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-light border" title="Supprimer">
+                                                <i class="fa-solid fa-trash text-danger"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="py-5 text-center">
+                                    <div class="text-muted opacity-50 mb-3">
+                                        <i class="fa-solid fa-box-open fa-3x"></i>
+                                    </div>
+                                    <h5 class="text-muted">Aucun médicament inventorié</h5>
+                                    <a href="{{ path('app_medicament_new') }}" class="btn btn-primary mt-3">
+                                        <i class="fa-solid fa-plus me-2"></i> Ajouter Premier Médicament
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+>>>>>>> origin/mahmoud-stock3
         </div>
     </div>
 

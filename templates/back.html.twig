@@ -156,83 +156,136 @@
 
 {% block layout %}
 <div class="admin-wrapper">
-    <aside class="sidebar">
-        <a href="{{ path('app_dashboard') }}" class="sidebar-brand">
-            <i class="fa-solid fa-heart-pulse"></i> Hospismart
-            <span class="role-badge">
-                {% if is_granted('ROLE_ADMIN') %}Admin{% elseif is_granted('ROLE_MEDECIN') %}Médecin{% else %}Staff{% endif %}
-            </span>
+<aside class="sidebar">
+
+    {# ===== BRAND COMBINÉ ===== #}
+    <a href="{{ path('app_dashboard') }}" class="sidebar-brand mb-4">
+        <i class="fa-solid fa-heart-pulse fa-lg text-primary"></i> 
+        <span class="ms-2">HospiSmart</span>
+
+        {# Badge rôle #}
+        <span class="role-badge ms-2">
+            {% if is_granted('ROLE_ADMIN') %}Admin
+            {% elseif is_granted('ROLE_MEDECIN') %}Médecin
+            {% else %}Staff{% endif %}
+        </span>
+
+        {# Badge Premium de l’autre branche #}
+        <span class="badge bg-primary-subtle text-primary ms-auto"
+              style="font-size:10px;border:1px solid rgba(99,102,241,0.2);">
+            PREMIUM
+        </span>
+    </a>
+
+    {# ===== PROFIL DYNAMIQUE ===== #}
+    {% if is_granted('ROLE_MEDECIN') %}
+        <a href="{{ path('app_medecin_profil') }}"
+           class="sidebar-profile {{ app.request.get('_route') == 'app_medecin_profil' ? 'active-profile' : '' }}">
+            <img src="{{ app.user.image ? asset('/images/' ~ (app.user.type|lower == 'medecin' ? 'medecins/' : 'patients/') ~ app.user.image) : 'https://ui-avatars.com/api/?name=' ~ app.user.nom ~ '+' ~ app.user.prenom ~ '&background=0d6efd&color=fff' }}"
+                 class="profile-img shadow-sm">
+            <span class="profile-name">Dr. {{ app.user.nom }}</span>
+            <span class="profile-spec">{{ app.user.specialite|default('Médecin') }}</span>
         </a>
-
-        {# Section Profil Dynamique #}
-        {% if is_granted('ROLE_MEDECIN') %}
-            <a href="{{ path('app_medecin_profil') }}" class="sidebar-profile {{ app.request.get('_route') == 'app_medecin_profil' ? 'active-profile' : '' }}">
-                <img src="{{ app.user.image ? asset('/images/' ~ (app.user.type|lower == 'medecin' ? 'medecins/' : 'patients/') ~ app.user.image) : 'https://ui-avatars.com/api/?name=' ~ app.user.nom ~ '+' ~ app.user.prenom ~ '&background=0d6efd&color=fff' }}" class="profile-img shadow-sm">
-                <span class="profile-name">Dr. {{ app.user.nom }}</span>
-                <span class="profile-spec">{{ app.user.specialite|default('Médecin') }}</span>
-            </a>
-        {% elseif is_granted('ROLE_ADMIN') %}
-             <div class="sidebar-profile">
-                <img src="https://ui-avatars.com/api/?name={{ app.user.nom }}+{{ app.user.prenom }}&background=1e293b&color=fff" class="profile-img">
-                <span class="profile-name">{{ app.user.nom }} {{ app.user.prenom }}</span>
-                <span class="profile-spec">Administrateur</span>
-            </div>
-        {% endif %}
-
-        <nav class="sidebar-nav">
-            <ul class="sidebar-menu">
-
-                {# Menu Admin #}
-                {% if is_granted('ROLE_ADMIN') %}
-                    <div class="menu-header">Administration</div>
-                    <li><a href="{{ path('app_dashboard') }}" class="{{ app.request.get('_route') == 'app_dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-                    <li><a href="{{ path('app_dashboard_utilisateurs_list') }}" class="{{ app.request.get('_route') starts with 'app_dashboard_utilisateurs' ? 'active' : '' }}"><i class="fa-solid fa-users"></i> Utilisateurs</a></li>
-                    <li><a href="{{ path('app_dashboard_reclamations') }}" class="{{ app.request.get('_route') == 'app_dashboard_reclamations' ? 'active' : '' }}"><i class="fa-solid fa-circle-exclamation"></i> Réclamations</a></li>
-                    
-                    <div class="menu-header">Gestion Stock</div>
-                    <li><a href="{{ path('app_medicament_index') }}" class="{{ app.request.get('_route') starts with 'app_medicament' ? 'active' : '' }}"><i class="fa-solid fa-pills"></i> Médicaments</a></li>
-                    <li><a href="{{ path('app_categorie_index') }}" class="{{ app.request.get('_route') starts with 'app_categorie' ? 'active' : '' }}"><i class="fa-solid fa-tags"></i> Catégories</a></li>
-                    <li><a href="{{ path('app_mouvement_stock_index') }}" class="{{ app.request.get('_route') starts with 'app_mouvement' ? 'active' : '' }}"><i class="fa-solid fa-arrows-rotate"></i> Mouvements Stock</a></li>
-                {% endif %}
-
-                {# Menu Médecin #}
-                {% if is_granted('ROLE_MEDECIN') %}
-                    <div class="menu-header">Ma Clinique</div>
-                    <li><a href="{{ path('app_medecin_dashboard') }}" class="{{ app.request.get('_route') == 'app_medecin_dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-                <li>
-                    <a href="{{ path('app_medecin_demandes_rdv') }}" class="d-flex align-items-center flex-nowrap {{ app.request.get('_route') == 'app_medecin_demandes_rdv' ? 'active' : '' }}" style="text-decoration: none; padding: 10px 15px;">
-                        <i class="fa-solid fa-calendar-check me-3"></i> 
-                        <span style="white-space: nowrap;">Mes RDV</span>
-                        
-                        {% set nb_demandes_attente = app.user.rendezVousMedecin|filter(r => r.statut == 'EN_ATTENTE')|length %}
-                        {% if nb_demandes_attente > 0 %}
-                            <span class="badge bg-danger rounded-pill ms-auto">{{ nb_demandes_attente }}</span>
-                        {% endif %}
-                    </a>
-                </li>
-
-                    <li><a href="{{ path('app_medecin_dispo_index') }}" class="{{ app.request.get('_route') == 'app_medecin_dispo_index' ? 'active' : '' }}"><i class="fa-solid fa-clock"></i> Mes Créneaux</a></li>
-                    <li><a href="{{ path('app_medecin_patients') }}" class="{{ app.request.get('_route') == 'app_medecin_patients' ? 'active' : '' }}"><i class="fa-solid fa-hospital-user"></i> Mes Patients</a></li>
-
-                {% endif %}
-
-                {# Menu Événements (commun) #}
-                <div class="menu-header">Événements</div>
-                <li>
-                    <a href="{{ path('app_evenement_index') }}" class="{{ app.request.get('_route') starts with 'app_evenement' ? 'active' : '' }}">
-                        <i class="fa-solid fa-calendar-days"></i> Événements
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-        <div class="logout-box">
-            <ul class="sidebar-menu">
-                <li><a href="{{ path('app_home') }}" class="text-info"><i class="fa-solid fa-globe"></i> Voir le site</a></li>
-                <li><a href="{{ path('app_logout') }}" class="text-danger"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</a></li>
-            </ul>
+    {% elseif is_granted('ROLE_ADMIN') %}
+        <div class="sidebar-profile">
+            <img src="https://ui-avatars.com/api/?name={{ app.user.nom }}+{{ app.user.prenom }}&background=1e293b&color=fff"
+                 class="profile-img">
+            <span class="profile-name">{{ app.user.nom }} {{ app.user.prenom }}</span>
+            <span class="profile-spec">Administrateur</span>
         </div>
-    </aside>
+    {% endif %}
+
+    <nav class="sidebar-nav">
+        <ul class="sidebar-menu">
+
+            {# ===== OVERVIEW (nouvelle branche) ===== #}
+            <div class="menu-header">Overview</div>
+            <li>
+                <a href="{{ path('app_dashboard') }}"
+                   class="{{ app.request.get('_route') == 'app_dashboard' ? 'active' : '' }}">
+                    <i class="fa-solid fa-grid-2 me-2"></i> Dashboard
+                </a>
+            </li>
+
+            {# ===== ADMIN ===== #}
+            {% if is_granted('ROLE_ADMIN') %}
+                <div class="menu-header">Administration</div>
+
+                <li><a href="{{ path('app_dashboard_utilisateurs_list') }}">
+                    <i class="fa-solid fa-users"></i> Utilisateurs
+                </a></li>
+
+                <li><a href="{{ path('app_dashboard_reclamations') }}">
+                    <i class="fa-solid fa-circle-exclamation"></i> Réclamations
+                </a></li>
+
+                <div class="menu-header">Inventory</div>
+
+                <li><a href="{{ path('app_medicament_index') }}">
+                    <i class="fa-solid fa-pills"></i> Médicaments
+                </a></li>
+
+                <li><a href="{{ path('app_categorie_index') }}">
+                    <i class="fa-solid fa-tags"></i> Catégories
+                </a></li>
+
+                <li><a href="{{ path('app_mouvement_stock_index') }}">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Historique
+                </a></li>
+            {% endif %}
+
+            {# ===== MÉDECIN ===== #}
+            {% if is_granted('ROLE_MEDECIN') %}
+                <div class="menu-header">Ma Clinique</div>
+
+                <li><a href="{{ path('app_medecin_dashboard') }}">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </a></li>
+
+                <li><a href="{{ path('app_medecin_demandes_rdv') }}">
+                    <i class="fa-solid fa-calendar-check"></i> Mes RDV
+                </a></li>
+
+                <li><a href="{{ path('app_medecin_dispo_index') }}">
+                    <i class="fa-solid fa-clock"></i> Mes Créneaux
+                </a></li>
+
+                <li><a href="{{ path('app_medecin_patients') }}">
+                    <i class="fa-solid fa-hospital-user"></i> Mes Patients
+                </a></li>
+            {% endif %}
+
+            {# ===== ÉVÉNEMENTS COMMUN ===== #}
+            <div class="menu-header">Événements</div>
+            <li>
+                <a href="{{ path('app_evenement_index') }}">
+                    <i class="fa-solid fa-calendar-days"></i> Événements
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+
+    {# ===== FOOTER / LOGOUT COMBINÉ ===== #}
+    <div class="logout-box mt-auto">
+        <ul class="sidebar-menu">
+
+            <li><a href="{{ path('app_home') }}" class="text-info">
+                <i class="fa-solid fa-globe"></i> Voir le site
+            </a></li>
+
+            <li><a href="{{ path('app_stock_public') }}" class="text-light opacity-75">
+                <i class="fa-solid fa-arrow-up-right-from-square me-2"></i> Live Portal
+            </a></li>
+
+            <li><a href="{{ path('app_logout') }}" class="text-danger">
+                <i class="fa-solid fa-right-from-bracket"></i> Déconnexion
+            </a></li>
+
+        </ul>
+    </div>
+
+</aside>
 
     <main class="main-content">
         {# Barre de notifications (si médecin) #}

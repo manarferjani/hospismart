@@ -57,6 +57,9 @@ class Medicament
     #[ORM\JoinColumn(nullable: true)]
     private ?Categorie $categorie = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $imageFilename = null;
+
     public function __construct()
     {
         $this->mouvements = new ArrayCollection();
@@ -161,6 +164,18 @@ class Medicament
     public function setCategorie(?Categorie $categorie): static
     {
         $this->categorie = $categorie;
+
+        return $this;
+    }
+
+    public function getImageFilename(): ?string
+    {
+        return $this->imageFilename;
+    }
+
+    public function setImageFilename(?string $imageFilename): static
+    {
+        $this->imageFilename = $imageFilename;
 
         return $this;
     }

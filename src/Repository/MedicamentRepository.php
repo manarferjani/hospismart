@@ -30,7 +30,7 @@ class MedicamentRepository extends ServiceEntityRepository
                ->setParameter('search', '%' . $search . '%');
         }
 
-        $allowedSort = ['nom', 'quantite', 'seuilAlerte', 'datePeremption', 'id'];
+        $allowedSort = ['nom', 'quantite', 'seuil_alerte', 'date_peremption', 'id', 'prix_unitaire'];
         $sortBy = in_array($sortBy, $allowedSort) ? $sortBy : 'nom';
         $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
         $qb->orderBy('m.' . $sortBy, $order);

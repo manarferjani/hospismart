@@ -1,0 +1,272 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Prédictions IA - OASIS{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div>
+            <h1><i class="fas fa-brain me-2" style="color: var(--accent);"></i>Prédictions IA de Rupture de Stock</h1>
+            <p>Analyse intelligente de l'historique des consommations pour anticiper les ruptures</p>
+        </div>
+        <a href="{{ path('app_dashboard') }}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i> Retour au Dashboard
+        </a>
+    </div>
+
+    {# Summary Cards #}
+    {% set critique = predictions|filter(p => p.niveauRisque == 'critique')|length %}
+    {% set eleve = predictions|filter(p => p.niveauRisque == 'eleve')|length %}
+    {% set moyen = predictions|filter(p => p.niveauRisque == 'moyen')|length %}
+    {% set ok = predictions|filter(p => p.niveauRisque == 'ok')|length %}
+
+    <div class="row mb-4 g-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card" style="background: linear-gradient(135deg, #dc3545, #c62828);">
+                <h6>🔴 Critique (&lt;7j)</h6>
+                <h2>{{ critique }}</h2>
+                <i class="fas fa-exclamation-triangle stat-icon"></i>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card" style="background: linear-gradient(135deg, #ff9800, #e65100);">
+                <h6>🟠 Élevé (&lt;14j)</h6>
+                <h2>{{ eleve }}</h2>
+                <i class="fas fa-exclamation-circle stat-icon"></i>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card" style="background: linear-gradient(135deg, #ffc107, #f57f17);">
+                <h6>🟡 Moyen (&lt;30j)</h6>
+                <h2>{{ moyen }}</h2>
+                <i class="fas fa-info-circle stat-icon"></i>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                <h6>🟢 OK (&gt;30j)</h6>
+                <h2>{{ ok }}</h2>
+                <i class="fas fa-check-circle stat-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    {# Prediction Chart #}
+    <div class="row mb-4 g-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-chart-bar me-2" style="color: var(--accent);"></i>Jours restants avant rupture (Top 15 les plus urgents)</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartPredictions" height="60"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Prediction Table #}
+    <div class="card premium-card shadow-sm">
+        <div class="card-header border-0 bg-transparent pt-4 px-4 d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0"><i class="fas fa-robot me-2" style="color: var(--accent);"></i>Analyse détaillée par médicament</h3>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary active">Tous</button>
+                <button class="btn btn-sm btn-outline-secondary">Critiques</button>
+                <button class="btn btn-sm btn-outline-secondary">Élevés</button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="bg-light bg-opacity-50">
+                        <tr>
+                            <th class="ps-4">Médicament</th>
+                            <th class="text-center">Stock / Seuil</th>
+                            <th class="text-center">Conso. / J</th>
+                            <th class="text-center">Prédiction</th>
+                            <th class="text-center">Tendance</th>
+                            <th class="text-center">Statut Risque</th>
+                            <th class="text-center pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in predictions %}
+                        <tr class="transition-all {% if p.niveauRisque == 'critique' %}table-danger-subtle{% elseif p.niveauRisque == 'eleve' %}table-warning-subtle{% endif %}">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-3 bg-light me-3 p-2 border">
+                                        <i class="fas fa-prescription-bottle-alt text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark">{{ p.medicament.nom }}</strong>
+                                        {% if p.medicament.categorie %}
+                                            <br><span class="badge bg-secondary-subtle text-secondary fw-normal px-2" style="font-size: 10px;">{{ p.medicament.categorie }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-block px-3 py-1 rounded-pill bg-white border shadow-xs">
+                                    <span class="{% if p.stock <= p.seuil %}text-danger fw-bold{% else %}text-muted{% endif %}">{{ p.stock }}</span>
+                                    <span class="text-muted mx-1">/</span>
+                                    <span class="text-muted small">{{ p.seuil }}</span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <div class="small">
+                                    {% if p.consoQuotidienne > 0 %}
+                                        <span class="fw-bold">{{ p.consoQuotidienne }}</span>
+                                        <span class="text-muted">unités/j</span>
+                                    {% else %}
+                                        <span class="text-muted italic">Inactif</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                {% if p.joursRestants is not null %}
+                                    <div class="d-flex flex-column align-items-center">
+                                        <span class="fs-5 fw-black {% if p.joursRestants <= 7 %}text-danger{% elseif p.joursRestants <= 14 %}text-warning{% elseif p.joursRestants <= 30 %}text-info{% else %}text-success{% endif %}">
+                                            {{ p.joursRestants }}j
+                                        </span>
+                                        {% if p.dateRupture %}
+                                            <small class="text-muted" style="font-size: 10px;">Rupture : {{ p.dateRupture|date('d/m/Y') }}</small>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="badge bg-success-subtle text-success">Stock stable</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if p.tendance == 'hausse' %}
+                                    <div class="text-danger d-flex align-items-center justify-content-center gap-1" title="Consommation en hausse (danger)">
+                                        <i class="fas fa-arrow-trend-up"></i>
+                                        <span class="small fw-bold">Hausse</span>
+                                    </div>
+                                {% elseif p.tendance == 'baisse' %}
+                                    <div class="text-success d-flex align-items-center justify-content-center gap-1" title="Consommation en baisse (sécurité)">
+                                        <i class="fas fa-arrow-trend-down"></i>
+                                        <span class="small fw-bold">Baisse</span>
+                                    </div>
+                                {% else %}
+                                    <div class="text-muted d-flex align-items-center justify-content-center gap-1">
+                                        <span class="small">Stable</span>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if p.niveauRisque == 'critique' %}
+                                    <div class="risk-meter risk-critique pulse-slow">Critique</div>
+                                {% elseif p.niveauRisque == 'eleve' %}
+                                    <div class="risk-meter risk-eleve">Élevé</div>
+                                {% elseif p.niveauRisque == 'moyen' %}
+                                    <div class="risk-meter risk-moyen">Moyen</div>
+                                {% else %}
+                                    <div class="risk-meter risk-ok">Sécurisé</div>
+                                {% endif %}
+                            </td>
+                            <td class="text-center pe-4">
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <a href="{{ path('app_medicament_show', {'id': p.medicament.id}) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Fiche détaillée">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_mouvement_stock_new', {'medicament_id': p.medicament.id}) }}" class="btn btn-sm btn-primary rounded-pill px-3" title="Passer une commande">
+                                        <i class="fas fa-shopping-cart me-1"></i> Appro.
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state py-5 text-center">
+                                    <img src="https://illustrations.popsy.co/amber/medical-care.svg" alt="IA" style="height: 15rem;" class="mb-4">
+                                    <h5 class="text-muted">Aucune donnée disponible pour l'IA</h5>
+                                    <p class="text-muted">Commencez à enregistrer des mouvements de stock pour activer les prédictions.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {# Algorithm Explanation #}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-cogs me-2" style="color: var(--accent);"></i>Comment fonctionne l'IA ?</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-database" style="font-size: 32px; color: #667eea;"></i>
+                    </div>
+                    <h5 class="text-center">1. Collecte des données</h5>
+                    <p class="text-muted text-center">L'IA analyse l'historique des 30 derniers jours de sorties de stock pour chaque médicament.</p>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-calculator" style="font-size: 32px; color: #f093fb;"></i>
+                    </div>
+                    <h5 class="text-center">2. Régression linéaire</h5>
+                    <p class="text-muted text-center">L'algorithme calcule la consommation quotidienne moyenne et détecte les tendances d'accélération ou de ralentissement.</p>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-lightbulb" style="font-size: 32px; color: #43e97b;"></i>
+                    </div>
+                    <h5 class="text-center">3. Prédiction</h5>
+                    <p class="text-muted text-center">En divisant le stock actuel par la consommation moyenne, l'IA estime la date de rupture et attribue un niveau de risque.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script>
+const ctx = document.getElementById('chartPredictions').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ chartData.labels|json_encode|raw }},
+        datasets: [{
+            label: 'Jours restants',
+            data: {{ chartData.joursRestants|json_encode|raw }},
+            backgroundColor: {{ chartData.colors|json_encode|raw }},
+            borderRadius: 8,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const val = context.raw;
+                        if (val <= 7) return val + ' jours - CRITIQUE ⚠️';
+                        if (val <= 14) return val + ' jours - ÉLEVÉ';
+                        if (val <= 30) return val + ' jours - MOYEN';
+                        return val + ' jours - OK ✅';
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                title: { display: true, text: 'Jours avant rupture' },
+                grid: { color: 'rgba(0,0,0,0.05)' }
+            },
+            y: { grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

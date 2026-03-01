@@ -2,14 +2,18 @@
 
 namespace App\Controller;
 
+use App\Entity\Medicament;
 use App\Entity\MouvementStock;
 use App\Form\MouvementStockType;
 use App\Repository\MedicamentRepository;
 use App\Repository\MouvementStockRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Service\EmailService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/mouvement/stock')]
@@ -52,6 +56,18 @@ final class MouvementStockController extends AbstractController
         }
         $medicament->setQuantite(max(0, $nouvelleQte));
     }
+    private function checkStockAndSendEmail(Medicament $medicament, EmailService $emailService): void
+    {
+        if ($medicament->getQuantite() <= $medicament->getSeuilAlerte()) {
+            $emailService->sendStockAlert(
+                'arfaouimahmoud62@gmail.com',
+                $medicament->getNom(),
+                $medicament->getQuantite(),
+                $medicament->getSeuilAlerte()
+            );
+        }
+    }
+
     #[Route(name: 'app_mouvement_stock_index', methods: ['GET'])]
     public function index(MouvementStockRepository $mouvementStockRepository): Response
     {
@@ -61,7 +77,7 @@ final class MouvementStockController extends AbstractController
     }
 
     #[Route('/new', name: 'app_mouvement_stock_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager, MedicamentRepository $medicamentRepository): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, MedicamentRepository $medicamentRepository, EmailService $emailService): Response
     {
         $mouvementStock = new MouvementStock();
         $mouvementStock->setDateMouvement(new \DateTime());
@@ -79,6 +95,11 @@ final class MouvementStockController extends AbstractController
             $this->appliquerMouvementSurStock($mouvementStock);
             $entityManager->persist($mouvementStock);
             $entityManager->flush();
+
+            // Vérification du stock et envoi d'email
+            if ($mouvementStock->getMedicament()) {
+                $this->checkStockAndSendEmail($mouvementStock->getMedicament(), $emailService);
+            }
 
             $medicamentNom = $mouvementStock->getMedicament() ? $mouvementStock->getMedicament()->getNom() : 'N/A';
             $this->addFlash('success', sprintf("Mouvement de stock pour '%s' créé avec succès.", $medicamentNom));
@@ -101,7 +122,7 @@ final class MouvementStockController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_mouvement_stock_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, MouvementStock $mouvementStock, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, MouvementStock $mouvementStock, EntityManagerInterface $entityManager, EmailService $emailService): Response
     {
         $ancienType = $mouvementStock->getType();
         $ancienneQuantite = $mouvementStock->getQuantite();
@@ -128,6 +149,11 @@ final class MouvementStockController extends AbstractController
                 $medicament->setQuantite(max(0, $qteActuelle));
             }
             $entityManager->flush();
+
+            // Vérification du stock et envoi d'email
+            if ($medicament) {
+                $this->checkStockAndSendEmail($medicament, $emailService);
+            }
 
             $medicamentNom = $mouvementStock->getMedicament() ? $mouvementStock->getMedicament()->getNom() : 'N/A';
             $this->addFlash('success', sprintf("Mouvement de stock pour '%s' modifié avec succès.", $medicamentNom));

@@ -5,7 +5,10 @@ namespace App\Controller;
 use App\Repository\ConsultationRepository;
 use App\Repository\MedicamentRepository;
 use App\Repository\MouvementStockRepository;
+
 use App\Enum\ConsultationStatus;
+
+use App\Service\StockPredictionService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +21,7 @@ use App\Repository\EquipementRepository;
 #[Route('/dashboard')]
 class DashboardController extends AbstractController
 {
-    #[Route('', name: 'app_dashboard', methods: ['GET'])]
+#[Route('', name: 'app_dashboard', methods: ['GET'])]
     public function index(
         ConsultationRepository $consultationRepository,
         MedicamentRepository $medicamentRepository,
@@ -26,80 +29,60 @@ class DashboardController extends AbstractController
         UserRepository $userRepository,
         EvenementRepository $evenementRepository,
         ReclamationRepository $reclamationRepository,
-        EquipementRepository $equipementRepository
+        EquipementRepository $equipementRepository,
+        StockPredictionService $predictionService
     ): Response {
-        // --- SECTION STATISTIQUES GLOBALES ---
+        // --- DATA GLOBALES (Ton travail) ---
         $totalUsers = $userRepository->count([]);
-        $nbMedecins = $userRepository->count(['type' => 'MEDECIN']);
-        $nbPatients = $userRepository->count(['type' => 'PATIENT']);
         $totalEvenements = $evenementRepository->count([]);
         $totalReclamations = $reclamationRepository->count([]);
         $reclamationsAttente = $reclamationRepository->count(['statut' => 'En attente']);
         $totalEquipements = $equipementRepository->count([]);
 
-        // --- SECTION CONSULTATIONS (HEAD) ---
+        // --- DATA CONSULTATIONS ---
         $totalConsultations = $consultationRepository->count([]);
-        $enAttente = $consultationRepository->count(['statut' => ConsultationStatus::EN_ATTENTE]);
-        $enCours = $consultationRepository->count(['statut' => ConsultationStatus::EN_COURS]);
         $traites = $consultationRepository->count(['statut' => ConsultationStatus::TERMINEE]);
         $tauxReponse = $totalConsultations > 0 ? round(($traites / $totalConsultations) * 100) : 100;
 
-        // --- SECTION STOCKS (Stock-mahmoud) ---
+        // --- DATA STOCKS (Mahmoud) ---
         $medicaments = $medicamentRepository->findAll();
         $mouvements = $mouvementRepository->findAll();
-
         $totalMedicaments = count($medicaments);
         $stockFaible = count($medicamentRepository->findSousSeuilAlerte());
-        $valeurStockTotal = array_sum(
-            array_map(fn($m) => $m->getQuantite() * $m->getPrixUnitaire(), $medicaments)
-        );
+        $valeurStockTotal = array_sum(array_map(fn($m) => $m->getQuantite() * $m->getPrixUnitaire(), $medicaments));
 
-        // Top 10 médicaments pour le graphique
+        // Prédictions IA Mahmoud
+        $predictionSummary = $predictionService->getSummary();
+        $allPredictions = $predictionService->predictAll();
+        $criticalPredictions = array_slice(array_filter($allPredictions, fn($p) => $p['niveauRisque'] !== 'ok'), 0, 5);
+
+        // Graphique Top 10 Médicaments
         $topMedicaments = $medicaments;
         usort($topMedicaments, fn($a, $b) => $b->getQuantite() - $a->getQuantite());
         $topMedicaments = array_slice($topMedicaments, 0, 10);
-
         $chartData = [
             'labels' => array_map(fn($m) => substr($m->getNom(), 0, 15), $topMedicaments),
             'quantities' => array_map(fn($m) => $m->getQuantite(), $topMedicaments),
         ];
 
-        // Mouvements récents
-        usort($mouvements, fn($a, $b) => $b->getDateMouvement() <=> $a->getDateMouvement());
-        $recentMouvements = array_slice($mouvements, 0, 30);
-        $entrees = count(array_filter($recentMouvements, fn($m) => $m->getType() === 'ENTREE'));
-        $sorties = count(array_filter($recentMouvements, fn($m) => $m->getType() === 'SORTIE'));
-
         return $this->render('back/dashboard/index.html.twig', [
-            // Data Consultations
             'total_consultations' => $totalConsultations,
-            'en_attente' => $enAttente,
-            'en_cours' => $enCours,
-            'traites' => $traites,
             'taux_reponse' => $tauxReponse,
-            'non_traitees' => $enAttente + $enCours,
-            
-            // Data Stocks
             'totalMedicaments' => $totalMedicaments,
             'stockFaible' => $stockFaible,
             'valeurStockTotal' => $valeurStockTotal,
+            'predictionSummary' => $predictionSummary,
+            'criticalPredictions' => $criticalPredictions,
             'chartData' => $chartData,
-            'entrees' => $entrees,
-            'sorties' => $sorties,
-            'entrees' => $entrees,
-            'sorties' => $sorties,
-            'recentMouvements' => array_slice($mouvements, 0, 5),
-
-            // Data Globales
             'totalUsers' => $totalUsers,
-            'nbMedecins' => $nbMedecins,
-            'nbPatients' => $nbPatients,
             'totalEvenements' => $totalEvenements,
             'totalReclamations' => $totalReclamations,
             'reclamationsAttente' => $reclamationsAttente,
             'totalEquipements' => $totalEquipements,
+            'recentMouvements' => array_slice($mouvements, 0, 5),
         ]);
     }
+
 
     #[Route('/reclamations', name: 'app_dashboard_reclamations', methods: ['GET'])]
     public function reclamations(Request $request, \App\Repository\ReclamationRepository $reclamationRepository): Response
@@ -159,4 +142,34 @@ class DashboardController extends AbstractController
 
         return $this->redirectToRoute('app_dashboard_reclamations');
     }
+
+
+    #[Route('/predictions', name: 'app_predictions', methods: ['GET'])]
+    public function predictions(StockPredictionService $predictionService): Response
+    {
+        $predictions = $predictionService->predictAll();
+
+        // Données pour le graphique
+        $chartPredictions = array_filter($predictions, fn($p) => $p['joursRestants'] !== null);
+        $chartPredictions = array_slice($chartPredictions, 0, 15);
+
+        $chartData = [
+            'labels' => array_map(fn($p) => substr($p['medicament']->getNom(), 0, 15), $chartPredictions),
+            'joursRestants' => array_map(fn($p) => $p['joursRestants'], $chartPredictions),
+            'colors' => array_map(function ($p) {
+                return match ($p['niveauRisque']) {
+                    'critique' => 'rgba(220, 53, 69, 0.8)',
+                    'eleve' => 'rgba(255, 152, 0, 0.8)',
+                    'moyen' => 'rgba(255, 193, 7, 0.8)',
+                    default => 'rgba(67, 233, 123, 0.8)',
+                };
+            }, $chartPredictions),
+        ];
+
+        return $this->render('dashboard/predictions.html.twig', [
+            'predictions' => $predictions,
+            'chartData' => $chartData,
+        ]);
+    
+        }
 }
