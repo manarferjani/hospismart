@@ -27,14 +27,20 @@ class RendezVous
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'rendezVousPatient')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $patient = null;
+    #[ORM\OneToOne(mappedBy: 'rendezVous', targetEntity: Consultation::class)]
+    private ?Consultation $consultation = null;
 
     // Lien avec la collection 'rendezVousMedecin' dans User.php
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'rendezVousMedecin')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $medecin = null;
 
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: Disponibilite::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Disponibilite $disponibilite = null;
+
+    #[ORM\Column]
+    private ?int $priorite = null;
 
     public function getId(): ?int { return $this->id; }
 
@@ -85,4 +91,26 @@ class RendezVous
         $this->disponibilite = $disponibilite;
         return $this;
     }
+    public function getConsultation(): ?Consultation 
+{ 
+    return $this->consultation; 
+}
+
+public function setConsultation(?Consultation $consultation): static 
+{
+    $this->consultation = $consultation;
+    return $this;
+}
+
+public function getPriorite(): ?int
+{
+    return $this->priorite;
+}
+
+public function setPriorite(int $priorite): static
+{
+    $this->priorite = $priorite;
+
+    return $this;
+}
 }

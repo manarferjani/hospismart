@@ -32,16 +32,25 @@
                                 <span class="badge bg-success">Terminé</span>
                             {% endif %}
                         </h5>
+
+                        {# CORRECTION : On utilise le nom du Getter (camelCase) #}
                         <p class="text-muted small"><i class="fa-solid fa-tag"></i> {{ evenement.typeEvenement|capitalize }}</p>
+                        
                         <p class="card-text">{{ evenement.description|slice(0, 100) }}{% if evenement.description|length > 100 %}...{% endif %}</p>
                         <hr>
+                        
+                        {# CORRECTION : On utilise dateDebut et dateFin #}
                         <p class="mb-1 small"><i class="fa-solid fa-calendar text-primary"></i> <strong>Début:</strong> {{ evenement.dateDebut ? evenement.dateDebut|date('d/m/Y H:i') : '—' }}</p>
                         <p class="mb-1 small"><i class="fa-solid fa-calendar-check text-success"></i> <strong>Fin:</strong> {{ evenement.dateFin ? evenement.dateFin|date('d/m/Y H:i') : '—' }}</p>
                         <p class="mb-1 small"><i class="fa-solid fa-location-dot text-danger"></i> <strong>Lieu:</strong> {{ evenement.lieu }}</p>
+                        
+                        {# CORRECTION : On utilise budgetAlloue #}
                         {% if evenement.budgetAlloue %}
                             <p class="mb-1 small"><i class="fa-solid fa-coins text-info"></i> <strong>Budget:</strong> {{ evenement.budgetAlloue }} TND</p>
                         {% endif %}
+                        
                         <p class="mb-3 small"><i class="fa-solid fa-users text-secondary"></i> <strong>Participants:</strong> {{ evenement.participants|length }}</p>
+                        
                         <a href="{{ path('app_evenement_inscription', {'id': evenement.id}) }}" class="btn btn-primary w-100">
                             <i class="fa-solid fa-user-plus"></i> M'inscrire
                         </a>

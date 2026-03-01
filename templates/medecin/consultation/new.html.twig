@@ -1,0 +1,197 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Nouvelle Consultation - Hospismart{% endblock %}
+
+{% block body %}
+<style>
+    /* Design moderne pour les cartes et inputs */
+    .consultation-card {
+        border: none;
+        border-radius: 20px;
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section-title {
+        color: #0d6efd;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title i {
+        margin-right: 10px;
+        background: rgba(13, 110, 253, 0.1);
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    /* Modernisation des champs de formulaire */
+    .form-control, .form-select {
+        border-radius: 12px;
+        border: 1px solid #e0e6ed;
+        padding: 12px 15px;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+    }
+
+    .form-control:focus, .form-select:focus {
+        background-color: #fff;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+    }
+
+    label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        display: block;
+    }
+
+    .patient-sidebar {
+        position: sticky;
+        top: 20px;
+    }
+
+    .btn-submit {
+        border-radius: 15px;
+        padding: 15px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        transition: all 0.4s;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(13, 110, 253, 0.3);
+    }
+
+    /* Style spécifique pour les erreurs de validation */
+    .invalid-feedback {
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Consultation</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-dark m-0">Nouvelle Fiche Médicale</h2>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-soft-primary text-primary border border-primary px-3 py-2" style="background: rgba(13,110,253,0.1)">
+                <i class="fa-solid fa-folder-open me-2"></i>Mon Dossier #{{ consultation.patient.id }}
+            </span>
+        </div>
+    </div>
+
+    {{ form_start(form) }}
+    <div class="row g-4">
+        
+        <div class="col-lg-4">
+            <div class="patient-sidebar">
+                
+                <div class="card consultation-card text-center p-4 mb-4">
+                    <div class="position-relative d-inline-block mx-auto mb-3">
+                        <img src="https://ui-avatars.com/api/?name={{ consultation.patient.nom }}+{{ consultation.patient.prenom }}&size=120&background=0d6efd&color=fff" 
+                             class="rounded-circle shadow-sm border border-4 border-white" alt="Avatar">
+                        <span class="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle p-2"></span>
+                    </div>
+                    <h4 class="fw-bold mb-1">{{ consultation.patient.prenom }} {{ consultation.patient.nom }}</h4>
+                    <p class="text-muted mb-0 small"><i class="fa-solid fa-user-doctor me-2"></i>Dr. {{ app.user.nom }}</p>
+                </div>
+
+                <div class="card consultation-card p-4">
+                    <h6 class="section-title mb-4" style="font-size: 0.8rem;">
+                        <i class="fa-solid fa-sliders"></i>Paramètres
+                    </h6>
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.date_heure) }}
+                        {{ form_widget(form.date_heure) }}
+                        {{ form_errors(form.date_heure) }}
+                    </div>
+
+                    <div class="mb-0">
+                        {{ form_label(form.statut) }}
+                        {{ form_widget(form.statut) }}
+                        {{ form_errors(form.statut) }}
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3">
+                    <small class="text-muted d-block">
+                        <i class="fa-solid fa-circle-info me-2 text-primary"></i>
+                        Les données saisies sont confidentielles et protégées.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card consultation-card p-4 p-md-5">
+                
+                <div class="mb-5">
+                    <h6 class="section-title"><i class="fa-solid fa-stethoscope"></i>1. Anamnèse et Examen Clinique</h6>
+                    <div class="row g-4">
+                        <div class="col-12">
+                            {{ form_row(form.motif) }}
+                        </div>
+                        <div class="col-12">
+                            {{ form_row(form.examen_clinique) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <h6 class="section-title"><i class="fa-solid fa-microscope"></i>2. Diagnostic et Décision</h6>
+                    <div class="row g-4">
+                        <div class="col-12">
+                            {{ form_row(form.diagnostic) }}
+                        </div>
+                        <div class="col-12">
+                            {{ form_row(form.traitement) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="section-title"><i class="fa-solid fa-calendar-check"></i>3. Suivi et Recommandations</h6>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            {{ form_row(form.examens_complementaires) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(form.recommandations) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-top">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 btn-submit shadow-sm">
+                        <i class="fa-solid fa-check-double me-2"></i>Enregistrer la Fiche Médicale
+                    </button>
+                    <div class="text-center mt-3">
+                        <a href="{{ path('app_home') }}" class="text-muted small text-decoration-none">
+                            <i class="fa-solid fa-arrow-left me-1"></i>Retour sans enregistrer
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}

@@ -16,30 +16,16 @@ class ConsultationRepository extends ServiceEntityRepository
         parent::__construct($registry, Consultation::class);
     }
 
-
-    //    /**
-    //     * @return Consultation[] Returns an array of Consultation objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('c.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Consultation
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
-
+    /**
+     * Récupère les consultations triées par priorité (Urgence IA) puis par heure
+     * @return Consultation[] 
+     */
+    public function findAllPrioritized(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->orderBy('c.priorite', 'DESC') // Le score 5 (Urgent) apparaît en haut
+            ->addOrderBy('c.date_heure', 'ASC') // À priorité égale, le premier arrivé est premier
+            ->getQuery()
+            ->getResult();
+    }
 }

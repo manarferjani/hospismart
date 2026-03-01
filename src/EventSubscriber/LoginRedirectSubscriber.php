@@ -40,10 +40,10 @@ class LoginRedirectSubscriber implements EventSubscriberInterface
             return $this->urlGenerator->generate('app_dashboard');
         }
         if (in_array('ROLE_MEDECIN', $roles, true)) {
-            return $this->urlGenerator->generate('app_dashboard');
+            return $this->urlGenerator->generate('app_medecin_dashboard');
         }
         if (in_array('ROLE_PATIENT', $roles, true)) {
-            return $this->urlGenerator->generate('app_patient_coordonnees');
+            return $this->urlGenerator->generate('app_medecin_recherche');
         }
         return $this->urlGenerator->generate('app_patient_coordonnees');
     }

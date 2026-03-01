@@ -97,6 +97,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToOne(targetEntity: Service::class, inversedBy: 'medecins')]
     private ?Service $service_entity = null;
 
+    #[ORM\OneToMany(mappedBy: 'patient', targetEntity: FicheMedicale::class, orphanRemoval: true)]
+    private Collection $fichesMedicales;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $faceDescriptor = null;
+
     public function __construct()
     {
         $this->roles = [];
@@ -104,6 +110,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->rendezVousMedecin = new ArrayCollection();
         $this->rendezVousPatient = new ArrayCollection();
         $this->notifications = new ArrayCollection();
+        $this->fichesMedicales = new ArrayCollection();
     }
 
     // ================= GETTERS & SETTERS =================
@@ -197,5 +204,51 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     { 
         $this->image = $image; 
         return $this; 
+    }
+
+    /**
+     * @return Collection<int, FicheMedicale>
+     */
+    public function getFichesMedicales(): Collection
+    {
+        return $this->fichesMedicales;
+    }
+
+    public function addFicheMedicale(FicheMedicale $ficheMedicale): static
+    {
+        if (!$this->fichesMedicales->contains($ficheMedicale)) {
+            $this->fichesMedicales->add($ficheMedicale);
+            $ficheMedicale->setPatient($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFicheMedicale(FicheMedicale $ficheMedicale): static
+    {
+        if ($this->fichesMedicales->removeElement($ficheMedicale)) {
+            // set the owning side to null (unless already changed)
+            if ($ficheMedicale->getPatient() === $this) {
+                $ficheMedicale->setPatient(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getFaceDescriptor(): ?array
+    {
+        return $this->faceDescriptor;
+    }
+
+    public function setFaceDescriptor(?array $faceDescriptor): static
+    {
+        $this->faceDescriptor = $faceDescriptor;
+        return $this;
+    }
+
+    public function hasFaceDescriptor(): bool
+    {
+        return !empty($this->faceDescriptor);
     }
 }

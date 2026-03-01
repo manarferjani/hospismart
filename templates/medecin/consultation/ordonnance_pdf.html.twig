@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Configuration de la page pour éviter les marges par défaut trop grandes */
+        @page { margin: 1cm; }
+        
+        body { 
+            font-family: sans-serif; 
+            font-size: 14px; 
+            color: #333; 
+            margin: 0;
+            padding: 0;
+            line-height: 1.4;
+        }
+
+        .header { 
+            border-bottom: 2px solid #000; 
+            padding-bottom: 10px; 
+            margin-bottom: 20px; 
+        }
+
+        .hospital-name { font-size: 18px; font-weight: bold; color: #1a1a2e; }
+        
+        .doctor-info { 
+            float: right; 
+            text-align: right; 
+        }
+
+        .patient-info { 
+            margin-bottom: 20px; 
+        }
+
+        /* Réduction du min-height pour éviter le saut de page */
+        .content { 
+            min-height: 250px; 
+            margin-bottom: 20px;
+        }
+
+        .title { 
+            text-align: center; 
+            text-decoration: underline; 
+            font-weight: bold; 
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .footer { 
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: right; 
+        }
+
+        .signature { font-style: italic; font-weight: bold; }
+        
+        /* Nettoyage des floats */
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+    </style>
+</head>
+<body>
+    <div class="header clearfix">
+        <div class="doctor-info">
+            <strong>Dr. {{ consultation.medecin.nom|upper }} {{ consultation.medecin.prenom }}</strong><br>
+            {{ consultation.medecin.specialite|default('Médecin Généraliste') }}
+        </div>
+        <div class="hospital-name">HOSPISMART</div>
+        <div style="font-size: 11px;">Établissement de Santé Numérique</div>
+    </div>
+
+    <div class="patient-info">
+        <p><strong>Date :</strong> {{ consultation.dateHeure|date('d/m/Y') }}</p>
+        <p><strong>Patient :</strong> {{ consultation.patient.prenom }} {{ consultation.patient.nom|upper }}</p>
+        <p><strong>Âge :</strong> 
+            {% if consultation.patient.dateNaissance %}
+                {{ consultation.patient.dateNaissance.diff(date("now")).y }} ans
+            {% else %}
+                N/A
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="content">
+        <div class="title">ORDONNANCE</div>
+        <div style="padding-left: 20px;">
+            {{ consultation.traitement|nl2br }}
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="signature">Signature et cachet du médecin</div>
+        <div style="margin-top: 10px; border-bottom: 1px solid #000; width: 200px; float: right; height: 40px;"></div>
+    </div>
+</body>
+</html>

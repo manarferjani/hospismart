@@ -3,41 +3,37 @@
 {% block title %}Inscription - {{ evenement.titre }}{% endblock %}
 
 {% block body %}
-<div class="row justify-content-center">
+<div class="row justify-content-center mt-5">
     <div class="col-md-8 col-lg-6">
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4">
-                <h2 class="h4 mb-2"><i class="fa-solid fa-user-plus text-primary"></i> Inscription à l'événement</h2>
-                <p class="text-muted mb-4">{{ evenement.titre }} — {{ evenement.dateDebut ? evenement.dateDebut|date('d/m/Y H:i') : '' }} — {{ evenement.lieu }}</p>
-                {% if user_connected %}
-                    <p class="alert alert-light border mb-3"><i class="fa-solid fa-user-check text-success"></i> Vous êtes connecté : <strong>{{ app.user.prenom }} {{ app.user.nom }}</strong> ({{ app.user.email }}). Vos informations seront utilisées pour l'inscription.</p>
-                {% endif %}
-
+                <h2 class="h4 mb-2">
+                    <i class="fa-solid fa-user-plus text-primary"></i> Inscription à l'événement
+                </h2>
+                
+                <p class="text-muted mb-4">
+                    <strong>{{ evenement.titre }}</strong><br>
+                    <small>
+                        <i class="fa-solid fa-calendar"></i> {{ evenement.dateDebut ? evenement.dateDebut|date('d/m/Y H:i') : '' }} 
+                        | <i class="fa-solid fa-location-dot"></i> {{ evenement.lieu }}
+                    </small>
+                </p>
                 {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
                     {{ form_errors(form) }}
-                    {{ form_row(form.nom) }}
-                    {{ form_row(form.prenom) }}
-                    {{ form_row(form.email) }}
-                    {{ form_row(form.telephone) }}
-                    {{ form_row(form.role) }}
-                    <div class="mb-4">
-                        <div class="form-check">
-                            {{ form_widget(form.confirme_presence) }}
-                            {{ form_label(form.confirme_presence) }}
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa-solid fa-check"></i> Confirmer mon inscription
+
+                    {# Cette fonction affiche TOUS les champs présents dans le formulaire #}
+                    {# C'est le meilleur moyen de voir quels noms Symfony a réellement générés #}
+                    {{ form_widget(form) }}
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fa-solid fa-check"></i> Valider l'inscription
                         </button>
                         <a href="{{ path('app_evenement_public') }}" class="btn btn-outline-secondary">Annuler</a>
                     </div>
                 {{ form_end(form) }}
             </div>
         </div>
-        <p class="text-center mt-3">
-            <a href="{{ path('app_evenement_public') }}" class="text-muted"><i class="fa-solid fa-arrow-left"></i> Retour aux événements</a>
-        </p>
     </div>
 </div>
 {% endblock %}

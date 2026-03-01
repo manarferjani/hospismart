@@ -3,25 +3,20 @@
 {% block title %}Tableau de Bord - Dr. {{ app.user.nom }}{% endblock %}
 
 {% block body %}
-{# 1. Section des Notifications (Toasts) épurée #}
-<div class="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 320px;">
+
+{# 1. Section des Notifications (Toasts) centrée et courte #}
+
+<div id="flash-container" style="position: fixed; top: 100px; left: 50%; transform: translateX(-50%); z-index: 9999; width: auto; pointer-events: none;">
     {% for label, messages in app.flashes %}
         {% for message in messages %}
-            <div class="alert alert-{{ label == 'success' ? 'success' : (label == 'info' ? 'info' : 'danger') }} alert-dismissible fade show shadow-lg border-0 mb-3" 
+            <div class="alert alert-{{ label == 'success' ? 'success' : 'danger' }} shadow-lg border-0 text-center animate__animated animate__fadeInDown" 
                  role="alert" 
-                 style="border-left: 5px solid {{ label == 'success' ? '#198754' : (label == 'info' ? '#0dcaf0' : '#dc3545') }}; border-radius: 12px; background-color: white;">
+                 style="border-radius: 50px; padding: 8px 25px; background-color: white; border: 1px solid {{ label == 'success' ? '#198754' : '#dc3545' }} !important; pointer-events: auto; min-width: 200px;">
                 
-                <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                        {# L'icône change selon le type de message #}
-                        <i class="fas {{ label == 'success' ? 'fa-check-circle text-success' : (label == 'info' ? 'fa-info-circle text-info' : 'fa-exclamation-circle text-danger') }} fa-lg"></i>
-                    </div>
-                    <div class="ms-3">
-                        {# On affiche directement le message sans le titre Succès/Erreur #}
-                        <span class="text-dark fw-medium">{{ message }}</span>
-                    </div>
+                <div class="d-flex align-items-center justify-content-center">
+                    <i class="fas {{ label == 'success' ? 'fa-check-circle text-success' : 'fa-exclamation-circle text-danger' }} me-2"></i>
+                    <span class="text-dark fw-bold small">{{ message }}</span>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         {% endfor %}
     {% endfor %}
@@ -50,6 +45,7 @@
                     <tr>
                         <th class="ps-4 py-3 border-0">Patient</th>
                         <th class="py-3 border-0">Date & Heure</th>
+                        <th class="py-3 border-0">Urgence</th>
                         <th class="py-3 border-0">Motif</th>
                         <th class="py-3 border-0">Statut</th>
                         <th class="py-3 border-0 text-center">Actions</th>
@@ -60,17 +56,47 @@
                         <tr>
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
-                                    <img src="https://ui-avatars.com/api/?name={{ rdv.patient.user.nom }}+{{ rdv.patient.user.prenom }}&background=random" 
+                                    <img src="https://ui-avatars.com/api/?name={{ rdv.patient.nom }}+{{ rdv.patient.prenom }}&background=random" 
                                          class="rounded-circle me-3" width="40" height="40">
                                     <div>
-                                        <span class="d-block fw-bold text-dark">{{ rdv.patient.user.nom }} {{ rdv.patient.user.prenom }}</span>
-                                        <span class="text-muted small">{{ rdv.patient.user.email }}</span>
+                                        <span class="d-block fw-bold text-dark">{{ rdv.patient.nom }} {{ rdv.patient.prenom }}</span>
+                                        <span class="text-muted small">{{ rdv.patient.email }}</span>
                                     </div>
                                 </div>
                             </td>
+{# Remplace la cellule <td> Date & Heure par celle-ci #}
+<td>
+    <form method="post" action="{{ path('app_medecin_rdv_modifier_date', {id: rdv.id}) }}" class="d-flex flex-column gap-1">
+        <input type="datetime-local" 
+               name="nouvelle_date" 
+               value="{{ rdv.datetime|date('Y-m-d\\TH:i') }}" 
+               class="form-control form-control-sm border-0 bg-light fw-bold"
+               style="font-size: 0.85rem; color: #1a1a2e;"
+               onchange="this.form.submit()">
+        <span class="text-primary small fw-bold" style="cursor: pointer;" onclick="this.previousElementSibling.showPicker()">
+            <i class="far fa-edit me-1"></i>Modifier
+        </span>
+    </form>
+</td>
                             <td>
-                                <span class="d-block fw-bold text-dark">{{ rdv.datetime|date('d/m/Y') }}</span>
-                                <span class="text-primary fw-bold small">{{ rdv.datetime|date('H:i') }}</span>
+                                {% set score = rdv.priorite|default(2) %} {# On utilise 2 par défaut si vide #}
+                                {% if score == 5 %}
+                                    <span class="badge bg-danger shadow-sm anim-pulse" title="Urgence Vitale">
+                                        <i class="fas fa-exclamation-triangle"></i> P5 - CRITIQUE
+                                    </span>
+                                {% elseif score == 4 %}
+                                    <span class="badge bg-warning text-dark shadow-sm anim-pulse">
+                                        <i class="fas fa- ambulance"></i> P4 - URGENT
+                                    </span>
+                                {% elseif score == 3 %}
+                                    <span class="badge bg-info text-white shadow-sm">
+                                        <i class="fas fa-clock"></i> P3 - MOYEN
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-light text-muted border">
+                                        P{{ score }} - STANDARD
+                                    </span>
+                                {% endif %}
                             </td>
                             <td>
                                 <span class="text-muted small italic">{{ rdv.motif|default('Non précisé') }}</span>
@@ -84,43 +110,43 @@
                                     {{ rdv.statut }}
                                 </span>
                             </td>
-<td class="text-center pe-4">
-    <div class="d-flex justify-content-center gap-2">
-        
-        {# CAS 1 : Le rendez-vous est en attente #}
-        {% if rdv.statut == 'EN_ATTENTE' %}
-            <form method="post" action="{{ path('app_medecin_rdv_accepter', {id: rdv.id}) }}" onsubmit="return confirm('Confirmer ce rendez-vous ?');">
-                <input type="hidden" name="_token" value="{{ csrf_token('accepter' ~ rdv.id) }}">
-                <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" title="Confirmer">
-                    <i class="fas fa-check"></i>
-                </button>
-            </form>
+                            <td class="text-center pe-4">
+                                <div class="d-flex justify-content-center gap-2">
+                                    
+                                    {# CAS 1 : Le rendez-vous est en attente #}
+                                    {% if rdv.statut == 'EN_ATTENTE' %}
+                                        <form method="post" action="{{ path('app_medecin_rdv_accepter', {id: rdv.id}) }}" onsubmit="return confirm('Confirmer ce rendez-vous ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('accepter' ~ rdv.id) }}">
+                                            <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" title="Confirmer">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
 
-            <form method="post" action="{{ path('app_medecin_rdv_refuser', {id: rdv.id}) }}" onsubmit="return confirm('Refuser ce rendez-vous ?');">
-                <input type="hidden" name="_token" value="{{ csrf_token('refuser' ~ rdv.id) }}">
-                <button class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm" title="Refuser">
-                    <i class="fas fa-times"></i> 
-                </button>
-            </form>
+                                        <form method="post" action="{{ path('app_medecin_rdv_refuser', {id: rdv.id}) }}" onsubmit="return confirm('Refuser ce rendez-vous ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('refuser' ~ rdv.id) }}">
+                                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm" title="Refuser">
+                                                <i class="fas fa-times"></i> 
+                                            </button>
+                                        </form>
 
-        {# CAS 2 : Le rendez-vous est déjà confirmé, on ne laisse que le bouton pour Annuler #}
-        {% elseif rdv.statut == 'CONFIRME' %}
-            <form method="post" action="{{ path('app_medecin_rdv_annuler', {id: rdv.id}) }}" onsubmit="return confirm('Voulez-vous vraiment annuler ce rendez-vous déjà confirmé ?');">
-                <input type="hidden" name="_token" value="{{ csrf_token('annuler' ~ rdv.id) }}">
-                <button class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" title="Annuler le RDV confirmé">
-                    <i class="fas fa-ban me-1"></i>
-                </button>
-            </form>
+                                    {# CAS 2 : Le rendez-vous est déjà confirmé, on ne laisse que le bouton pour Annuler #}
+                                    {% elseif rdv.statut == 'CONFIRME' %}
+                                        <form method="post" action="{{ path('app_medecin_rdv_annuler', {id: rdv.id}) }}" onsubmit="return confirm('Voulez-vous vraiment annuler ce rendez-vous déjà confirmé ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('annuler' ~ rdv.id) }}">
+                                            <button class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" title="Annuler le RDV confirmé">
+                                                <i class="fas fa-ban me-1"></i>
+                                            </button>
+                                        </form>
 
-        {# CAS 3 : Affichage des textes finaux selon l'historique #}
-        {% elseif rdv.statut == 'REFUSE' %}
-            <span class="badge bg-light text-secondary border">Refusé</span>
-        {% elseif rdv.statut == 'ANNULE' %}
-            <span class="badge bg-light text-secondary border">Annulé</span>
-        {% endif %}
+                                    {# CAS 3 : Affichage des textes finaux selon l'historique #}
+                                    {% elseif rdv.statut == 'REFUSE' %}
+                                        <span class="badge bg-light text-secondary border">Refusé</span>
+                                    {% elseif rdv.statut == 'ANNULE' %}
+                                        <span class="badge bg-light text-secondary border">Annulé</span>
+                                    {% endif %}
 
-    </div>
-</td>
+                                </div>
+                            </td>
                         </tr>
                     {% else %}
                         <tr>

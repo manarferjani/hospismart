@@ -88,16 +88,15 @@
                 </ul>
             </div>
 
-            <div class="d-flex align-items-center">
-                {# Système de Notification Patient #}
-
-                {% if app.user and app.user.type == 'PATIENT' %}
-                <div class="dropdown me-3">
-                    <a class="nav-link p-0 position-relative notification-bell" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <div class="d-flex align-items-center">
+            {# 1. Système de Notification (Visible par tous les utilisateurs connectés) #}
+            {% if app.user %}
+                <div class="dropdown me-3" data-turbo="false">
+                    <a class="nav-link p-0 position-relative notification-bell" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
                         <i class="fa-solid fa-bell fs-5"></i>
                         
+                        {# Calcul des non lues - Utilisation de isRead() de l'entité #}
                         {% set unread_count = 0 %}
-                        {# On accède directement à app.user.notifications #}
                         {% for notif in app.user.notifications %}
                             {% if not notif.isRead %}{% set unread_count = unread_count + 1 %}{% endif %}
                         {% endfor %}
@@ -109,70 +108,66 @@
                         {% endif %}
                     </a>
 
-                    <ul class="dropdown-menu dropdown-menu-end shadow mt-3" style="width: 300px;">
-                        <li class="dropdown-header d-flex justify-content-between">
-                            <span>Notifications</span>
-                            {% if unread_count > 0 %}<span class="badge bg-primary">{{ unread_count }}</span>{% endif %}
+                    <ul class="dropdown-menu dropdown-menu-end shadow mt-3" style="width: 300px; border-radius: 12px;">
+                        <li class="dropdown-header border-bottom pb-2 d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Notifications</span>
+                            {% if unread_count > 0 %}
+                                <span class="badge bg-primary text-white">{{ unread_count }}</span>
+                            {% endif %}
                         </li>
                         
-                        {# On utilise app.user.notifications directement ici aussi #}
-                        {% if app.user.notifications|length > 0 %}
-                            {% for notif in app.user.notifications|sort((a, b) => b.createdAt <=> a.createdAt)|slice(0, 5) %}
-                                <li class="p-3 border-bottom {{ not notif.isRead ? 'bg-light' : '' }}">
-                                    <small class="d-block {{ not notif.isRead ? 'fw-bold' : '' }}">{{ notif.content }}</small>
-                                    <small class="text-muted" style="font-size: 0.7rem;">{{ notif.createdAt|date('d/m H:i') }}</small>
-                                </li>
-                            {% endfor %}
-                        {% else %}
-                            <li class="p-4 text-center text-muted small">Aucune notification</li>
-                        {% endif %}
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            {% if app.user.notifications is not empty %}
+                                {% for notif in app.user.notifications|sort((a, b) => b.createdAt <=> a.createdAt)|slice(0, 5) %}
+                                    <li class="p-3 border-bottom {{ not notif.isRead ? 'bg-light' : '' }}">
+                                        <small class="d-block {{ not notif.isRead ? 'fw-bold text-dark' : 'text-muted' }}" style="line-height: 1.2;">
+                                            {{ notif.content }}
+                                        </small>
+                                        <small class="text-muted mt-1 d-block" style="font-size: 0.65rem;">
+                                            <i class="fa-regular fa-clock me-1"></i>{{ notif.createdAt|date('d/m H:i') }}
+                                        </small>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="p-4 text-center text-muted small">Aucune notification</li>
+                            {% endif %}
+                        </div>
                     </ul>
                 </div>
+            {% endif %}
+
+            {# 2. Menu Utilisateur (Déconnexion / Mon Compte) #}
+            <div class="d-none d-lg-block">
+                {% if app.user %}
+                    <div class="dropdown d-inline-block" data-turbo="false">
+                        <a class="btn-logout dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ app.user.prenom }}
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow mt-2" style="border-radius: 12px;">
+                            <li>
+                                <a class="dropdown-item small" href="{{ path('app_patient_coordonnees') }}">
+                                    <i class="fa-solid fa-user-circle me-2 text-primary"></i>Mon Compte
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item small text-danger" href="{{ path('app_logout') }}">
+                                    <i class="fa-solid fa-right-from-bracket me-2"></i>Déconnexion
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <div class="d-flex gap-2">
+                        <a href="{{ path('app_login') }}" class="btn-logout">Connexion</a>
+                        <a href="{{ path('app_register') }}" class="btn btn-primary px-4 shadow-sm" style="border-radius: 50px; font-weight: 600;">
+                            <i class="fa-solid fa-user-plus me-2"></i>Inscription
+                        </a>
+                    </div>
                 {% endif %}
-
-                <div class="d-none d-lg-block">
-                    {% if app.user %}
-                        <div class="dropdown d-inline-block">
-                            {# Le bouton avec le prénom #}
-                            <a class="btn-logout dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                {{ app.user.prenom }}
-                            </a>
-
-                            {# --- ICI TU METS TON BLOC --- #}
-                            <ul class="dropdown-menu dropdown-menu-end shadow mt-2">
-                                
-                                {# Puisque seuls les patients voient cette navbar, on affiche "Mon Compte" #}
-                                <li>
-                                    <a class="dropdown-item small" href="{{ path('app_patient_coordonnees') }}">
-                                        <i class="fa-solid fa-user-circle me-2"></i>Mon Compte
-                                    </a>
-                                </li>
-                                
-                                <li><hr class="dropdown-divider"></li>
-
-                                {# Lien de déconnexion #}
-                                <li>
-                                    <a class="dropdown-item small text-danger" href="{{ path('app_logout') }}">
-                                        <i class="fa-solid fa-right-from-bracket me-2"></i>Déconnexion
-                                    </a>
-                                </li>
-                            </ul>
-                            {# -------------------------- #}
-
-                        </div>
-                    {% else %}
-                        {# BOUTONS POUR VISITEURS NON CONNECTÉS #}
-        <div class="d-flex gap-2">
-            <a href="{{ path('app_login') }}" class="btn-logout">
-                Connexion
-            </a>
-            <a href="{{ path('app_register') }}" class="btn btn-primary px-4 shadow-sm" style="border-radius: 50px; font-weight: 600;">
-                <i class="fa-solid fa-user-plus me-2"></i>Inscription
-            </a>
-        </div>
-                    {% endif %}
-                </div>
             </div>
+        </div>
         </div>
     </nav>
 
@@ -194,4 +189,35 @@
             <p class="mb-1">Hospismart &copy; {{ 'now'|date('Y') }} - OASIS</p>
         </div>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifDropdown = document.getElementById('notifDropdown');
+            if (notifDropdown) {
+                notifDropdown.addEventListener('click', function() {
+                    const badge = notifDropdown.querySelector('.badge');
+                    if (badge) {
+                        badge.style.display = 'none'; // Cacher le badge
+                    }
+                    
+                    const unreadItems = document.querySelectorAll('.dropdown-menu .bg-light');
+                    unreadItems.forEach(item => {
+                        item.classList.remove('bg-light');
+                        const textElement = item.querySelector('.fw-bold');
+                        if (textElement) {
+                            textElement.classList.remove('fw-bold', 'text-dark');
+                            textElement.classList.add('text-muted');
+                        }
+                    });
+
+                    fetch('{{ path('app_notifications_mark_read') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    }).catch(error => console.error('Erreur lors du marquage des notifications:', error));
+                }, { once: true });
+            }
+        });
+    </script>
 {% endblock %}

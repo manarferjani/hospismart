@@ -25,17 +25,20 @@
                 <strong>{{ demandes|length }}</strong> demande(s) en attente de votre réponse.
             </p>
             <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Date / Heure</th>
-                            <th>Patient</th>
-                            <th>Motif</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for rdv in demandes %}
+            <table class="table align-middle">
+                <thead>
+                    <tr class="text-muted small text-uppercase">
+                        <th class="border-0">Date / Heure</th>
+                        <th class="border-0">Patient</th>
+                        <th class="border-0">Motif</th>
+                        <th class="border-0">Statut</th>
+                        <th class="border-0 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rdv in demandes %}
+                        {# FILTRE : On vérifie les majuscules selon votre contrôleur PHP #}
+                        {% if rdv.statut == 'EN_ATTENTE' or rdv.statut == 'CONFIRME' %}
                             <tr>
                                 <td>
                                     <span class="badge bg-light text-dark border">
@@ -43,31 +46,50 @@
                                     </span>
                                 </td>
                                 <td>
-                                    {% if rdv.patient and rdv.patient.user %}
-                                        {{ rdv.patient.user.nom }} {{ rdv.patient.user.prenom }}
+                                    {% if rdv.patient %}
+                                        <span class="fw-bold">{{ rdv.patient.nom }} {{ rdv.patient.prenom }}</span>
                                     {% else %}
                                         <span class="text-muted">—</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ rdv.motif|u.truncate(50) }}</td>
+                                <td class="small">{{ rdv.motif|u.truncate(50) }}</td>
+                                
+                                {# AFFICHAGE DU STATUT #}
+                                <td>
+                                    {% if rdv.statut == 'CONFIRME' %}
+                                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                                            <i class="fas fa-check-circle me-1"></i> Confirmé
+                                        </span>
+                                    {% else %}
+                                        <span class="badge rounded-pill bg-warning-subtle text-warning border border-warning-subtle px-3 py-2">
+                                            <i class="fas fa-clock me-1"></i> En attente
+                                        </span>
+                                    {% endif %}
+                                </td>
+
                                 <td class="text-end">
-                                    <form method="post" action="{{ path('app_medecin_rdv_accepter', { id: rdv.id }) }}" class="d-inline">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('accepter' ~ rdv.id) }}">
-                                        <button type="submit" class="btn btn-success btn-sm" style="border-radius: 10px;">
-                                            <i class="fas fa-check me-1"></i> Accepter
-                                        </button>
-                                    </form>
-                                    <form method="post" action="{{ path('app_medecin_rdv_refuser', { id: rdv.id }) }}" class="d-inline ms-1">
-                                        <input type="hidden" name="_token" value="{{ csrf_token('refuser' ~ rdv.id) }}">
-                                        <button type="submit" class="btn btn-outline-danger btn-sm" style="border-radius: 10px;">
-                                            <i class="fas fa-times me-1"></i> Refuser
-                                        </button>
-                                    </form>
+                                    {% if rdv.statut == 'EN_ATTENTE' %}
+                                        <form method="post" action="{{ path('app_medecin_rdv_accepter', { id: rdv.id }) }}" class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('accepter' ~ rdv.id) }}">
+                                            <button type="submit" class="btn btn-success btn-sm" style="border-radius: 10px;">
+                                                Accepter
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{{ path('app_medecin_rdv_refuser', { id: rdv.id }) }}" class="d-inline ms-1">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('refuser' ~ rdv.id) }}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" style="border-radius: 10px;">
+                                                Refuser
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <small class="text-muted">Rendez-vous validé</small>
+                                    {% endif %}
                                 </td>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
             </div>
         </div>
     {% else %}

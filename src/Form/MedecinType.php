@@ -2,7 +2,6 @@
 
 namespace App\Form;
 
-use App\Entity\Medecin;
 use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -24,10 +23,10 @@ class MedecinType extends AbstractType
         ;
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
-    {
-        $resolver->setDefaults([
-            'data_class' => Medecin::class,
-        ]);
-    }
+        public function configureOptions(OptionsResolver $resolver): void
+        {
+            $resolver->setDefaults([
+                'data_class' => User::class, // On change Medecin par User
+            ]);
+        }
 }

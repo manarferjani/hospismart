@@ -2,40 +2,395 @@
 
 {% block title %}Connexion - Hospismart{% endblock %}
 
-{% block body %} 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 60vh;">
-    <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px; border-radius: 20px; border: none;">
-        <h2 class="text-center mb-4 fw-bold" style="color: #0d6efd;">Se connecter</h2>
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        :root {
+            /* Couleurs extraites de l'interface Hospismart */
+            --hp-primary: #0061f2;         /* Bleu principal logo/boutons */
+            --hp-primary-dark: #0046ad;
+            --hp-secondary: #1a2b4b;       /* Bleu marine pour titres */
+            --hp-accent: #00cfd5;          /* Turquoise pour scan/succès */
+            --hp-bg: #f2f5f9;              /* Gris-bleu clair de l'arrière-plan */
+            --hp-border: #dbeafe;
+            --hp-text-muted: #69707a;
+            --hp-white: #ffffff;
+            --hp-error: #e81500;
+            --hp-success: #00ac69;
+        }
+
+        /* ===== GLOBAL WRAPPER ===== */
+        .auth-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            background-color: var(--hp-bg);
+            position: relative;
+        }
+
+        /* ===== AUTH CARD ===== */
+        .auth-card {
+            background: var(--hp-white);
+            border: 1px solid var(--hp-border);
+            border-radius: 12px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0, 97, 242, 0.05);
+            z-index: 1;
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-logo svg {
+            width: 50px;
+            height: 50px;
+            color: var(--hp-primary);
+            margin-bottom: 1rem;
+        }
+
+        .auth-logo h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--hp-secondary);
+            margin: 0;
+        }
+
+        .auth-logo p {
+            color: var(--hp-text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* ===== TABS ===== */
+        .auth-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 2rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--hp-text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .auth-tab.active {
+            background: var(--hp-white);
+            color: var(--hp-primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--hp-border);
+        }
+
+        .auth-tab svg { width: 18px; height: 18px; }
+
+        /* ===== FORMS & INPUTS ===== */
+        .auth-panel { display: none; animation: fadeIn 0.3s ease; }
+        .auth-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .field-group { margin-bottom: 1.25rem; }
+        .field-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--hp-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .field-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--hp-white);
+            border: 1px solid #c5ccd6;
+            border-radius: 6px;
+            color: #1a2b4b;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        .field-group input:focus {
+            outline: none;
+            border-color: var(--hp-primary);
+            box-shadow: 0 0 0 3px rgba(0, 97, 242, 0.15);
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn-auth {
+            width: 100%;
+            padding: 0.85rem;
+            background: var(--hp-primary);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-auth:hover { background: var(--hp-primary-dark); }
+
+        .btn-scan {
+            width: 100%;
+            padding: 0.85rem;
+            background: linear-gradient(135deg, var(--hp-accent), var(--hp-primary));
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        /* ===== CAMERA & STATUS ===== */
+        .camera-container {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 4/3;
+            margin-bottom: 1rem;
+            border: 2px solid var(--hp-border);
+        }
+
+        #face-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        #face-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); }
+
+        .face-guide {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 180px; height: 220px;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .status-pill.loading { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+        .status-pill.ready { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+        .status-pill.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+        .auth-footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .auth-footer a { color: var(--hp-primary); text-decoration: none; font-weight: 600; }
+        .auth-footer a:hover { text-decoration: underline; }
+
+        .spinner {
+            width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+{% endblock %}
+
+{% block layout %}
+<div class="auth-wrapper">
+    <div class="auth-card">
         
+        <div class="auth-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 8h-1V6c0-2.76-2.24-5-5-5S8 3.24 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+            <h1>Hospismart</h1>
+            <p>Espace de connexion sécurisé</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-password" onclick="switchTab('password')">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+                Classique
+            </button>
+            <button class="auth-tab" id="tab-face" onclick="switchTab('face')">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 11.75A1.25 1.25 0 0 0 7.75 13 1.25 1.25 0 0 0 9 14.25 1.25 1.25 0 0 0 10.25 13 1.25 1.25 0 0 0 9 11.75m6 0A1.25 1.25 0 0 0 13.75 13 1.25 1.25 0 0 0 15 14.25 1.25 1.25 0 0 0 16.25 13 1.25 1.25 0 0 0 15 11.75M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 18a8 8 0 0 1-8-8 8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8m0-4c2.28 0 4.22-1.27 5.25-3.13l-1.75-.87c-.67 1.25-1.97 2-3.5 2s-2.83-.75-3.5-2L6.75 12.87C7.78 14.73 9.72 16 12 16z"/></svg>
+                Visage (IA)
+            </button>
+        </div>
+
         {% if error %}
-            <div class="alert alert-danger" style="border-radius: 12px;">
+            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 0.75rem; border-radius: 6px; font-size: 0.85rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                 {{ error.messageKey|trans(error.messageData, 'security') }}
             </div>
         {% endif %}
 
-        <form method="post" action="{{ path('app_login') }}">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-            
-            <div class="mb-3">
-                <label for="username" class="form-label small fw-bold">Nom d'utilisateur ou email</label>
-                <input type="text" id="username" name="_username" value="{{ last_username }}" 
-                       class="form-control" placeholder="Votre identifiant" required autofocus>
+        <div class="auth-panel active" id="panel-password">
+            <form method="post" action="{{ path('app_login') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                <div class="field-group">
+                    <label for="username">Identifiant ou Email</label>
+                    <input type="text" id="username" name="_username" value="{{ last_username }}" placeholder="ex: jean.dupont" required autofocus>
+                </div>
+                <div class="field-group">
+                    <div style="display: flex; justify-content: space-between;">
+                        <label for="password">Mot de passe</label>
+                        <a href="{{ path('app_forgot_password_request') }}" style="font-size: 0.75rem; color: var(--hp-primary);">Oublié ?</a>
+                    </div>
+                    <input type="password" id="password" name="_password" placeholder="••••••••" required>
+                </div>
+                <button class="btn-auth" type="submit">Se connecter</button>
+            </form>
+        </div>
+
+        <div class="auth-panel" id="panel-face">
+            <div style="text-align: center;">
+                <span class="status-pill loading" id="face-status-pill">
+                    <span class="spinner" style="border-top-color: currentColor; width: 12px; height: 12px;"></span>
+                    <span id="face-status-text">Initialisation...</span>
+                </span>
             </div>
 
-            <div class="mb-4">
-                <label for="password" class="form-label small fw-bold">Mot de passe</label>
-                <input type="password" id="password" name="_password" 
-                       class="form-control" required>
+            <div class="camera-container">
+                <video id="face-video" autoplay muted playsinline></video>
+                <canvas id="face-canvas"></canvas>
+                <div class="face-guide"></div>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm fw-bold">
-                Connexion
+            <button id="btn-face-scan" class="btn-scan" onclick="startFaceScan()" disabled>
+                Scanner le visage
             </button>
-        </form>
+            <div id="face-result" style="margin-top: 1rem; font-size: 0.85rem; text-align: center; min-height: 20px;"></div>
+        </div>
 
-        <p class="mt-4 text-center small">
-            Pas encore de compte ? <a href="{{ path('app_register') }}" class="text-decoration-none fw-bold">Créer un compte</a>
-        </p>
+        <div class="auth-footer">
+            <p>Pas encore de compte ? <a href="{{ path('app_register') }}">Inscrivez-vous</a></p>
+        </div>
+
     </div>
 </div>
+
+<script src="{{ asset('js/face-api/face-api.min.js') }}"></script>
+<script>
+    const MODEL_URL = '{{ asset('models') }}';
+    const FACE_LOGIN_URL = '{{ path('api_face_login') }}';
+    let modelsLoaded = false;
+    let videoStream = null;
+    let isScanning = false;
+
+    function switchTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.getElementById('panel-' + tab).classList.add('active');
+        if (tab === 'face') initFaceRecognition(); else stopCamera();
+    }
+
+    async function initFaceRecognition() {
+        if (modelsLoaded) { await startCamera(); return; }
+        setStatus('loading', 'Chargement de l\'IA...');
+        try {
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+            ]);
+            modelsLoaded = true;
+            await startCamera();
+        } catch (err) { setStatus('error', 'Erreur IA'); }
+    }
+
+    async function startCamera() {
+        try {
+            videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } });
+            const video = document.getElementById('face-video');
+            video.srcObject = videoStream;
+            document.getElementById('btn-face-scan').disabled = false;
+            setStatus('ready', 'Prêt pour le scan');
+            startLiveDetection();
+        } catch (err) { setStatus('error', 'Caméra bloquée'); }
+    }
+
+    function stopCamera() {
+        if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+    }
+
+    async function startLiveDetection() {
+        const video = document.getElementById('face-video');
+        const canvas = document.getElementById('face-canvas');
+        const loop = async () => {
+            if (!videoStream || video.paused) return;
+            const displaySize = { width: video.videoWidth, height: video.videoHeight };
+            faceapi.matchDimensions(canvas, displaySize);
+            const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks(true);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            faceapi.draw.drawDetections(canvas, faceapi.resizeResults(detections, displaySize));
+            requestAnimationFrame(loop);
+        };
+        loop();
+    }
+
+    async function startFaceScan() {
+        if (isScanning) return;
+        isScanning = true;
+        const btn = document.getElementById('btn-face-scan');
+        btn.innerHTML = '<span class="spinner"></span> Analyse...';
+        try {
+            const detection = await faceapi.detectSingleFace(document.getElementById('face-video'), new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks(true).withFaceDescriptor();
+            if (!detection) { throw new Error('Visage non détecté'); }
+            
+            const response = await fetch(FACE_LOGIN_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ descriptor: Array.from(detection.descriptor) }),
+            });
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('face-result').style.color = 'var(--hp-success)';
+                document.getElementById('face-result').textContent = 'Succès ! Redirection...';
+                setTimeout(() => window.location.href = result.redirect, 1000);
+            } else { throw new Error(result.message); }
+        } catch (err) {
+            document.getElementById('face-result').style.color = 'var(--hp-error)';
+            document.getElementById('face-result').textContent = err.message;
+            isScanning = false;
+            btn.innerHTML = 'Réessayer';
+        }
+    }
+
+    function setStatus(type, text) {
+        const pill = document.getElementById('face-status-pill');
+        pill.className = 'status-pill ' + type;
+        document.getElementById('face-status-text').textContent = text;
+    }
+</script>
 {% endblock %}

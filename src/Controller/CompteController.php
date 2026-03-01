@@ -2,8 +2,7 @@
 
 namespace App\Controller;
 
-use App\Repository\MedecinRepository;
-use App\Repository\PatientRepository;
+use App\Repository\UserRepository;
 use App\Repository\ServiceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,8 +20,7 @@ class CompteController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         UserPasswordHasherInterface $passwordHasher,
-        PatientRepository $patientRepository,
-        MedecinRepository $medecinRepository,
+        UserRepository $UserRepository,
         ServiceRepository $serviceRepository,
         ValidatorInterface $validator
     ): Response {
@@ -30,8 +28,8 @@ class CompteController extends AbstractController
         if (!$user) {
             return $this->redirectToRoute('app_login');
         }
-        $patient = $patientRepository->findOneByUser($user);
-        $medecin = $medecinRepository->findOneByUser($user);
+        $patient = (in_array('ROLE_PATIENT', $user->getRoles()) || $user->getType() === 'PATIENT') ? $user : null;
+        $medecin = (in_array('ROLE_MEDECIN', $user->getRoles()) || $user->getType() === 'MEDECIN') ? $user : null;
         $errors = [];
 
         if ($request->isMethod('POST')) {

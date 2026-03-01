@@ -105,9 +105,20 @@
     .notif-container { position: absolute; top: 40px; right: 40px; z-index: 1000; }
     .notification-bell { color: #555; cursor: pointer; position: relative; }
     .bell-badge {
-        position: absolute; top: -5px; right: -5px;
-        background-color: #dc3545; color: white;
-        border-radius: 50%; padding: 2px 5px; font-size: 10px;
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        background-color: #dc3545;
+        color: white;
+        border-radius: 50%; /* Assure la rondeur */
+        width: 18px;        /* Largeur fixe */
+        height: 18px;       /* Hauteur fixe égale à la largeur */
+        font-size: 10px;
+        font-weight: bold;
+        display: flex;      /* Aligne le chiffre au centre */
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #f8fafc; /* Optionnel : ajoute un petit contour pour le détacher du fond */
     }
     .notif-dropdown {
         position: absolute; right: 0; top: 45px; width: 300px;
@@ -119,6 +130,24 @@
     @media (max-width: 992px) {
         .admin-wrapper { flex-direction: column; }
         .sidebar { width: 100%; height: auto; position: relative; }
+    }
+    .sidebar-menu .badge.rounded-pill {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;         /* Enlève le padding qui déforme le cercle */
+    font-size: 11px;
+}
+
+    .anim-pulse {
+        animation: pulse-red 2s infinite;
+    }
+    @keyframes pulse-red {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
     }
 </style>
 {% endblock %}
@@ -136,7 +165,7 @@
         {# Section Profil Dynamique #}
         {% if is_granted('ROLE_MEDECIN') %}
             <a href="{{ path('app_medecin_profil') }}" class="sidebar-profile {{ app.request.get('_route') == 'app_medecin_profil' ? 'active-profile' : '' }}">
-                <img src="{{ app.user.image ? asset('/images/users/' ~ app.user.image) : 'https://ui-avatars.com/api/?name=' ~ app.user.nom ~ '+' ~ app.user.prenom ~ '&background=0d6efd&color=fff' }}" class="profile-img shadow-sm">
+                <img src="{{ app.user.image ? asset('/images/' ~ (app.user.type|lower == 'medecin' ? 'medecins/' : 'patients/') ~ app.user.image) : 'https://ui-avatars.com/api/?name=' ~ app.user.nom ~ '+' ~ app.user.prenom ~ '&background=0d6efd&color=fff' }}" class="profile-img shadow-sm">
                 <span class="profile-name">Dr. {{ app.user.nom }}</span>
                 <span class="profile-spec">{{ app.user.specialite|default('Médecin') }}</span>
             </a>
@@ -152,7 +181,7 @@
             <ul class="sidebar-menu">
                 {# Menu Commun #}
                 {#<div class="menu-header">Général</div>#}
-                
+
                 {# Menu Admin #}
                 {% if is_granted('ROLE_ADMIN') %}
                     <div class="menu-header">Administration</div>
@@ -166,8 +195,21 @@
                 {% if is_granted('ROLE_MEDECIN') %}
                     <div class="menu-header">Ma Clinique</div>
                     <li><a href="{{ path('app_medecin_dashboard') }}" class="{{ app.request.get('_route') == 'app_medecin_dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
-                    <li><a href="{{ path('app_medecin_demandes_rdv') }}" class="{{ app.request.get('_route') == 'app_medecin_demandes_rdv' ? 'active' : '' }}"><i class="fa-solid fa-calendar-check"></i> Mes RDV</a></li>
+                <li>
+                    <a href="{{ path('app_medecin_demandes_rdv') }}" class="d-flex align-items-center flex-nowrap {{ app.request.get('_route') == 'app_medecin_demandes_rdv' ? 'active' : '' }}" style="text-decoration: none; padding: 10px 15px;">
+                        <i class="fa-solid fa-calendar-check me-3"></i> 
+                        <span style="white-space: nowrap;">Mes RDV</span>
+                        
+                        {% set nb_demandes_attente = app.user.rendezVousMedecin|filter(r => r.statut == 'EN_ATTENTE')|length %}
+                        {% if nb_demandes_attente > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ nb_demandes_attente }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                    </li>
                     <li><a href="{{ path('app_medecin_dispo_index') }}" class="{{ app.request.get('_route') == 'app_medecin_dispo_index' ? 'active' : '' }}"><i class="fa-solid fa-clock"></i> Mes Créneaux</a></li>
+                    <li><a href="{{ path('app_medecin_patients') }}" class="{{ app.request.get('_route') == 'app_medecin_patients' ? 'active' : '' }}"><i class="fa-solid fa-hospital-user"></i> Mes Patients</a></li>
+
                 {% endif %}
 
                 {# Menu Logistique #}
@@ -201,12 +243,12 @@
 
     <main class="main-content">
         {# Barre de notifications (si médecin) #}
-        {% if is_granted('ROLE_MEDECIN') %}
+        {% if is_granted('ROLE_MEDECIN') and app.request.get('_route') == 'app_medecin_dashboard' %}
             <div class="notif-container">
                 <div class="notification-bell" id="bellBtn">
                     <i class="fa-solid fa-bell fa-xl"></i>
-                    {% if demandes_attente is defined and demandes_attente > 0 %}
-                        <span class="bell-badge">{{ demandes_attente }}</span>
+                    {% if unread_notifications_count is defined and unread_notifications_count > 0 %}
+                        <span class="bell-badge">{{ unread_notifications_count }}</span>
                     {% endif %}
                 </div>
                 <div class="notif-dropdown" id="notifBox">
@@ -216,7 +258,7 @@
                             {% for rdv in notifications_list %}
                                 <a href="{{ path('app_medecin_demandes_rdv') }}" class="text-decoration-none text-dark">
                                     <div class="p-2 border-bottom small">
-                                        <strong>{{ rdv.patient.user.nom }}</strong><br>
+                                        <strong>{{ rdv.patient.nom }}</strong><br>
                                         <span class="text-muted">Le {{ rdv.datetime|date('d/m à H:i') }}</span>
                                     </div>
                                 </a>

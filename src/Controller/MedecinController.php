@@ -6,20 +6,23 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Entity\Notification;
 use App\Entity\Disponibilite;
-use App\Entity\Patient;
 use App\Entity\RendezVous;
 use App\Entity\Service;
 use App\Enum\RendezVousStatut;
 use App\Form\MedecinType;
-use App\Repository\MedecinRepository;
 use App\Repository\RendezVousRepository;
-use App\Repository\PatientRepository; 
 use App\Repository\ServiceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\Consultation;
+use Symfony\Component\Mailer\MailerInterface;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Symfony\Component\Mime\Email;
+
 
 #[Route('/medecin')]
 final class MedecinController extends AbstractController
@@ -39,7 +42,7 @@ final class MedecinController extends AbstractController
      * DASHBOARD
      */
     #[Route('/dashboard', name: 'app_medecin_dashboard', methods: ['GET'])]
-    public function dashboard(RendezVousRepository $rdvRepo, UserRepository $userRepo): Response
+    public function dashboard(RendezVousRepository $rdvRepo, UserRepository $userRepo, \App\Repository\NotificationRepository $notifRepo): Response
     {
         $medecin = $this->getConnectedMedecin();
         if (!$medecin) return $this->redirectToRoute('app_login');
@@ -50,11 +53,14 @@ final class MedecinController extends AbstractController
             ['datetime' => 'ASC']
         );
 
-        // 2. Notifications (Demandes en attente)
+        // 2. Notifications (Demandes en attente) pour la liste
         $notifsEnAttente = $rdvRepo->findBy(
             ['medecin' => $medecin, 'statut' => 'EN_ATTENTE'],
             ['datetime' => 'DESC']
         );
+
+        // Notifications non lues
+        $unreadNotifs = $notifRepo->count(['user' => $medecin, 'isRead' => false]);
 
         // 3. Statistiques du jour
         $aujourdhuiDebut = new \DateTime('today 00:00:00');
@@ -79,12 +85,13 @@ final class MedecinController extends AbstractController
             'demandes' => $rdvRepo->findBy(['medecin' => $medecin], ['datetime' => 'ASC']),
             'prochain_rdv' => $prochainRdv,
             'rdv_du_jour' => $rdvConfirmesAujourdhui,
-            'demandes_attente' => count($notifsEnAttente),
+            'unread_notifications_count' => $unreadNotifs,
             'notifications_list' => $notifsEnAttente,
             'total_patients' => count($userRepo->findBy(['type' => 'PATIENT'])),
             'taux_occupation' => round($tauxOccupation)
         ]);
     }
+    
 
     /**
      * MES RENDEZ-VOUS
@@ -108,10 +115,10 @@ final class MedecinController extends AbstractController
      * MES PATIENTS (Correction Route et Données)
      */
     #[Route('/mes-patients', name: 'app_medecin_patients', methods: ['GET'])]
-    public function listPatients(PatientRepository $patientRepo, MedecinRepository $medecinRepo): Response
+    public function listPatients(UserRepository $userRepo): Response
     {
-        $medecin = $this->getConnectedMedecin($medecinRepo);
-        $patients = $patientRepo->findAll(); 
+        $medecin = $this->getConnectedMedecin();
+        $patients = $userRepo->findBy(['type' => 'PATIENT']); 
 
         return $this->render('medecin/patients.html.twig', [
             'medecin' => $medecin,
@@ -123,7 +130,7 @@ final class MedecinController extends AbstractController
      * MON PROFIL (Correction Affichage Nom)
      */
     #[Route('/mon-profil', name: 'app_medecin_profil', methods: ['GET'])]
-    public function profil(MedecinRepository $medecinRepo): Response
+    public function profil(UserRepository $medecinRepo): Response
     {
         $medecin = $this->getConnectedMedecin($medecinRepo);
 
@@ -171,7 +178,7 @@ final class MedecinController extends AbstractController
 
 
 
-    #[Route('/medecin/profil/{id}', name: 'app_medecin_show', methods: ['GET'])]
+    #[Route('/profil/{id}', name: 'app_medecin_show', methods: ['GET'])]
     public function show(User $medecin): Response
         {
             if ($medecin->getType() !== 'MEDECIN') throw $this->createNotFoundException();
@@ -181,22 +188,32 @@ final class MedecinController extends AbstractController
      * FILTRE PAR SERVICE
      */
     #[Route('/recherche-patient/service/{id}', name: 'app_medecins_par_service', methods: ['GET'])]
-    public function parService(Service $service, MedecinRepository $medecinRepository, ServiceRepository $serviceRepository): Response
+    public function parService(Service $service, UserRepository $UserRepository): Response
     {
-        // On récupère les médecins liés à ce service
-        $medecins = $medecinRepository->findBy(['service' => $service]);
+        // On utilise 'service_entity' car c'est le nom de la propriété dans ton entité User
+        $medecins = $UserRepository->findBy([
+            'service_entity' => $service,
+            'type' => 'MEDECIN' // On s'assure de ne prendre que les médecins
+        ]);
 
-        // ATTENTION : Changez le nom du template ci-dessous par le nom réel de votre fichier
         return $this->render('medecin/liste_par_service.html.twig', [
             'medecins' => $medecins,
-            'service' => $service, // On passe l'objet service pour le titre {{ service.nom }}
+            'service' => $service,
         ]);
     }
-    #[Route('/medecin/patient/{id}', name: 'app_medecin_patient_show')]
+    #[Route('/patient/{id}', name: 'app_medecin_patient_show')]
     public function showPatient(User $patient): Response
     {
-        if ($patient->getType() !== 'PATIENT') throw $this->createNotFoundException();
-        return $this->render('medecin/patient_show.html.twig', ['patient' => $patient]);
+        // Décommentez la ligne suivante pour voir ce que contient réellement le type de cet utilisateur
+        // dd($patient->getType()); 
+
+        if (strtoupper($patient->getType()) !== 'PATIENT') {
+            throw $this->createNotFoundException("L'utilisateur ID " . $patient->getId() . " n'est pas un PATIENT (Type actuel: " . $patient->getType() . ")");
+        }
+
+        return $this->render('medecin/patient_show.html.twig', [
+            'patient' => $patient
+        ]);
     }
 
 /**
@@ -218,7 +235,7 @@ public function accepterRendezVous(RendezVous $rendezVous, Request $request, Ent
             $em->flush();
             $this->addFlash('success', 'Rendez-vous confirmé.');
         }
-        return $this->redirect($request->headers->get('referer') ?: $this->generateUrl('app_medecin_demandes_rdv'));
+            return $this->redirect($request->headers->get('referer', $this->generateUrl('app_medecin_dashboard')));
     }
 
 /**
@@ -296,6 +313,41 @@ public function deleteDisponibilite(
 
     return $this->redirectToRoute('app_medecin_dispo_index');
 }
+#[Route('/consultation/{id}/envoyer', name: 'app_medecin_envoyer_ordonnance')]
+public function envoyerOrdonnance(Consultation $consultation, MailerInterface $mailer): Response
+{
+    // 1. Préparation du PDF
+    $pdfOptions = new Options();
+    $dompdf = new Dompdf($pdfOptions);
+    
+    $html = $this->renderView('medecin/consultation/ordonnance_pdf.html.twig', [
+        'consultation' => $consultation,
+    ]);
+    
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+
+    // 2. Création de l'Email
+    $email = (new Email())
+        ->from('manarferjanii@gmail.com')
+        ->to($consultation->getPatient()->getEmail())
+        ->addBcc('manarferjanii@gmail.com')
+        ->subject('Votre Ordonnance - Hospismart')
+        ->html('<p>Bonjour, vous trouverez ci-joint votre ordonnance.</p>')
+        ->attach($dompdf->output(), "ordonnance.pdf", 'application/pdf');
+
+    // 3. Envoi avec capture d'erreur
+    try {
+        $mailer->send($email);
+        $this->addFlash('success', 'Email envoyé au patient avec succès !');
+    } catch (TransportExceptionInterface $e) {
+        // Cela affichera l'erreur technique précise (ex: problème de mot de passe Gmail)
+        $this->addFlash('error', 'Erreur lors de l\'envoi : ' . $e->getMessage());
+    }
+
+    return $this->redirectToRoute('app_medecin_dashboard');
+}
 
 #[Route('/medecin/disponibilite/{id}/edit', name: 'app_medecin_dispo_edit', methods: ['POST'])]
 public function editDispo(int $id, Request $request, EntityManagerInterface $em): Response
@@ -324,9 +376,9 @@ public function editDispo(int $id, Request $request, EntityManagerInterface $em)
      * CRUD MÉDECINS (INDEX, NEW, SHOW, EDIT, DELETE)
      */
     #[Route('/', name: 'app_medecin_index', methods: ['GET'])]
-    public function index(MedecinRepository $medecinRepository): Response
+    public function index(UserRepository $UserRepository): Response
     {
-        return $this->render('medecin/index.html.twig', ['medecins' => $medecinRepository->findAll()]);
+        return $this->render('medecin/index.html.twig', ['medecins' => $UserRepository->findAll()]);
     }
 
     #[Route('/new', name: 'app_medecin_new', methods: ['GET', 'POST'])]
@@ -365,5 +417,83 @@ public function editDispo(int $id, Request $request, EntityManagerInterface $em)
             $entityManager->flush();
         }
         return $this->redirectToRoute('app_medecin_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+
+#[Route('/medecin/rdv/modifier-date/{id}', name: 'app_medecin_rdv_modifier_date', methods: ['POST'])]
+public function modifierDate(RendezVous $rdv, Request $request, EntityManagerInterface $em): Response
+{
+    $nouvelleDateStr = $request->request->get('nouvelle_date');
+    
+    if ($nouvelleDateStr) {
+        $nouvelleDate = new \DateTime($nouvelleDateStr);
+        $ancienneDate = $rdv->getDatetime()->format('d/m/Y à H:i');
+        
+        // 1. Mise à jour du RDV
+        $rdv->setDatetime($nouvelleDate);
+        $rdv->setStatut('CONFIRME');
+        
+        // Synchronisation de la disponibilité
+        if ($rdv->getDisponibilite()) {
+            $rdv->getDisponibilite()->setDateDebut($nouvelleDate);
+            $dateFin = clone $nouvelleDate;
+            $dateFin->modify('+30 minutes'); 
+            $rdv->getDisponibilite()->setDateFin($dateFin);
+            $rdv->getDisponibilite()->setEstReserve(true);
+        }
+
+        // 2. CRÉATION DE LA NOTIFICATION (Adaptée à ton entité)
+        $notification = new Notification();
+        
+        // On utilise setUser() car c'est le nom dans ton entité
+        $notification->setUser($rdv->getPatient()); 
+        
+        // On utilise setContent() au lieu de setMessage()
+        $notification->setContent(sprintf(
+            "Le Dr. %s a modifié la date de votre rendez-vous. Nouvelle date : %s (au lieu du %s).",
+            $rdv->getMedecin()->getNom(),
+            $nouvelleDate->format('d/m/Y à H:i'),
+            $ancienneDate
+        ));
+        
+        // createdAt et isRead sont déjà gérés par ton __construct, 
+        // mais tu peux les forcer si nécessaire :
+        $notification->setCreatedAt(new \DateTimeImmutable());
+        $notification->setIsRead(false);
+
+        $em->persist($notification);
+        $em->flush();
+
+        $this->addFlash('success', 'Date modifiée et notification enregistrée pour le patient.');
+    }
+
+    return $this->redirect($request->headers->get('referer', $this->generateUrl('app_medecin_dashboard')));}
+
+
+#[Route('/mon-profil/update', name: 'app_medecin_profil_update', methods: ['POST'])]
+    public function updateProfil(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        // Récupération et mise à jour des données
+        $user->setNom($request->request->get('nom'));
+        $user->setPrenom($request->request->get('prenom'));
+        $user->setEmail($request->request->get('email'));
+        
+        // Optionnel : si vous avez ajouté le champ téléphone dans le Twig
+        if ($request->request->has('telephone')) {
+            $user->setTelephone($request->request->get('telephone'));
+        }
+
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Votre profil professionnel a été mis à jour.');
+
+        return $this->redirectToRoute('app_medecin_profil');
     }
 }

@@ -1,6 +1,6 @@
 {% extends 'back.html.twig' %}
 
-{% block title %}Dossier de {{ patient.user.nom }}{% endblock %}
+{% block title %}Dossier de {{ patient.nom }}{% endblock %}
 
 {% block body %}
 <div class="container-fluid">
@@ -12,30 +12,36 @@
     </div>
 
     <div class="row">
-        {# Colonne Gauche : Profil #}
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm text-center p-4 mb-4" style="border-radius: 20px;">
-    {% if patient.image is not empty %}
-        <img src="{{ asset('images/patients/' ~ patient.image) }}" 
-             class="rounded-circle shadow-sm mb-3" 
-             style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #fff;">
-    {% else %}
-        <img src="https://ui-avatars.com/api/?name={{ patient.user.nom }}+{{ patient.user.prenom }}&background=0D6EFD&color=fff&size=80" 
-             class="rounded-circle shadow-sm mb-3">
-    {% endif %}
-                <h3 class="fw-bold mb-1">{{ patient.user.prenom }} {{ patient.user.nom }}</h3>
-                
-                
-                <hr>
-                
-                <div class="text-start">
-                    <p class="mb-2"><strong><i class="fa-solid fa-envelope me-2 text-primary"></i>Email:</strong><br> 
-                       <span class="text-muted">{{ patient.user.email }}</span></p>
-                    <p class="mb-2"><strong><i class="fa-solid fa-phone me-2 text-primary"></i>Téléphone:</strong><br> 
-                       <span class="text-muted">{{ patient.telephone|default('Non renseigné') }}</span></p>
-                </div>
-            </div>
+       
+{# Colonne Gauche : Profil #}
+<div class="col-lg-4">
+    <div class="card border-0 shadow-sm text-center p-4 mb-4" style="border-radius: 20px;">
+        <div class="mb-3">
+            {% if patient.image is not empty %}
+                <img src="{{ asset('images/patients/' ~ patient.image) }}" 
+                     class="rounded-circle shadow-sm" 
+                     style="width: 60px; height: 60px; object-fit: cover; border: 3px solid #f8f9fa;">
+            {% else %}
+                {# Réduction de size=80 à size=64 pour l'API ui-avatars #}
+                <img src="https://ui-avatars.com/api/?name={{ patient.nom|url_encode }}+{{ patient.prenom|url_encode }}&background=0D6EFD&color=fff&size=64" 
+                     class="rounded-circle shadow-sm"
+                     style="width: 100px; height: 100px;">
+            {% endif %}
         </div>
+        
+        <h3 class="fw-bold mb-1" style="font-size: 1.25rem;">{{ patient.prenom }} {{ patient.nom }}</h3>
+        <p class="text-muted small">Patient HospiSmart</p>
+        
+        <hr>
+        
+        <div class="text-start">
+            <p class="mb-2 small"><strong><i class="fa-solid fa-envelope me-2 text-primary"></i>Email:</strong><br> 
+               <span class="text-muted">{{ patient.email }}</span></p>
+            <p class="mb-2 small"><strong><i class="fa-solid fa-phone me-2 text-primary"></i>Téléphone:</strong><br> 
+               <span class="text-muted">{{ patient.telephone|default('Non renseigné') }}</span></p>
+        </div>
+    </div>
+</div>
 
         {# Colonne Droite : Dossier Médical #}
         <div class="col-lg-8">

@@ -67,6 +67,7 @@
         {% block stylesheets %}{% endblock %}
 
         {% block javascripts %}
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
             {% block importmap %}{{ importmap('app') }}{% endblock %}
             <script src="{{ asset('js/form-validation.js') }}"></script>
         {% endblock %}
@@ -76,7 +77,6 @@
         {# Le bloc layout est le point d'entrée pour front.html.twig ou back.html.twig #}
         {% block layout %}{% endblock %}
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         {# Bloc pour scripts spécifiques aux pages enfants #}
         {% block extra_js %}{% endblock %}
     </body>

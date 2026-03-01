@@ -83,4 +83,19 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    /**
+ * Récupère les médecins appartenant à un service spécifique par son ID
+ * @return User[]
+ */
+public function findMedecinsByService(int $serviceId): array
+{
+    return $this->createQueryBuilder('u')
+        ->andWhere('u.type = :type')
+        ->andWhere('u.service_entity = :serviceId')
+        ->setParameter('type', 'MEDECIN')
+        ->setParameter('serviceId', $serviceId)
+        ->getQuery()
+        ->getResult();
+}
 }

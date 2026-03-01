@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Evenement;
+use App\Entity\ParticipantEvenement;
+use App\Entity\User;
 use App\Form\EvenementType;
 use App\Repository\EvenementRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,12 +15,81 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class EvenementController extends AbstractController
 {
+    /**
+     * PAGE D'ACCUEIL FRONT
+     */
     #[Route('/', name: 'app_front_accueil', methods: ['GET'])]
     public function accueil(): Response
     {
         return $this->render('front/accueil.html.twig');
     }
 
+    /**
+     * LISTE DES ÉVÉNEMENTS CÔTÉ PUBLIC
+     * Placé avant la route {id} pour éviter les conflits
+     */
+    #[Route('/evenement/public', name: 'app_evenement_public', methods: ['GET'])]
+    public function public(EvenementRepository $evenementRepository): Response
+    {
+        $evenements = $evenementRepository->findAll();
+
+        return $this->render('front/evenements.html.twig', [
+            'evenements' => $evenements,
+        ]);
+    }
+
+    /**
+     * ACTION D'INSCRIPTION
+     */
+    #[Route('/evenement/public/{id}/inscription', name: 'app_evenement_inscription', methods: ['GET', 'POST'])]
+    public function inscription(Evenement $evenement, EntityManagerInterface $entityManager): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user) {
+            $this->addFlash('warning', 'Vous devez être connecté pour vous inscrire.');
+            return $this->redirectToRoute('app_login');
+        }
+
+        // 1. Vérifier si l'utilisateur est déjà inscrit
+        $dejaInscrit = $entityManager->getRepository(ParticipantEvenement::class)->findOneBy([
+            'evenement' => $evenement,
+            'participant' => $user
+        ]);
+
+        if ($dejaInscrit) {
+            $this->addFlash('info', 'Vous êtes déjà inscrit à cet événement.');
+            return $this->redirectToRoute('app_evenement_public');
+        }
+
+        // 2. Création de la participation (via table intermédiaire)
+        $participation = new ParticipantEvenement();
+        $participation->setEvenement($evenement);
+        $participation->setParticipant($user);
+        
+        // Remplissage avec les données de l'entité User
+        $participation->setNom($user->getNom() ?? 'Nom'); 
+        $participation->setPrenom($user->getPrenom() ?? 'Prénom');
+        $participation->setEmail($user->getEmail());
+        $participation->setTelephone($user->getTelephone());
+        $participation->setRole('participant');
+        $participation->setConfirmePresence(true);
+
+        try {
+            $entityManager->persist($participation);
+            $entityManager->flush();
+            $this->addFlash('success', 'Félicitations ! Votre inscription à l\'événement "' . $evenement->getTitre() . '" est confirmée.');
+        } catch (\Exception $e) {
+            $this->addFlash('danger', 'Une erreur est survenue : ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_evenement_public');
+    }
+
+    /**
+     * GESTION BACK-OFFICE (LISTE)
+     */
     #[Route('/evenement', name: 'app_evenement_index', methods: ['GET'])]
     public function index(Request $request, EvenementRepository $evenementRepository): Response
     {
@@ -36,21 +107,13 @@ class EvenementController extends AbstractController
         ]);
     }
 
-    #[Route('/evenement/public', name: 'app_evenement_public', methods: ['GET'])]
-    public function public(EvenementRepository $evenementRepository): Response
-    {
-        $evenements = $evenementRepository->findProchainsEvenements(20);
-
-        return $this->render('front/evenements.html.twig', [
-            'evenements' => $evenements,
-        ]);
-    }
-
+    /**
+     * CRÉER UN ÉVÉNEMENT
+     */
     #[Route('/evenement/new', name: 'app_evenement_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $evenement = new Evenement();
-
         $form = $this->createForm(EvenementType::class, $evenement);
         $form->handleRequest($request);
 
@@ -67,6 +130,9 @@ class EvenementController extends AbstractController
         ]);
     }
 
+    /**
+     * VOIR UN ÉVÉNEMENT (Générique - à laisser vers la fin)
+     */
     #[Route('/evenement/{id}', name: 'app_evenement_show', methods: ['GET'])]
     public function show(Evenement $evenement): Response
     {
@@ -75,6 +141,9 @@ class EvenementController extends AbstractController
         ]);
     }
 
+    /**
+     * MODIFIER UN ÉVÉNEMENT
+     */
     #[Route('/evenement/{id}/edit', name: 'app_evenement_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Evenement $evenement, EntityManagerInterface $entityManager): Response
     {
@@ -83,7 +152,6 @@ class EvenementController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-
             return $this->redirectToRoute('app_evenement_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -93,6 +161,9 @@ class EvenementController extends AbstractController
         ]);
     }
 
+    /**
+     * SUPPRIMER UN ÉVÉNEMENT
+     */
     #[Route('/evenement/{id}', name: 'app_evenement_delete', methods: ['POST'])]
     public function delete(Request $request, Evenement $evenement, EntityManagerInterface $entityManager): Response
     {

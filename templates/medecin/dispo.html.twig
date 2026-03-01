@@ -2,19 +2,18 @@
 
 {% block body %}
 {# 1. Section des Notifications #}
-<div class="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 320px;">
+{# 1. Section des Notifications (Toasts) centrée et courte #}
+<div class="notification-container" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: auto; min-width: 250px; max-width: 400px;">
     {% for label, messages in app.flashes %}
         {% for message in messages %}
-            <div class="alert alert-{{ label == 'success' ? 'success' : 'danger' }} alert-dismissible fade show shadow-lg border-0 mb-3" 
+            <div class="alert alert-{{ label == 'success' ? 'success' : 'danger' }} shadow-lg border-0 mb-3 text-center" 
                  role="alert" 
-                 style="border-left: 5px solid {{ label == 'success' ? '#198754' : '#dc3545' }}; border-radius: 50px; background-color: white;">
-                <div class="d-flex align-items-center">
-                    <i class="fas {{ label == 'success' ? 'fa-check-circle text-success' : 'fa-exclamation-circle text-danger' }} fa-lg ms-2"></i>
-                    <div class="ms-3">
-                        <span class="text-dark fw-medium">{{ message }}</span>
-                    </div>
+                 style="border-radius: 50px; padding: 10px 25px; background-color: white; border: 1px solid #d1e7dd !important;">
+                
+                <div class="d-flex align-items-center justify-content-center">
+                    <i class="fas {{ label == 'success' ? 'fa-check-circle text-success' : 'fa-exclamation-circle text-danger' }} me-2"></i>
+                    <span class="text-dark fw-medium small">{{ message }}</span>
                 </div>
-                <button type="button" class="btn-close me-2" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         {% endfor %}
     {% endfor %}
@@ -34,17 +33,25 @@
     </div>
 
     {# 3. Alertes demandes en attente #}
-    {% if nbDemandesEnAttente is defined and nbDemandesEnAttente > 0 %}
-        <div class="alert alert-primary border-0 shadow-sm d-flex align-items-center justify-content-between mb-4" style="border-radius: 50px; background: #e8f0fe;">
-            <span class="ms-3">
-                <i class="fas fa-bell me-2"></i>
+
+{% if nbDemandesEnAttente is defined and nbDemandesEnAttente > 0 %}
+    <div class="alert alert-primary border-0 shadow-sm d-flex align-items-center justify-content-between mb-4" 
+         style="border-radius: 50px; background: #f0f7ff; padding: 0.75rem 1.5rem;">
+        
+        <div class="d-flex align-items-center">
+            <i class="fas fa-bell text-primary me-3"></i>
+            <span class="text-primary-emphasis">
                 <strong>{{ nbDemandesEnAttente }}</strong> demande(s) en attente de validation.
             </span>
-            <a href="{{ path('app_medecin_demandes_rdv') }}" class="btn btn-primary btn-sm rounded-pill px-4 me-2">
-                Voir et répondre
-            </a>
         </div>
-    {% endif %}
+
+        {# BOUTON FORME NORMALE : ROUNDED-PILL #}
+        <a href="{{ path('app_medecin_demandes_rdv') }}" 
+           class="btn btn-primary shadow-sm px-4 py-2 rounded-pill">
+           <i class="fa-solid fa-eye me-2"></i>Voir et répondre
+        </a>
+    </div>
+{% endif %}
 
     {# 4. Tableau des créneaux #}
     <div class="card shadow-sm border-0 p-4" style="border-radius: 25px;">
@@ -60,66 +67,88 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {# 1. Définition de l'heure actuelle #}
+                    {% set maintenant = "now"|date('Y-m-d H:i') %}
+
                     {% for d in dispos %}
-                        {% set day_name = d.dateDebut|date('l') %}
-                        {% set day_colors = {'Monday':'#e8f5e9','Tuesday':'#e3f2fd','Wednesday':'#fff3e0','Thursday':'#f3e5f5','Friday':'#fce4ec','Saturday':'#e0f7fa','Sunday':'#fffde7'} %}
-                        {% set text_colors = {'Monday':'#2e7d32','Tuesday':'#1565c0','Wednesday':'#ef6c00','Thursday':'#7b1fa2','Friday':'#c2185b','Saturday':'#00838f','Sunday':'#fbc02d'} %}
+                        {# 2. Filtre : On n'affiche que si le créneau n'est pas encore terminé #}
+                        {% if d.dateFin|date('Y-m-d H:i') >= maintenant %}
+                            
+                            {% set day_name = d.dateDebut|date('l') %}
+                            {% set day_colors = {'Monday':'#e8f5e9','Tuesday':'#e3f2fd','Wednesday':'#fff3e0','Thursday':'#f3e5f5','Friday':'#fce4ec','Saturday':'#e0f7fa','Sunday':'#fffde7'} %}
+                            {% set text_colors = {'Monday':'#2e7d32','Tuesday':'#1565c0','Wednesday':'#ef6c00','Thursday':'#7b1fa2','Friday':'#c2185b','Saturday':'#00838f','Sunday':'#fbc02d'} %}
 
-                        <tr>
-                            <td>
-                                <span class="badge px-3 py-2 text-capitalize rounded-pill" 
-                                      style="background-color: {{ day_colors[day_name]|default('#f8f9fa') }}; color: {{ text_colors[day_name]|default('#333') }}; min-width: 110px;">
-                                    {{ day_name|replace({'Monday':'Lundi','Tuesday':'Mardi','Wednesday':'Mercredi','Thursday':'Jeudi','Friday':'Vendredi','Saturday':'Samedi','Sunday':'Dimanche'}) }}
-                                </span>
-                            </td>
-                            <td class="fw-medium text-secondary">{{ d.dateDebut|date('d/m/Y') }}</td>
-                            <td>
-                                <span class="badge bg-light text-dark border-0 py-2 px-3 shadow-sm rounded-pill">
-                                    <i class="fa-regular fa-clock me-1 text-primary"></i>
-                                    {{ d.dateDebut|date('H:i') }} - {{ d.dateFin|date('H:i') }}
-                                </span>
-                            </td>
-                            <td>
-                                {% if d.estReserve %}
-                                    <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">
-                                        <i class="fa-solid fa-lock me-1"></i> Réservé
+                            <tr>
+                                {# COLONNE JOUR #}
+                                <td>
+                                    <span class="badge px-3 py-2 text-capitalize rounded-pill" 
+                                        style="background-color: {{ day_colors[day_name]|default('#f8f9fa') }}; color: {{ text_colors[day_name]|default('#333') }}; min-width: 110px;">
+                                        {{ day_name|replace({'Monday':'Lundi','Tuesday':'Mardi','Wednesday':'Mercredi','Thursday':'Jeudi','Friday':'Vendredi','Saturday':'Samedi','Sunday':'Dimanche'}) }}
                                     </span>
-                                {% else %}
-                                    <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
-                                        <i class="fa-solid fa-check me-1"></i> Libre
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="text-end">
-                                <div class="d-flex justify-content-end gap-2">
-                                    {% if not d.estReserve %}
-                                        <button type="button" 
-                                                class="btn btn-sm btn-outline-primary rounded-pill px-3"
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#modalEditCreneau"
-                                                data-id="{{ d.id }}"
-                                                data-debut="{{ d.dateDebut|date('Y-m-d\\TH:i') }}"
-                                                data-fin="{{ d.dateFin|date('Y-m-d\\TH:i') }}">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </button>
+                                </td>
 
-                                        <form method="post" action="{{ path('app_medecin_dispo_delete', {'id': d.id}) }}" onsubmit="return confirm('Supprimer ce créneau ?');" style="display:inline-block;">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ d.id) }}">
-                                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-                                        </form>
+                                {# COLONNE DATE #}
+                                <td class="fw-medium text-secondary">
+                                    {{ d.dateDebut|date('d/m/Y') }}
+                                </td>
+
+                                {# COLONNE HEURE #}
+                                <td>
+                                    <span class="badge bg-light text-dark border-0 py-2 px-3 shadow-sm rounded-pill">
+                                        <i class="fa-regular fa-clock me-1 text-primary"></i>
+                                        {{ d.dateDebut|date('H:i') }} - {{ d.dateFin|date('H:i') }}
+                                    </span>
+                                </td>
+
+                                {# COLONNE STATUT #}
+                                <td>
+                                    {% if d.estReserve %}
+                                        <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">
+                                            <i class="fa-solid fa-lock me-1"></i> Réservé
+                                        </span>
                                     {% else %}
-                                        <span class="badge bg-light text-muted rounded-pill px-3 py-2 small">Verrouillé</span>
+                                        <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
+                                            <i class="fa-solid fa-check me-1"></i> Libre
+                                        </span>
                                     {% endif %}
-                                </div>
-                            </td>
-                        </tr>
+                                </td>
+
+                                {# COLONNE ACTIONS #}
+                                <td class="text-end">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        {% if not d.estReserve %}
+                                            {# Bouton Modifier (Modal) #}
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalEditCreneau"
+                                                    data-id="{{ d.id }}"
+                                                    data-debut="{{ d.dateDebut|date('Y-m-d\\TH:i') }}"
+                                                    data-fin="{{ d.dateFin|date('Y-m-d\\TH:i') }}">
+                                                <i class="fa-solid fa-pen"></i>
+                                            </button>
+
+                                            {# Formulaire de suppression #}
+                                            <form method="post" action="{{ path('app_medecin_dispo_delete', {'id': d.id}) }}" onsubmit="return confirm('Supprimer ce créneau ?');" style="display:inline-block;">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ d.id) }}">
+                                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            {# État verrouillé si un patient a déjà pris le créneau #}
+                                            <span class="badge bg-light text-muted rounded-pill px-3 py-2 small">Verrouillé</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
                     {% else %}
+                        {# Si la variable 'dispos' est vide #}
                         <tr>
                             <td colspan="5" class="text-center py-5 text-muted">
                                 <i class="fa-solid fa-calendar-xmark fa-2x mb-3 d-block"></i>
-                                Aucun créneau publié pour le moment.
+                                Aucun créneau disponible.
                             </td>
                         </tr>
                     {% endfor %}

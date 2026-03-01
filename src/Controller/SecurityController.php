@@ -21,8 +21,11 @@ class SecurityController extends AbstractController
                 return $this->redirectToRoute('app_medecin_dashboard');
             }
 
-            // Par défaut pour le rôle PATIENT ou autre
-            return $this->redirectToRoute('app_medecin_recherche');
+            if ($this->isGranted('ROLE_PATIENT')) {
+                return $this->redirectToRoute('app_medecin_recherche');
+            }
+
+
         }
 
         $error = $authenticationUtils->getLastAuthenticationError();

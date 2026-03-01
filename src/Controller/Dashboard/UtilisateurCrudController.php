@@ -2,13 +2,11 @@
 
 namespace App\Controller\Dashboard;
 
-use App\Entity\Medecin;
-use App\Entity\Patient;
+
 use App\Entity\User;
-use App\Repository\MedecinRepository;
+use App\Repository\UserRepository;
 use App\Repository\PatientRepository;
 use App\Repository\ServiceRepository;
-use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -207,10 +205,10 @@ class UtilisateurCrudController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_dashboard_utilisateurs_show', requirements: ['id' => '\d+'], methods: ['GET'])]
-    public function show(User $user, PatientRepository $patientRepository, MedecinRepository $medecinRepository): Response
+    public function show(User $user, PatientRepository $patientRepository, UserRepository $UserRepository): Response
     {
         $patient = $patientRepository->findOneByUser($user);
-        $medecin = $medecinRepository->findOneByUser($user);
+        $medecin = $UserRepository->findOneByUser($user);
 
         return $this->render('back/utilisateurs/show.html.twig', [
             'user' => $user,
@@ -225,12 +223,12 @@ class UtilisateurCrudController extends AbstractController
         User $user,
         EntityManagerInterface $em,
         PatientRepository $patientRepository,
-        MedecinRepository $medecinRepository,
+        UserRepository $UserRepository,
         ServiceRepository $serviceRepository,
         UserPasswordHasherInterface $passwordHasher
     ): Response {
         $patient = $patientRepository->findOneByUser($user);
-        $medecin = $medecinRepository->findOneByUser($user);
+        $medecin = $UserRepository->findOneByUser($user);
 
         if ($request->isMethod('POST')) {
             $user->setNom($request->request->get('nom', $user->getNom()));
@@ -278,7 +276,7 @@ class UtilisateurCrudController extends AbstractController
     }
 
     #[Route('/{id}/supprimer', name: 'app_dashboard_utilisateurs_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function delete(Request $request, User $user, EntityManagerInterface $em, PatientRepository $patientRepository, MedecinRepository $medecinRepository): Response
+    public function delete(Request $request, User $user, EntityManagerInterface $em, PatientRepository $patientRepository, UserRepository $UserRepository): Response
     {
         if ($user->getId() === $this->getUser()?->getId()) {
             $this->addFlash('error', 'Vous ne pouvez pas supprimer votre propre compte.');
@@ -286,7 +284,7 @@ class UtilisateurCrudController extends AbstractController
         }
         if ($this->isCsrfTokenValid('delete_user_' . $user->getId(), (string) $request->request->get('_token'))) {
             $patient = $patientRepository->findOneByUser($user);
-            $medecin = $medecinRepository->findOneByUser($user);
+            $medecin = $UserRepository->findOneByUser($user);
             if ($patient) {
                 $em->remove($patient);
             }
