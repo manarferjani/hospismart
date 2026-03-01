@@ -1,0 +1,81 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Détails du Participant{% endblock %}
+{% block page_title %}Détails du Participant{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('app_evenement_index') }}">Accueil</a></li>
+<li class="breadcrumb-item"><a href="{{ path('app_participant_evenement_index') }}">Participants</a></li>
+<li class="breadcrumb-item active">Détails</li>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Détails de la participation</h3>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th>Id</th>
+                            <td>{{ participant_evenement.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Événement</th>
+                            <td>
+                                <a href="{{ path('app_evenement_show', {'id': participant_evenement.evenement.id}) }}">
+                                    {{ participant_evenement.evenement.titre }}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Participant</th>
+                            <td>{{ participant_evenement.nomComplet }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td>{{ participant_evenement.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Téléphone</th>
+                            <td>{{ participant_evenement.telephone ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Rôle</th>
+                            <td><span class="badge bg-secondary">{{ participant_evenement.role }}</span></td>
+                        </tr>
+                        <tr>
+                            <th>Confirme présence</th>
+                            <td>
+                                {% if participant_evenement.confirmePresence %}
+                                    <span class="badge bg-success">Oui</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Non</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Date de confirmation</th>
+                            <td>{{ participant_evenement.dateConfirmation ? participant_evenement.dateConfirmation|date('d/m/Y H:i') : '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <a href="{{ path('app_participant_evenement_index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour à la liste
+                </a>
+                <form method="post" action="{{ path('app_participant_evenement_delete', {'id': participant_evenement.id}) }}" class="d-inline ms-2" onsubmit="return confirm('Supprimer cette participation ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ participant_evenement.id) }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer le participant
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

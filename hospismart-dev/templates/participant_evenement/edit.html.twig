@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier le Participant{% endblock %}
+{% block page_title %}Modifier le Participant{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('app_evenement_index') }}">Accueil</a></li>
+<li class="breadcrumb-item"><a href="{{ path('app_participant_evenement_index') }}">Participants</a></li>
+<li class="breadcrumb-item active">Modifier</li>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card card-warning">
+            <div class="card-header">
+                <h3 class="card-title">Modifier la participation</h3>
+            </div>
+            <div class="card-body">
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    {{ form_errors(form) }}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form_row(form.evenement) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(form.participant) }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form_row(form.role) }}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form_label(form.confirme_presence) }}
+                                <div class="form-check">
+                                    {{ form_widget(form.confirme_presence) }}
+                                    {{ form_label(form.confirme_presence, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form_row(form.date_confirmation) }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save"></i> Enregistrer
+                        </button>
+                        <a href="{{ path('app_participant_evenement_show', {'id': participant_evenement.id}) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </a>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

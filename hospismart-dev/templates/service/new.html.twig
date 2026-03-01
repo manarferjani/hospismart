@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="glass-card shadow-lg p-5 mt-5 border-0">
+                <div class="text-center mb-4">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex p-3 mb-3 shadow">
+                        <i class="fa-solid fa-layer-group fa-2x"></i>
+                    </div>
+                    <h2 class="fw-bold">Nouveau Service</h2>
+                </div>
+
+                {{ form_start(form) }}
+                
+                    {# CHAMP NOM #}
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Nom du Service</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fa-solid fa-hospital text-primary"></i>
+                            </span>
+                            {{ form_widget(form.nom, {
+                                'attr': {'class': 'form-control border-start-0 ps-0', 'placeholder': 'Radiologie...'}
+                            }) }}
+                        </div>
+                        <div class="text-danger small">{{ form_errors(form.nom) }}</div>
+                    </div>
+
+                    {# CHAMP DESCRIPTION (Obligatoire selon ton entité) #}
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Description / Localisation</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fa-solid fa-align-left text-primary"></i>
+                            </span>
+                            {{ form_widget(form.description, {
+                                'attr': {'class': 'form-control border-start-0 ps-0', 'placeholder': 'ex: Aile Nord, Étage 2...'}
+                            }) }}
+                        </div>
+                        <div class="text-danger small">{{ form_errors(form.description) }}</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold shadow">
+                            <i class="fa-solid fa-check me-2"></i>Enregistrer
+                        </button>
+                        <a href="{{ path('app_service_index') }}" class="btn btn-link text-muted text-decoration-none text-center">
+                            Annuler
+                        </a>
+                    </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

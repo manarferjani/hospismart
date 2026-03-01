@@ -1,0 +1,28 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Modifier le rendez-vous{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Modifier le rendez-vous</h6>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        {{ form_widget(form) }}
+                        <button class="btn btn-primary mt-3">
+                            <i class="fas fa-save"></i> Enregistrer
+                        </button>
+                        <a href="{{ path('app_admin_rendezvous_index') }}" class="btn btn-secondary mt-3">
+                            <i class="fas fa-times"></i> Annuler
+                        </a>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

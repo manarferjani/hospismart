@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails - {{ service.nom }}{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Bouton retour #}
+    <div class="mb-4">
+        <a href="{{ path('app_service_index') }}" class="text-decoration-none text-muted">
+            <i class="fa-solid fa-arrow-left me-1"></i> Retour à la liste
+        </a>
+    </div>
+
+    <div class="row g-0 shadow-lg rounded-4 overflow-hidden bg-white glass-card border-0">
+{# SECTION IMAGE (Gauche) #}
+<div class="col-md-5" style="min-height: 350px;">
+    {% set service_name = service.nom|lower %}
+    
+    {# Choix de l'image : URL spécifique pour la Cardio #}
+    {% if 'cardio' in service_name %}
+        {# Image directe extraite de polycliniquenour.com #}
+        {% set img_url = asset('images/Cardiologie.jpg') %}
+    {% elseif 'radio' in service_name or 'imagerie' in service_name %}
+        {% set img_url = 'https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=800' %}
+    {% elseif 'urgence' in service_name %}
+        {% set img_url = 'https://images.unsplash.com/photo-1583324113626-70df0f43aa2a?q=80&w=800' %}
+    {% else %}
+        {% set img_url = 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=800' %}
+    {% endif %}
+
+    {# Affichage de l'image #}
+    <div class="h-100 w-100" style="
+        background: url('{{ img_url }}') center/cover no-repeat;
+        border-right: 1px solid rgba(0,0,0,0.05);
+    ">
+    </div>
+</div>
+
+        {# SECTION INFOS (Droite) #}
+        <div class="col-md-7 p-5 d-flex flex-column justify-content-center">
+            <div class="mb-2">
+                <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold">ID #{{ service.id }}</span>
+            </div>
+            
+            <h1 class="fw-bold text-dark display-5 mb-3">{{ service.nom }}</h1>
+            
+            <div class="d-flex align-items-center mb-4">
+                <div class="bg-light p-3 rounded-circle me-3">
+                    <i class="fa-solid fa-location-dot fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0">Localisation</h6>
+                    <p class="fw-bold mb-0 fs-5">{{ service.description }}</p>
+                </div>
+            </div>
+
+            <hr class="my-4 opacity-25">
+
+            <div class="d-flex gap-3">
+                <a href="{{ path('app_service_edit', {'id': service.id}) }}" class="btn btn-warning rounded-pill px-4 py-2 fw-bold shadow-sm text-white">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Modifier
+                </a>
+                
+                {# Le bouton de suppression (formulaire POST obligatoire pour la sécurité) #}
+                {{ include('service/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </div>
+
+    {# SECTION ÉQUIPEMENTS LIÉS (Bonus) #}
+    <div class="mt-5">
+        <h4 class="fw-bold mb-4"><i class="fa-solid fa-microscope me-2 text-primary"></i>Équipements dans ce service</h4>
+        <div class="row">
+            {% for equipement in service.equipements %}
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-3 mb-3">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-1">{{ equipement.nom }}</h6>
+                            <small class="text-muted">{{ equipement.reference }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted italic ps-3">Aucun équipement affecté à ce service.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.8) !important;
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+</style>
+{% endblock %}

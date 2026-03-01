@@ -1,0 +1,211 @@
+{% extends 'back.html.twig' %}
+
+{% block body %}
+{# 1. Section des Notifications #}
+<div class="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 320px;">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'success' ? 'success' : 'danger' }} alert-dismissible fade show shadow-lg border-0 mb-3" 
+                 role="alert" 
+                 style="border-left: 5px solid {{ label == 'success' ? '#198754' : '#dc3545' }}; border-radius: 50px; background-color: white;">
+                <div class="d-flex align-items-center">
+                    <i class="fas {{ label == 'success' ? 'fa-check-circle text-success' : 'fa-exclamation-circle text-danger' }} fa-lg ms-2"></i>
+                    <div class="ms-3">
+                        <span class="text-dark fw-medium">{{ message }}</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close me-2" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+<div class="container-fluid">
+    {# 2. En-tête avec bouton Nouveau Créneau #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0" style="color: #1a1a2e;">Gestion des Disponibilités</h2>
+            <p class="text-muted">Gérez vos horaires de consultation en toute simplicité</p>
+        </div>
+        {# BOUTON EN-TÊTE : ROUNDED-PILL #}
+        <button type="button" class="btn btn-primary shadow-sm px-4 py-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalNouveauCreneau">
+            <i class="fa-solid fa-plus me-2"></i>Nouveau créneau
+        </button>
+    </div>
+
+    {# 3. Alertes demandes en attente #}
+    {% if nbDemandesEnAttente is defined and nbDemandesEnAttente > 0 %}
+        <div class="alert alert-primary border-0 shadow-sm d-flex align-items-center justify-content-between mb-4" style="border-radius: 50px; background: #e8f0fe;">
+            <span class="ms-3">
+                <i class="fas fa-bell me-2"></i>
+                <strong>{{ nbDemandesEnAttente }}</strong> demande(s) en attente de validation.
+            </span>
+            <a href="{{ path('app_medecin_demandes_rdv') }}" class="btn btn-primary btn-sm rounded-pill px-4 me-2">
+                Voir et répondre
+            </a>
+        </div>
+    {% endif %}
+
+    {# 4. Tableau des créneaux #}
+    <div class="card shadow-sm border-0 p-4" style="border-radius: 25px;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr class="text-muted small text-uppercase">
+                        <th class="border-0">Jour</th>
+                        <th class="border-0">Date</th>
+                        <th class="border-0">Heure</th>
+                        <th class="border-0">Statut</th>
+                        <th class="border-0 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in dispos %}
+                        {% set day_name = d.dateDebut|date('l') %}
+                        {% set day_colors = {'Monday':'#e8f5e9','Tuesday':'#e3f2fd','Wednesday':'#fff3e0','Thursday':'#f3e5f5','Friday':'#fce4ec','Saturday':'#e0f7fa','Sunday':'#fffde7'} %}
+                        {% set text_colors = {'Monday':'#2e7d32','Tuesday':'#1565c0','Wednesday':'#ef6c00','Thursday':'#7b1fa2','Friday':'#c2185b','Saturday':'#00838f','Sunday':'#fbc02d'} %}
+
+                        <tr>
+                            <td>
+                                <span class="badge px-3 py-2 text-capitalize rounded-pill" 
+                                      style="background-color: {{ day_colors[day_name]|default('#f8f9fa') }}; color: {{ text_colors[day_name]|default('#333') }}; min-width: 110px;">
+                                    {{ day_name|replace({'Monday':'Lundi','Tuesday':'Mardi','Wednesday':'Mercredi','Thursday':'Jeudi','Friday':'Vendredi','Saturday':'Samedi','Sunday':'Dimanche'}) }}
+                                </span>
+                            </td>
+                            <td class="fw-medium text-secondary">{{ d.dateDebut|date('d/m/Y') }}</td>
+                            <td>
+                                <span class="badge bg-light text-dark border-0 py-2 px-3 shadow-sm rounded-pill">
+                                    <i class="fa-regular fa-clock me-1 text-primary"></i>
+                                    {{ d.dateDebut|date('H:i') }} - {{ d.dateFin|date('H:i') }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if d.estReserve %}
+                                    <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">
+                                        <i class="fa-solid fa-lock me-1"></i> Réservé
+                                    </span>
+                                {% else %}
+                                    <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
+                                        <i class="fa-solid fa-check me-1"></i> Libre
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    {% if not d.estReserve %}
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#modalEditCreneau"
+                                                data-id="{{ d.id }}"
+                                                data-debut="{{ d.dateDebut|date('Y-m-d\\TH:i') }}"
+                                                data-fin="{{ d.dateFin|date('Y-m-d\\TH:i') }}">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+
+                                        <form method="post" action="{{ path('app_medecin_dispo_delete', {'id': d.id}) }}" onsubmit="return confirm('Supprimer ce créneau ?');" style="display:inline-block;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ d.id) }}">
+                                            <button class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted rounded-pill px-3 py-2 small">Verrouillé</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-calendar-xmark fa-2x mb-3 d-block"></i>
+                                Aucun créneau publié pour le moment.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# 5. MODAL : AJOUT CRÉNEAU #}
+<div class="modal fade" id="modalNouveauCreneau" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 30px;">
+            <div class="modal-header border-0 pt-4 px-4 align-items-center">
+                <h5 class="modal-title fw-bold" style="color: #1a1a2e;">Nouveau créneau</h5>
+                <button type="button" class="btn-close bg-light shadow-sm p-2" data-bs-dismiss="modal" aria-label="Close" style="border-radius: 50%; opacity: 1;"></button>
+            </div>
+            <div class="modal-body p-4">
+                {{ form_start(form) }}
+                    <div class="mb-3">
+                        {{ form_label(form.date_debut, 'Heure de début', {'label_attr': {'class': 'form-label fw-bold small text-uppercase text-muted ms-2'}}) }}
+                        {{ form_widget(form.date_debut, {'attr': {'class': 'form-control rounded-pill border-light-subtle px-3', 'style': 'background: #f8f9fa;'}}) }}
+                    </div>
+                    <div class="mb-4">
+                        {{ form_label(form.date_fin, 'Heure de fin', {'label_attr': {'class': 'form-label fw-bold small text-uppercase text-muted ms-2'}}) }}
+                        {{ form_widget(form.date_fin, {'attr': {'class': 'form-control rounded-pill border-light-subtle px-3', 'style': 'background: #f8f9fa;'}}) }}
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm py-3">
+                            <i class="fa-solid fa-plus me-2"></i>Publier le créneau
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# 6. MODAL : ÉDITION CRÉNEAU #}
+<div class="modal fade" id="modalEditCreneau" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 30px;">
+            <div class="modal-header border-0 pt-4 px-4 align-items-center">
+                <h5 class="modal-title fw-bold" style="color: #1a1a2e;">Modifier le créneau</h5>
+                <button type="button" class="btn-close bg-light shadow-sm p-2" data-bs-dismiss="modal" aria-label="Close" style="border-radius: 50%; opacity: 1;"></button>
+            </div>
+            <form id="editForm" method="POST" action="">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase text-muted ms-2">Heure de début</label>
+                        <input type="datetime-local" name="date_debut" id="edit_debut" class="form-control rounded-pill border-light-subtle px-3" style="background: #f8f9fa;" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase text-muted ms-2">Heure de fin</label>
+                        <input type="datetime-local" name="date_fin" id="edit_fin" class="form-control rounded-pill border-light-subtle px-3" style="background: #f8f9fa;" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm py-3">
+                            <i class="fa-solid fa-save me-2"></i>Enregistrer les modifications
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{# 7. JavaScript pour gérer la modale d'édition #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modalEdit = document.getElementById('modalEditCreneau');
+    if (modalEdit) {
+        modalEdit.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const debut = button.getAttribute('data-debut');
+            const fin = button.getAttribute('data-fin');
+
+            const form = modalEdit.querySelector('#editForm');
+            form.action = '/medecin/disponibilite/' + id + '/edit';
+            
+            modalEdit.querySelector('#edit_debut').value = debut;
+            modalEdit.querySelector('#edit_fin').value = fin;
+        });
+    }
+});
+</script>
+
+{% endblock %}

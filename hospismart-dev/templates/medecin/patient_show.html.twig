@@ -1,0 +1,92 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Dossier de {{ patient.user.nom }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    {# Bouton Retour #}
+    <div class="mb-4">
+        <a href="{{ path('app_medecin_dashboard') }}" class="text-decoration-none text-muted">
+            <i class="fa-solid fa-arrow-left me-2"></i>Retour au tableau de bord
+        </a>
+    </div>
+
+    <div class="row">
+        {# Colonne Gauche : Profil #}
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm text-center p-4 mb-4" style="border-radius: 20px;">
+    {% if patient.image is not empty %}
+        <img src="{{ asset('images/patients/' ~ patient.image) }}" 
+             class="rounded-circle shadow-sm mb-3" 
+             style="width: 100px; height: 100px; object-fit: cover; border: 3px solid #fff;">
+    {% else %}
+        <img src="https://ui-avatars.com/api/?name={{ patient.user.nom }}+{{ patient.user.prenom }}&background=0D6EFD&color=fff&size=80" 
+             class="rounded-circle shadow-sm mb-3">
+    {% endif %}
+                <h3 class="fw-bold mb-1">{{ patient.user.prenom }} {{ patient.user.nom }}</h3>
+                
+                
+                <hr>
+                
+                <div class="text-start">
+                    <p class="mb-2"><strong><i class="fa-solid fa-envelope me-2 text-primary"></i>Email:</strong><br> 
+                       <span class="text-muted">{{ patient.user.email }}</span></p>
+                    <p class="mb-2"><strong><i class="fa-solid fa-phone me-2 text-primary"></i>Téléphone:</strong><br> 
+                       <span class="text-muted">{{ patient.telephone|default('Non renseigné') }}</span></p>
+                </div>
+            </div>
+        </div>
+
+        {# Colonne Droite : Dossier Médical #}
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 20px;">
+                <h4 class="fw-bold mb-4"><i class="fa-solid fa-notes-medical me-2 text-primary"></i>Dossier Médical</h4>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <label class="small text-muted fw-bold text-uppercase">Groupe Sanguin</label>
+                            <p class="h5 mb-0 text-danger">{{ patient.groupeSanguin|default('Inconnu') }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 border rounded-3 bg-light">
+                            <label class="small text-muted fw-bold text-uppercase">Âge</label>
+                            <p class="h5 mb-0">{{ patient.dateNaissance ? patient.dateNaissance|date('Y')|date_modify('now')|date('Y') - patient.dateNaissance|date('Y') : 'N/A' }} ans</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="fw-bold mt-4 mb-3">Historique des consultations</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Motif</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {# Ici on boucle sur les rendez-vous du patient #}
+                            {% for rdv in patient.rendezVouses|default([]) %}
+                                <tr>
+                                    <td>{{ rdv.datetime|date('d/m/Y') }}</td>
+                                    <td>{{ rdv.motif }}</td>
+                                    <td>
+                                        <span class="badge {{ rdv.statut == 'CONFIRME' ? 'bg-success' : 'bg-warning' }}">
+                                            {{ rdv.statut }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr><td colspan="3" class="text-center text-muted">Aucun historique trouvé.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Modifier Réponse #{{ reponse.id }}{% endblock %}
+
+{% block content %}
+<a href="{{ path('reponse_index') }}" class="btn btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Retour</a>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-warning">
+                <h4 class="mb-0"><i class="bi bi-pencil"></i> Modifier Réponse #{{ reponse.id }}</h4>
+            </div>
+            <div class="card-body">
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    {% if form.vars.errors|length > 0 %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong><i class="bi bi-exclamation-circle me-2"></i>Erreurs de saisie :</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for error in form.vars.errors %}
+                                    <li>{{ error.message }}</li>
+                                {% endfor %}
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        {{ form_label(form.adminNom) }}
+                        {{ form_widget(form.adminNom, {'attr': {'class': 'form-control ' ~ (form.adminNom.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
+                        {% if form.adminNom.vars.errors|length > 0 %}
+                            <div class="invalid-feedback d-block" style="color: #dc3545; font-size: 0.875rem; margin-top: 0.5rem;">
+                                {% for error in form.adminNom.vars.errors %}
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error.message }}<br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.adminEmail) }}
+                        {{ form_widget(form.adminEmail, {'attr': {'class': 'form-control ' ~ (form.adminEmail.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
+                        {% if form.adminEmail.vars.errors|length > 0 %}
+                            <div class="invalid-feedback d-block" style="color: #dc3545; font-size: 0.875rem; margin-top: 0.5rem;">
+                                {% for error in form.adminEmail.vars.errors %}
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error.message }}<br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.contenu) }}
+                        {{ form_widget(form.contenu, {'attr': {'class': 'form-control ' ~ (form.contenu.vars.errors|length > 0 ? 'is-invalid' : '')}}) }}
+                        {% if form.contenu.vars.errors|length > 0 %}
+                            <div class="invalid-feedback d-block" style="color: #dc3545; font-size: 0.875rem; margin-top: 0.5rem;">
+                                {% for error in form.contenu.vars.errors %}
+                                    <i class="bi bi-exclamation-circle me-1"></i>{{ error.message }}<br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-warning btn-lg w-100"><i class="bi bi-check-circle"></i> Enregistrer</button>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

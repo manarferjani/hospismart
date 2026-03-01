@@ -1,0 +1,173 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Liste des Événements - Hospismart{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    /* Style Oasis pour l'en-tête */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    /* Carte de contenu principale */
+    .events-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 25px;
+    }
+
+    /* Formulaire de filtres stylisé */
+    .filters-bar {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+    .filters-bar input, .filters-bar select {
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        padding: 8px 12px;
+    }
+
+    /* Tableau personnalisé */
+    .custom-table { width: 100%; border-collapse: collapse; }
+    .custom-table th { background: #f8fafc; padding: 15px; text-align: left; color: #64748b; font-weight: 600; font-size: 13px; border-bottom: 2px solid #edf2f7; }
+    .custom-table td { padding: 15px; border-top: 1px solid #f1f5f9; vertical-align: middle; font-size: 14px; }
+
+    /* Badges de Statut */
+    .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .status-planifie { background: #fef3c7; color: #92400e; } /* Jaune */
+    .status-en_cours { background: #dbeafe; color: #1e40af; } /* Bleu */
+    .status-termine { background: #dcfce7; color: #166534; }  /* Vert */
+    .status-annule { background: #fee2e2; color: #991b1b; }   /* Rouge */
+
+    .type-badge { background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px; font-size: 11px; }
+
+    /* Boutons d'action */
+    .action-group { display: flex; gap: 8px; }
+    .btn-action {
+        width: 32px; height: 32px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 8px; transition: 0.3s; text-decoration: none;
+    }
+    .btn-view { background: #eff6ff; color: #2563eb; }
+    .btn-edit { background: #fef3c7; color: #d97706; }
+    .btn-delete { background: #fef2f2; color: #dc2626; border: none; }
+    .btn-action:hover { transform: translateY(-2px); opacity: 0.8; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title m-0 fw-bold"><i class="fa-solid fa-calendar-star text-primary me-2"></i>Événements</h1>
+    <a href="{{ path('app_evenement_new') }}" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus me-1"></i> Nouvel Événement
+    </a>
+</div>
+
+<div class="events-card">
+    <div class="filters-bar">
+        <form method="get" action="{{ path('app_evenement_index') }}" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Rechercher un titre ou lieu..." value="{{ searchTerm }}">
+            </div>
+            <div class="col-md-3">
+                <select name="type" class="form-select">
+                    <option value="">Tous les types</option>
+                    <option value="réunion" {{ typeFilter == 'réunion' ? 'selected' : '' }}>Réunion</option>
+                    <option value="formation" {{ typeFilter == 'formation' ? 'selected' : '' }}>Formation</option>
+                    <option value="visite" {{ typeFilter == 'visite' ? 'selected' : '' }}>Visite</option>
+                    <option value="maintenance" {{ typeFilter == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                    <option value="autre" {{ typeFilter == 'autre' ? 'selected' : '' }}>Autre</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="statut" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="planifié" {{ statutFilter == 'planifié' ? 'selected' : '' }}>Planifié</option>
+                    <option value="en_cours" {{ statutFilter == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                    <option value="terminé" {{ statutFilter == 'terminé' ? 'selected' : '' }}>Terminé</option>
+                    <option value="annulé" {{ statutFilter == 'annulé' ? 'selected' : '' }}>Annulé</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-info w-100 text-white">
+                    <i class="fas fa-filter me-1"></i> Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>#ID</th>
+                    <th>Événement</th>
+                    <th>Type</th>
+                    <th>Dates</th>
+                    <th>Lieu</th>
+                    <th>Statut</th>
+                    <th>Budget</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for evenement in evenements %}
+                <tr>
+                    <td><span class="text-muted">#{{ evenement.id }}</span></td>
+                    <td><strong class="text-dark">{{ evenement.titre }}</strong></td>
+                    <td><span class="type-badge">{{ evenement.typeEvenement }}</span></td>
+                    <td>
+                        <div class="small">
+                            <i class="fa-regular fa-calendar-check text-primary"></i> {{ evenement.dateDebut|date('d/m/Y H:i') }}<br>
+                            <i class="fa-regular fa-calendar-xmark text-muted"></i> {{ evenement.dateFin|date('d/m/Y H:i') }}
+                        </div>
+                    </td>
+                    <td><i class="fa-solid fa-location-dot text-danger me-1"></i>{{ evenement.lieu }}</td>
+                    <td>
+                        {% set statusClass = 'status-' ~ evenement.statut|replace({' ': '_'}) %}
+                        <span class="status-badge {{ statusClass }}">
+                            {{ evenement.statut }}
+                        </span>
+                    </td>
+                    <td><span class="fw-bold">{{ evenement.budgetAlloue ? evenement.budgetAlloue|number_format(0, '.', ' ') ~ ' TND' : '-' }}</span></td>
+                    <td>
+                        <div class="action-group justify-content-end">
+                            <a href="{{ path('app_evenement_show', {'id': evenement.id}) }}" class="btn-action btn-view" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ path('app_evenement_edit', {'id': evenement.id}) }}" class="btn-action btn-edit" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="post" action="{{ path('app_evenement_delete', {'id': evenement.id}) }}" onsubmit="return confirm('Supprimer cet événement ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ evenement.id) }}">
+                                <button type="submit" class="btn-action btn-delete" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-calendar-xmark fa-2x mb-3 d-block"></i>
+                        Aucun événement trouvé
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

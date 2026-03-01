@@ -1,0 +1,90 @@
+{% extends 'base_back.html.twig' %}
+
+{% block title %}Gestion des Rendez-vous{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-calendar-check"></i> Gestion des Rendez-vous</h1>
+        </div>
+    </div>
+
+    {% if rendezvous %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Tous les rendez-vous ({{ rendezvous|length }})</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Patient</th>
+                                <th>Médecin</th>
+                                <th>Date & Heure</th>
+                                <th>Statut</th>
+                                <th>Type</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rdv in rendezvous %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ rdv.patient.prenom }} {{ rdv.patient.nom }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if rdv.medecin %}
+                                            {{ rdv.medecin.prenom }} {{ rdv.medecin.nom }}
+                                        {% else %}
+                                            <span class="text-muted">Non assigné</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rdv.datetime %}
+                                            {{ rdv.datetime|date('d/m/Y H:i') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if rdv.statut == 'CONFIRME' %}
+                                            <span class="badge bg-success">Confirmé</span>
+                                        {% elseif rdv.statut == 'EN_ATTENTE' %}
+                                            <span class="badge bg-warning">En attente</span>
+                                        {% elseif rdv.statut == 'REFUSE' %}
+                                            <span class="badge bg-danger">Refusé</span>
+                                        {% elseif rdv.statut == 'ANNULE' %}
+                                            <span class="badge bg-secondary">Annulé</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ rdv.typeConsultation|default('N/A') }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_admin_rendezvous_show', {id: rdv.id}) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                        <a href="{{ path('app_admin_rendezvous_edit', {id: rdv.id}) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i> Modifier
+                                        </a>
+                                        <form method="post" action="{{ path('app_admin_rendezvous_delete', {id: rdv.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ rdv.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Supprimer
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> Aucun rendez-vous trouvé.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}{{ user.prenom }} {{ user.nom }} - Hospismart{% endblock %}
+
+{% block content %}
+<div class="back-page-header">
+    <h1 class="back-page-title">👤 Fiche utilisateur</h1>
+    <div class="back-page-actions">
+        <a href="{{ path('app_dashboard_utilisateurs_edit', { id: user.id }) }}" class="btn btn-edit" style="background:#3498db;color:#fff;">✎ Modifier</a>
+        <a href="{{ path('app_dashboard_utilisateurs_list') }}" class="btn" style="background:#95a5a6;color:#fff;">← Liste</a>
+    </div>
+</div>
+
+<div class="back-form-card">
+    <h3>Compte</h3>
+    <table class="back-detail-table">
+        <tr><td><strong>Id</strong></td><td>{{ user.id }}</td></tr>
+        <tr><td><strong>Nom d'utilisateur</strong></td><td>{{ user.nom }}</td></tr>
+        <tr><td><strong>Prénom</strong></td><td>{{ user.prenom }}</td></tr>
+        <tr><td><strong>Email</strong></td><td>{{ user.email }}</td></tr>
+        <tr><td><strong>Téléphone</strong></td><td>{{ user.telephone ?? '—' }}</td></tr>
+        <tr><td><strong>Rôle(s)</strong></td><td>
+            {% if 'ROLE_ADMIN' in user.roles %}<span class="badge badge-red">Admin</span>{% endif %}
+            {% if 'ROLE_MEDECIN' in user.roles %}<span class="badge badge-blue">Médecin</span>{% endif %}
+            {% if 'ROLE_PATIENT' in user.roles %}<span class="badge badge-green">Patient</span>{% endif %}
+        </td></tr>
+    </table>
+</div>
+
+{% if patient %}
+<div class="back-form-card">
+    <h3>Profil patient</h3>
+    <table class="back-detail-table">
+        <tr><td><strong>Genre</strong></td><td>{{ patient.genre }}</td></tr>
+        <tr><td><strong>Date de naissance</strong></td><td>{{ patient.dateNaissance ? patient.dateNaissance|date('d/m/Y') : '—' }}</td></tr>
+        <tr><td><strong>Groupe sanguin</strong></td><td>{{ patient.groupeSanguin ?? '—' }}</td></tr>
+        <tr><td><strong>Adresse</strong></td><td>{{ patient.adresse ?? '—' }}</td></tr>
+    </table>
+</div>
+{% endif %}
+
+{% if medecin %}
+<div class="back-form-card">
+    <h3>Profil médecin</h3>
+    <table class="back-detail-table">
+        <tr><td><strong>Spécialité</strong></td><td>{{ user.specialite }}</td></tr>
+        <tr><td><strong>Matricule</strong></td><td>{{ user.matricule }}</td></tr>
+        <tr><td><strong>Téléphone</strong></td><td>{{ user.telephone }}</td></tr>
+        <tr><td><strong>Service</strong></td><td>{{ user.service ? user.service.nom : '—' }}</td></tr>
+    </table>
+</div>
+{% endif %}
+{% endblock %}
