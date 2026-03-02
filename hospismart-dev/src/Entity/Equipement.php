@@ -26,11 +26,10 @@ class Equipement
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'L\'etat est obligatoire')]
-    #[Assert\Choice(choices: ['Bon', 'Moyen', 'Mauvais', 'Défaillant'])]
+    #[Assert\Choice(choices: ['Opérationnel', 'Maintenance', 'En Panne'])]
     private ?string $etat = null;
 
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'La relation est obligatoire')]
+    #[ORM\Column(length: 255, nullable: true)]
     #[Assert\Length(min: 2, max: 255)]
     private ?string $relation = null;
 
