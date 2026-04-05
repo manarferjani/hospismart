@@ -1,0 +1,18 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Modifier Reclamation{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-warning">Modifier la Reclamation #{{ reclamation.id }}</div>
+        <div class="card-body">
+            {{ form_start(form) }}
+                {{ form_widget(form) }}
+                <button type="submit" class="btn btn-warning mt-3">Enregistrer</button>
+                <a href="{{ path('app_admin_reclamations') }}" class="btn btn-secondary mt-3">Annuler</a>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

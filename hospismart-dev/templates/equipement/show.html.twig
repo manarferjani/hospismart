@@ -1,0 +1,99 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Détails - {{ equipement.nom }}{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    {# Bouton retour #}
+    <div class="mb-4">
+        <a href="{{ path('app_equipement_index') }}" class="text-decoration-none text-muted">
+            <i class="fa-solid fa-arrow-left me-1"></i> Retour à l'inventaire
+        </a>
+    </div>
+
+    <div class="row g-0 shadow-lg rounded-4 overflow-hidden bg-white glass-card border-0">
+        {# SECTION IMAGE (Gauche) #}
+        <div class="col-md-5" style="min-height: 350px;">
+            <div class="h-100 w-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="text-center text-white p-4">
+                    <i class="fa-solid fa-kit-medical fa-5x mb-3 opacity-75"></i>
+                    <h4 class="fw-bold">{{ equipement.nom }}</h4>
+                    <code class="text-white-50 fs-5">{{ equipement.reference }}</code>
+                </div>
+            </div>
+        </div>
+
+        {# SECTION INFOS (Droite) #}
+        <div class="col-md-7 p-5 d-flex flex-column justify-content-center">
+            <div class="mb-2 d-flex gap-2 align-items-center">
+                <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-bold">ID #{{ equipement.id }}</span>
+                {% if equipement.etat == 'Opérationnel' %}
+                    <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2">
+                        <i class="fa-solid fa-check-circle me-1"></i> {{ equipement.etat }}
+                    </span>
+                {% elseif equipement.etat == 'Maintenance' %}
+                    <span class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-3 py-2">
+                        <i class="fa-solid fa-clock me-1"></i> {{ equipement.etat }}
+                    </span>
+                {% elseif equipement.etat == 'En Panne' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-2">
+                        <i class="fa-solid fa-circle-xmark me-1"></i> {{ equipement.etat }}
+                    </span>
+                {% endif %}
+            </div>
+            
+            <h1 class="fw-bold text-dark display-5 mb-3">{{ equipement.nom }}</h1>
+            
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-light p-3 rounded-circle me-3">
+                    <i class="fa-solid fa-barcode fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0">Référence</h6>
+                    <p class="fw-bold mb-0 fs-5">{{ equipement.reference }}</p>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-light p-3 rounded-circle me-3">
+                    <i class="fa-solid fa-hospital fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0">Service</h6>
+                    <p class="fw-bold mb-0 fs-5">{{ equipement.service ? equipement.service.nom : 'Non affecté' }}</p>
+                </div>
+            </div>
+
+            {% if equipement.relation %}
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-light p-3 rounded-circle me-3">
+                    <i class="fa-solid fa-link fa-2x text-primary"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted mb-0">Relation</h6>
+                    <p class="fw-bold mb-0 fs-5">{{ equipement.relation }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <hr class="my-4 opacity-25">
+
+            <div class="d-flex gap-3">
+                <a href="{{ path('app_equipement_edit', {'id': equipement.id}) }}" class="btn btn-warning rounded-pill px-4 py-2 fw-bold shadow-sm text-white">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Modifier
+                </a>
+                
+                {{ include('equipement/_delete_form.html.twig') }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.8) !important;
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+</style>
+{% endblock %}

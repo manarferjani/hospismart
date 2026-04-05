@@ -1,0 +1,4 @@
+# Symfony 6.4: framework.csrf_protection only supports "enabled"
+framework:
+    csrf_protection:
+        enabled: true

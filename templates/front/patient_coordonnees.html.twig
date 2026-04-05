@@ -1,0 +1,237 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Mon Profil - HospiSmart{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Conteneur principal pour éviter l'étalement sur toute la largeur */
+        .profile-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* En-tête du profil */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Bouton IA Spécifique */
+        .btn-ai {
+            font-size: 0.95rem;
+            background: #007bff !important;
+            color: #ffffff !important;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+            display: inline-flex;
+            align-items: center;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+        .btn-ai:hover { transform: translateY(-2px); color: white; }
+        .btn-ai svg { margin-right: 0.5rem; }
+
+        /* Carte d'identité du patient */
+        .patient-identity {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+        .patient-name {
+            font-size: 1.5rem;
+            color: var(--front-secondary);
+            font-weight: 700;
+            margin: 0;
+        }
+        .patient-id {
+            font-size: 0.85rem;
+            color: var(--front-text-muted);
+        }
+
+        /* Barre d'infos (Né le, Sexe, Groupe) */
+        .info-meta-bar {
+            margin: 1.5rem 0;
+            padding: 1.2rem;
+            background: #f0f7ff;
+            border-radius: 12px;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            border: 1px solid #e1effe;
+        }
+        .info-meta-bar span {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.95rem;
+            color: #1e429f;
+        }
+
+        /* Grille des coordonnées */
+        .coordonnees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .coordonnees-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .coordonnees-item strong {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+        }
+
+        /* Fiches Médicales IA */
+        .medical-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.2rem;
+            transition: box-shadow 0.3s ease;
+        }
+        .medical-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        .card-urgent { border-left: 5px solid #ef4444; }
+        .card-normal { border-left: 5px solid #10b981; }
+
+        .medical-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        /* Correction Badge (Petit et Rond) */
+        .badge-round {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 11px;
+            padding: 0;
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="profile-container">
+    
+    {# HEADER #}
+    <div class="profile-header">
+        <h1 class="front-title" style="margin: 0;">Mon Dossier</h1>
+        <div class="header-actions">
+            <a href="{{ path('app_voice_assistant') }}" class="btn-ai">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+                Assistant Vocal IA
+            </a>
+            <a href="{{ path('app_compte_edit') }}" class="btn-secondary">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:0.5rem;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                Modifier
+            </a>
+        </div>
+    </div>
+
+    {% if patient %}
+        {# CARTE PRINCIPALE #}
+        <div class="front-card">
+            <div class="front-card-header">
+                <div class="patient-identity">
+                    {% if user.image %}
+                        <img src="{{ asset('/images/patients/' ~ user.image) }}" 
+                             class="rounded-circle shadow-sm" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% else %}
+                        <div class="two-factor-icon" style="width: 50px; height: 50px; margin:0; background: var(--front-primary); color: white;">
+                            <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h2 class="patient-name">{{ user.prenom }} {{ user.nom }}</h2>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-meta-bar">
+                <span><i class="fa-solid fa-cake-candles"></i> <strong>Né(e) le:</strong> {{ patient.dateNaissance ? patient.dateNaissance|date('d/m/Y') : 'Non défini' }}</span>
+                <span><i class="fa-solid fa-venus-mars"></i> <strong>Sexe:</strong> {{ patient.genre ?? 'Non défini' }}</span>
+                <span><i class="fa-solid fa-droplet"></i> <strong>Groupe:</strong> <b style="color:#dc2626">{{ patient.groupeSanguin ?? 'Inconnu' }}</b></span>
+            </div>
+
+            <div class="front-card-body">
+                <h4 style="margin-top:0; color: #475569; font-size: 1.1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">Coordonnées</h4>
+                <div class="coordonnees-grid">
+                    <div class="coordonnees-item">
+                        <strong>Email</strong>
+                        <span>{{ user.email }}</span>
+                    </div>
+                    <div class="coordonnees-item">
+                        <strong>Téléphone</strong>
+                        <span>{{ user.telephone ?? 'Non renseigné' }}</span>
+                    </div>
+                    <div class="coordonnees-item">
+                        <strong>Adresse</strong>
+                        <span>{{ patient.adresse ?? 'Non renseignée' }}</span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+                    <a href="/face-setup" class="btn-secondary" style="font-size: 0.9rem;">
+                        <i class="fa-solid fa-face-viewfinder me-2"></i> Configurer la reconnaissance faciale
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {# HISTORIQUE IA #}
+        {% if patient.fichesMedicales|length > 0 %}
+            <div style="margin-top: 3rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px;">
+                <h3 style="margin: 0;">Historique Médical IA</h3>
+                <span class="badge bg-primary badge-round">{{ patient.fichesMedicales|length }}</span>
+            </div>
+
+            {% for fiche in patient.fichesMedicales|sort((a, b) => b.createdAt <=> a.createdAt) %}
+                <div class="medical-card {% if fiche.alertLevel in ['urgent', 'eleve'] %}card-urgent{% else %}card-normal{% endif %}">
+                    <div class="medical-card-header">
+                        <strong style="color: #1e293b; font-size: 1.15rem;">{{ fiche.mainSymptom }}</strong>
+                        <span style="color: #94a3b8; font-size: 0.85rem;"><i class="fa-regular fa-calendar me-1"></i> {{ fiche.createdAt|date('d/m/Y à H:i') }}</span>
+                    </div>
+                    <p style="color: #475569; line-height: 1.6; font-style: italic;">"{{ fiche.summary }}"</p>
+                    <div style="display: flex; gap: 1.5rem; font-size: 0.85rem; color: #64748b; background: #f8fafc; padding: 0.8rem; border-radius: 6px;">
+                        <span><i class="fa-solid fa-stopwatch me-1"></i> Durée: {{ fiche.duration }}</span>
+                        <span><i class="fa-solid fa-gauge-high me-1"></i> Intensité: {{ fiche.intensity }}/10</span>
+                        <span><i class="fa-solid fa-location-dot me-1"></i> Zone: {{ fiche.location }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+    {% else %}
+        <div class="front-card text-center" style="padding: 3rem;">
+            <i class="fa-solid fa-user-slash fa-3x mb-3" style="color: #cbd5e1;"></i>
+            <p class="text-muted">Votre dossier médical n'est pas encore complété.</p>
+            <a href="{{ path('app_compte_edit') }}" class="btn btn-primary">Compléter mon profil</a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

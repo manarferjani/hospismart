@@ -1,0 +1,135 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Modifier Service - {{ service.nom }}{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="form-container">
+            <div class="form-header">
+                <a href="{{ path('app_service_index') }}" class="btn btn-link text-muted mb-3">
+                    <i class="fa-solid fa-arrow-left me-2"></i>Retour à la liste
+                </a>
+                <h2 class="fw-bold mb-1">
+                    <i class="fa-solid fa-hospital me-2 text-primary"></i>Modifier le service
+                </h2>
+                <p class="text-muted">Mettez à jour les informations : <strong>{{ service.nom }}</strong></p>
+            </div>
+
+            <div class="form-section">
+                <h5 class="form-section-title">
+                    <i class="fa-solid fa-circle-info me-2"></i>Informations du Service
+                </h5>
+                
+                {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+                    <div class="mb-3">
+                        {{ form_label(form.nom) }}
+                        {{ form_widget(form.nom, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Cardiologie'}}) }}
+                        {{ form_errors(form.nom) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.description) }}
+                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4, 'placeholder': 'Localisation ou description du service'}}) }}
+                        {{ form_errors(form.description) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.icon) }}
+                        {{ form_widget(form.icon, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_help(form.icon) }}
+                        {{ form_errors(form.icon) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {% if service.image %}
+                            <div class="mb-3">
+                                <label class="form-label d-block">Image actuelle</label>
+                                <img src="{{ asset('uploads/services/' ~ service.image) }}" alt="{{ service.nom }}" class="img-thumbnail" style="max-width: 300px;">
+                            </div>
+                        {% endif %}
+                        {{ form_label(form.imageFile) }}
+                        {{ form_widget(form.imageFile, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_help(form.imageFile) }}
+                        {{ form_errors(form.imageFile) }}
+                    </div>
+
+                    <div class="form-footer">
+                        <a href="{{ path('app_service_index') }}" class="btn btn-light">
+                            <i class="fa-solid fa-times me-2"></i>Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-save me-2"></i>Enregistrer
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    .form-header {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .form-section {
+        margin-bottom: 25px;
+    }
+
+    .form-section-title {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .form-container input,
+    .form-container select,
+    .form-container textarea {
+        border-radius: 10px;
+        border: 1px solid #dee2e6;
+        padding: 12px 15px;
+        transition: all 0.3s;
+    }
+
+    .form-container input:focus,
+    .form-container select:focus,
+    .form-container textarea:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+    }
+
+    .form-container label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+    }
+
+    .form-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .form-footer .btn {
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}

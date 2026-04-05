@@ -1,0 +1,60 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Événements - Hospismart{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .event-card { transition: transform 0.3s, box-shadow 0.3s; margin-bottom: 2rem; }
+    .event-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="text-center mb-5">
+    <h1 class="display-6"><i class="fa-solid fa-calendar-days text-primary"></i> Événements à venir</h1>
+    <p class="lead text-muted">Inscrivez-vous aux prochains événements de l'établissement</p>
+</div>
+
+{% if evenements|length > 0 %}
+    <div class="row g-4">
+        {% for evenement in evenements %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 event-card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title d-flex justify-content-between align-items-start">
+                            <span>{{ evenement.titre }}</span>
+                            {% if evenement.statut == 'planifié' %}
+                                <span class="badge bg-warning text-dark">Planifié</span>
+                            {% elseif evenement.statut == 'en_cours' %}
+                                <span class="badge bg-primary">En cours</span>
+                            {% elseif evenement.statut == 'terminé' %}
+                                <span class="badge bg-success">Terminé</span>
+                            {% endif %}
+                        </h5>
+                        <p class="text-muted small"><i class="fa-solid fa-tag"></i> {{ evenement.typeEvenement|capitalize }}</p>
+                        <p class="card-text">{{ evenement.description|slice(0, 100) }}{% if evenement.description|length > 100 %}...{% endif %}</p>
+                        <hr>
+                        <p class="mb-1 small"><i class="fa-solid fa-calendar text-primary"></i> <strong>Début:</strong> {{ evenement.dateDebut ? evenement.dateDebut|date('d/m/Y H:i') : '—' }}</p>
+                        <p class="mb-1 small"><i class="fa-solid fa-calendar-check text-success"></i> <strong>Fin:</strong> {{ evenement.dateFin ? evenement.dateFin|date('d/m/Y H:i') : '—' }}</p>
+                        <p class="mb-1 small"><i class="fa-solid fa-location-dot text-danger"></i> <strong>Lieu:</strong> {{ evenement.lieu }}</p>
+                        {% if evenement.budgetAlloue %}
+                            <p class="mb-1 small"><i class="fa-solid fa-coins text-info"></i> <strong>Budget:</strong> {{ evenement.budgetAlloue }} TND</p>
+                        {% endif %}
+                        <p class="mb-3 small"><i class="fa-solid fa-users text-secondary"></i> <strong>Participants:</strong> {{ evenement.participants|length }}</p>
+                        <a href="{{ path('app_evenement_inscription', {'id': evenement.id}) }}" class="btn btn-primary w-100">
+                            <i class="fa-solid fa-user-plus"></i> M'inscrire
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info text-center py-5">
+        <i class="fa-solid fa-circle-info fa-3x mb-3 text-info"></i>
+        <h4>Aucun événement à venir</h4>
+        <p class="mb-0">Il n'y a actuellement aucun événement planifié.</p>
+    </div>
+{% endif %}
+{% endblock %}

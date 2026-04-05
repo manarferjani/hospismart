@@ -1,0 +1,159 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}{{ medicament.nom }}{% endblock %}
+
+{% block body %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_medicament_index') }}">Médicaments</a></li>
+            <li class="breadcrumb-item active">{{ medicament.nom }}</li>
+        </ol>
+    </nav>
+
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <h1><i class="fa-solid fa-capsules me-2" style="color: var(--accent);"></i>{{ medicament.nom }}</h1>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ path('app_medicament_edit', {id: medicament.id}) }}" class="btn btn-primary">
+                    <i class="fa-solid fa-pen me-1"></i> Modifier
+                </a>
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fa-solid fa-trash me-1"></i> Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 animate-fade-up">
+        {# Infos principales Premium #}
+        <div class="col-lg-8">
+            <div class="premium-card shadow-sm h-100">
+                <div class="card-header border-0 bg-transparent pt-4 px-4">
+                    <h4 class="mb-0 text-primary-emphasis"><i class="fa-solid fa-circle-info me-2 opacity-50"></i>Spécifications</h4>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label class="text-muted small text-uppercase fw-bold ls-1 d-block mb-1">Identifiant</label>
+                            <p class="h6 fw-bold">#{{ medicament.id }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="text-muted small text-uppercase fw-bold ls-1 d-block mb-1">Catégorie</label>
+                            <p class="h6 fw-bold">
+                                {% if medicament.categorie %}
+                                    <span class="badge bg-primary-subtle text-primary">{{ medicament.categorie.nom }}</span>
+                                {% else %}
+                                    <span class="text-muted small">Non classé</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <div class="glass-effect rounded-lg p-4 border-primary border-opacity-10">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0 fw-bold">Inventory Status</h5>
+                                    {% if medicament.quantite <= medicament.seuilAlerte %}
+                                        <span class="badge bg-danger">Critical Warning</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Optimal Levels</span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex align-items-baseline gap-2 mb-2">
+                                    <span class="display-6 fw-bold text-dark">{{ medicament.quantite }}</span>
+                                    <span class="text-muted">unités en stock</span>
+                                </div>
+                                <div class="progress" style="height: 8px; border-radius: 4px; background: rgba(0,0,0,0.05);">
+                                    <div class="progress-bar {% if medicament.quantite <= medicament.seuilAlerte %}bg-danger{% else %}bg-primary{% endif %}" 
+                                         role="progressbar" 
+                                         style="width: {{ min(100, (medicament.quantite / (medicament.seuilAlerte * 2)) * 100) }}%"></div>
+                                </div>
+                                <p class="text-muted small mt-2 mb-0">Seuil de sécurité : {{ medicament.seuilAlerte }} unités</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mt-4">
+                            <label class="text-muted small text-uppercase fw-bold ls-1 d-block mb-1">Prix Unitaire</label>
+                            <p class="h4 fw-bold text-primary">{{ medicament.prixUnitaire|number_format(2, ',', ' ') }} €</p>
+                        </div>
+                        <div class="col-md-6 mt-4">
+                            <label class="text-muted small text-uppercase fw-bold ls-1 d-block mb-1">Échéance</label>
+                            <p class="h4 fw-bold {{ (medicament.datePeremption and medicament.datePeremption < date('+30 days')) ? 'text-danger' : 'text-dark' }}">
+                                {{ medicament.datePeremption ? medicament.datePeremption|date('M Y') : '—' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Sidebar: AI Visuals #}
+        <div class="col-lg-4">
+            <div class="premium-card shadow-sm mb-4">
+                <div class="card-header border-0 bg-transparent pt-4 px-4 d-flex justify-content-between">
+                    <h5 class="mb-0 fw-bold">Visual IA</h5>
+                    <i class="fa-solid fa-wand-magic-sparkles text-primary opacity-50"></i>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div class="position-relative overflow-hidden rounded-xl bg-light mb-4" style="aspect-ratio: 1/1;">
+                        {% if medicament.imageFilename %}
+                            <img src="{{ asset('uploads/medicaments/' ~ medicament.imageFilename) }}" 
+                                 alt="{{ medicament.nom }}" 
+                                 class="w-100 h-100 object-fit-cover shadow-sm">
+                        {% else %}
+                            <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-muted opacity-50">
+                                <i class="fa-solid fa-robot fa-4x mb-3"></i>
+                                <p class="small fw-bold">No High-Res Scan</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="post" action="{{ path('app_medicament_regenerate_image', {id: medicament.id}) }}" onsubmit="const btn = this.querySelector('button'); btn.disabled=true; btn.innerHTML='<span class=\'spinner-border spinner-border-sm me-2\'></span>Processing...';">
+                        <input type="hidden" name="_token" value="{{ csrf_token('regenerate' ~ medicament.id) }}">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm fw-bold">
+                            <i class="fa-solid fa-sync me-2"></i> {{ medicament.imageFilename ? 'Update AI Visual' : 'Request AI Rendering' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="premium-card shadow-sm border-0 glass-effect">
+                <div class="card-header border-0 bg-transparent pt-4 px-4">
+                    <h5 class="mb-0 fw-bold">Flow Actions</h5>
+                </div>
+                <div class="card-body px-4 pb-4 d-grid gap-2">
+                    <a href="{{ path('app_mouvement_stock_new', { medicament: medicament.id }) }}" class="btn btn-primary-gradient rounded-pill py-2 text-white fw-bold shadow-sm" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                        <i class="fa-solid fa-plus-circle me-2"></i> Adjust Inventory
+                    </a>
+                    <a href="{{ path('app_medicament_index') }}" class="btn btn-light border rounded-pill py-2 fw-bold text-muted small">
+                        <i class="fa-solid fa-arrow-left me-2"></i> Browse Directory
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Delete Modal #}
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-exclamation-triangle me-2"></i>Confirmer la suppression</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-1"><strong>Supprimer « {{ medicament.nom }} » ?</strong></p>
+                    <p class="text-muted small mb-0">Cette action supprimera également tous les mouvements de stock associés.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-times me-1"></i> Annuler
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="document.getElementById('deleteForm').submit();">
+                        <i class="fa-solid fa-trash me-1"></i> Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form id="deleteForm" method="POST" action="{{ path('app_medicament_delete', {id: medicament.id}) }}" style="display:none;">
+        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ medicament.id) }}">
+    </form>
+{% endblock %}

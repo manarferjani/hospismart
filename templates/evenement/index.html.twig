@@ -1,0 +1,311 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Liste des Événements - Hospismart{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    /* Style Oasis pour l'en-tête */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    /* Carte de contenu principale */
+    .events-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 25px;
+    }
+
+    /* Formulaire de filtres stylisé */
+    .filters-bar {
+        background: #f8fafc;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+    .filters-bar input, .filters-bar select {
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        padding: 8px 12px;
+    }
+
+    /* Tableau personnalisé */
+    .custom-table { width: 100%; border-collapse: collapse; }
+    .custom-table th { background: #f8fafc; padding: 15px; text-align: left; color: #64748b; font-weight: 600; font-size: 13px; border-bottom: 2px solid #edf2f7; }
+    .custom-table td { padding: 15px; border-top: 1px solid #f1f5f9; vertical-align: middle; font-size: 14px; }
+
+    /* Badges de Statut */
+    .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .status-planifie { background: #fef3c7; color: #92400e; }
+    .status-en_cours { background: #dbeafe; color: #1e40af; }
+    .status-termine { background: #dcfce7; color: #166534; }
+    .status-annule { background: #fee2e2; color: #991b1b; }
+
+    .type-badge { background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 6px; font-size: 11px; }
+
+    /* Boutons d'action */
+    .action-group { display: flex; gap: 8px; }
+    .btn-action {
+        width: 32px; height: 32px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 8px; transition: 0.3s; text-decoration: none;
+    }
+    .btn-view { background: #eff6ff; color: #2563eb; }
+    .btn-edit { background: #fef3c7; color: #d97706; }
+    .btn-delete { background: #fef2f2; color: #dc2626; border: none; }
+    .btn-action:hover { transform: translateY(-2px); opacity: 0.8; }
+
+    /* ===== Smart Search AI ===== */
+    .smart-search-wrapper { position: relative; }
+    .smart-search-input {
+        background: white; border: 2px solid #e2e8f0; border-radius: 12px;
+        padding: 10px 15px 10px 40px; width: 100%; font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    .smart-search-input:focus {
+        border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129,140,248,0.15); outline: none;
+    }
+    .smart-search-icon {
+        position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+        color: #94a3b8; font-size: 16px; pointer-events: none;
+    }
+    .smart-search-badge {
+        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        background: linear-gradient(135deg, #818cf8, #6366f1); color: white;
+        font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 700;
+    }
+    .smart-search-results {
+        position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
+        background: white; border-radius: 12px; margin-top: 6px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid #e2e8f0;
+        max-height: 350px; overflow-y: auto; display: none;
+    }
+    .smart-search-results.show { display: block; animation: slideDown 0.2s ease-out; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .search-result-item {
+        padding: 12px 16px; border-bottom: 1px solid #f1f5f9;
+        cursor: pointer; transition: background 0.2s; text-decoration: none; display: block; color: inherit;
+    }
+    .search-result-item:hover { background: #f8fafc; }
+    .search-result-title { font-weight: 600; color: #1e293b; font-size: 14px; }
+    .search-result-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+    .search-result-score {
+        font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+        background: linear-gradient(135deg, #34d399, #10b981); color: white;
+    }
+    .search-loading { padding: 20px; text-align: center; color: #94a3b8; }
+    .search-empty { padding: 20px; text-align: center; color: #94a3b8; font-size: 13px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title m-0 fw-bold"><i class="fa-solid fa-calendar-star text-primary me-2"></i>Événements</h1>
+    <a href="{{ path('app_evenement_new') }}" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus me-1"></i> Nouvel Événement
+    </a>
+</div>
+
+{# ===== Smart Search AI Bar ===== #}
+<div class="events-card mb-3" style="padding: 15px 20px;">
+    <div class="smart-search-wrapper">
+        <i class="fa-solid fa-magnifying-glass smart-search-icon"></i>
+        <input type="text" id="smart-search" class="smart-search-input" placeholder="🔍 Recherche intelligente IA — tapez un titre, lieu, type (même avec des fautes)..." autocomplete="off">
+        <span class="smart-search-badge">🤖 IA</span>
+        <div id="smart-search-results" class="smart-search-results"></div>
+    </div>
+</div>
+
+<div class="events-card">
+    <div class="filters-bar">
+        <form method="get" action="{{ path('app_evenement_index') }}" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Filtre classique..." value="{{ searchTerm }}">
+            </div>
+            <div class="col-md-3">
+                <select name="type" class="form-select">
+                    <option value="">Tous les types</option>
+                    <option value="réunion" {{ typeFilter == 'réunion' ? 'selected' : '' }}>Réunion</option>
+                    <option value="formation" {{ typeFilter == 'formation' ? 'selected' : '' }}>Formation</option>
+                    <option value="visite" {{ typeFilter == 'visite' ? 'selected' : '' }}>Visite</option>
+                    <option value="maintenance" {{ typeFilter == 'maintenance' ? 'selected' : '' }}>Maintenance</option>
+                    <option value="autre" {{ typeFilter == 'autre' ? 'selected' : '' }}>Autre</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="statut" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="planifié" {{ statutFilter == 'planifié' ? 'selected' : '' }}>Planifié</option>
+                    <option value="en_cours" {{ statutFilter == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                    <option value="terminé" {{ statutFilter == 'terminé' ? 'selected' : '' }}>Terminé</option>
+                    <option value="annulé" {{ statutFilter == 'annulé' ? 'selected' : '' }}>Annulé</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-info w-100 text-white">
+                    <i class="fas fa-filter me-1"></i> Filtrer
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>#ID</th>
+                    <th>Événement</th>
+                    <th>Type</th>
+                    <th>Dates</th>
+                    <th>Lieu</th>
+                    <th>Statut</th>
+                    <th>Budget</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for evenement in pagination %}
+                <tr>
+                    <td><span class="text-muted">#{{ evenement.id }}</span></td>
+                    <td><strong class="text-dark">{{ evenement.titre }}</strong></td>
+                    <td><span class="type-badge">{{ evenement.typeEvenement }}</span></td>
+                    <td>
+                        <div class="small">
+                            <i class="fa-regular fa-calendar-check text-primary"></i> {{ evenement.dateDebut|date('d/m/Y H:i') }}<br>
+                            <i class="fa-regular fa-calendar-xmark text-muted"></i> {{ evenement.dateFin|date('d/m/Y H:i') }}
+                        </div>
+                    </td>
+                    <td><i class="fa-solid fa-location-dot text-danger me-1"></i>{{ evenement.lieu }}</td>
+                    <td>
+                        {% set statusClass = 'status-' ~ evenement.statut|replace({' ': '_'}) %}
+                        <span class="status-badge {{ statusClass }}">
+                            {{ evenement.statut }}
+                        </span>
+                    </td>
+                    <td><span class="fw-bold">{{ evenement.budgetAlloue ? evenement.budgetAlloue|number_format(0, '.', ' ') ~ ' TND' : '-' }}</span></td>
+                    <td>
+                        <div class="action-group justify-content-end">
+                            <a href="{{ path('app_evenement_show', {'id': evenement.id}) }}" class="btn-action btn-view" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ path('app_evenement_edit', {'id': evenement.id}) }}" class="btn-action btn-edit" title="Modifier">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ path('app_evenement_participants', {'id': evenement.id}) }}" class="btn-action btn-view" style="background: #e0e7ff; color: #4f46e5;" title="Voir les particpants">
+                                <i class="fas fa-users"></i>
+                            </a>
+                            <form method="post" action="{{ path('app_evenement_delete', {'id': evenement.id}) }}" onsubmit="return confirm('Supprimer cet événement ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ evenement.id) }}">
+                                <button type="submit" class="btn-action btn-delete" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-calendar-xmark fa-2x mb-3 d-block"></i>
+                        Aucun événement trouvé
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# Pagination controls #}
+    <div class="d-flex justify-content-between align-items-center mt-4 pt-3" style="border-top: 1px solid #f1f5f9;">
+        <div class="text-muted" style="font-size: 13px;">
+            Affichage de <strong>{{ pagination.count }}</strong> événement(s)
+            — Page <strong>{{ pagination.getCurrentPageNumber }}</strong> / <strong>{{ pagination.getPageCount }}</strong>
+        </div>
+        <div class="pagination-wrapper">
+            {{ knp_pagination_render(pagination) }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function() {
+    const input = document.getElementById('smart-search');
+    const resultsDiv = document.getElementById('smart-search-results');
+    let debounceTimer;
+
+    input.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+            resultsDiv.classList.remove('show');
+            return;
+        }
+
+        resultsDiv.innerHTML = '<div class="search-loading"><i class="fa-solid fa-spinner fa-spin"></i> Recherche IA en cours...</div>';
+        resultsDiv.classList.add('show');
+
+        debounceTimer = setTimeout(async () => {
+            try {
+                const resp = await fetch('/api/evenement/smart-search?q=' + encodeURIComponent(query));
+                const data = await resp.json();
+
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = '<div class="search-empty"><i class="fa-solid fa-robot"></i> Aucun résultat trouvé pour "<strong>' + query + '</strong>"</div>';
+                } else {
+                    let html = '';
+                    data.forEach(r => {
+                        const statusColors = {
+                            'planifié': '#f59e0b', 'en_cours': '#3b82f6',
+                            'terminé': '#10b981', 'annulé': '#ef4444'
+                        };
+                        const color = statusColors[r.statut] || '#6b7280';
+                        html += `<a href="/evenement/${r.id}" class="search-result-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="search-result-title">${r.titre}</div>
+                                    <div class="search-result-meta">
+                                        <span style="color:${color}">● ${r.statut || '-'}</span>
+                                        &nbsp;·&nbsp;<i class="fa-solid fa-tag"></i> ${r.type || '-'}
+                                        &nbsp;·&nbsp;<i class="fa-solid fa-location-dot"></i> ${r.lieu || '-'}
+                                        ${r.date ? '&nbsp;·&nbsp;<i class="fa-regular fa-calendar"></i> ' + r.date : ''}
+                                    </div>
+                                </div>
+                                <span class="search-result-score">${r.relevance}% pertinent</span>
+                            </div>
+                        </a>`;
+                    });
+                    resultsDiv.innerHTML = html;
+                }
+            } catch (e) {
+                resultsDiv.innerHTML = '<div class="search-empty text-danger">Erreur de recherche</div>';
+            }
+        }, 300);
+    });
+
+    // Close dropdown on click outside
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.classList.remove('show');
+        }
+    });
+
+    // Close on Escape
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') resultsDiv.classList.remove('show');
+    });
+})();
+</script>
+{% endblock %}

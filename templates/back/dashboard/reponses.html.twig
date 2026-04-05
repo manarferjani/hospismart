@@ -1,0 +1,152 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Réponses aux Réclamations - Hospismart{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .page-header {
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 20px; margin-bottom: 25px;
+        background: white; padding: 20px; border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .btn-sort {
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        padding: 8px 16px; background: #f8fafc; border: 1px solid #e2e8f0;
+        border-radius: 10px; color: #475569; font-size: 14px; font-weight: 600;
+        transition: all 0.2s ease; text-decoration: none;
+    }
+    .btn-sort:hover { background: #f1f5f9; border-color: #cbd5e1; transform: translateY(-1px); }
+
+    .reponses-table-card {
+        background: white; border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 20px;
+    }
+    .custom-table { width: 100%; border-collapse: collapse; }
+    .custom-table th { background: #f8fafc; padding: 15px; text-align: left; color: #64748b; font-weight: 600; font-size: 13px; border-bottom: 2px solid #edf2f7; }
+    .custom-table td { padding: 15px; border-top: 1px solid #f1f5f9; vertical-align: middle; font-size: 14px; }
+
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .bg-traite { background: #dcfce7; color: #166534; }
+    .bg-cours { background: #dbeafe; color: #1e40af; }
+    .bg-attente { background: #fef3c7; color: #92400e; }
+
+    .btn-action-group { display: flex; gap: 8px; justify-content: flex-end; }
+    .btn-circle {
+        width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+        border-radius: 8px; transition: 0.3s;
+    }
+    .btn-view { background: #eff6ff; color: #2563eb; }
+    .btn-edit { background: #fef3c7; color: #d97706; }
+    .btn-delete { background: #fef2f2; color: #dc2626; border: none; cursor: pointer; }
+
+    .contenu-preview {
+        max-width: 300px; overflow: hidden; text-overflow: ellipsis;
+        white-space: nowrap; color: #334155;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-title">
+        <h1 class="m-0 fw-bold" style="font-size: 24px;">
+            <i class="fa-solid fa-reply text-success me-2"></i>Réponses aux Réclamations
+        </h1>
+        <p class="text-muted mb-0 mt-1">{{ reponses|length }} réponse{{ reponses|length > 1 ? 's' : '' }} au total</p>
+    </div>
+    <div class="header-actions">
+        <span class="text-muted fw-semibold">Trier par :</span>
+        <div class="sort-group">
+            <a href="{{ path('app_dashboard_reponses', {'sort': 'dateReponse', 'direction': currentDirection == 'ASC' ? 'DESC' : 'ASC'}) }}" class="btn-sort shadow-sm {{ currentSort == 'dateReponse' ? 'active' : '' }}">
+                <i class="fa-solid fa-calendar-days text-warning"></i> Date {{ currentSort == 'dateReponse' ? (currentDirection == 'ASC' ? '↑' : '↓') : '' }}
+            </a>
+            <a href="{{ path('app_dashboard_reponses', {'sort': 'adminNom', 'direction': currentDirection == 'ASC' ? 'DESC' : 'ASC'}) }}" class="btn-sort shadow-sm {{ currentSort == 'adminNom' ? 'active' : '' }}">
+                <i class="fa-solid fa-user-shield text-primary"></i> Admin {{ currentSort == 'adminNom' ? (currentDirection == 'ASC' ? '↑' : '↓') : '' }}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="reponses-table-card">
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Réclamation</th>
+                    <th>Contenu</th>
+                    <th>Admin</th>
+                    <th>Date</th>
+                    <th>Statut récl.</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reponse in reponses %}
+                <tr>
+                    <td><span class="text-muted fw-bold">#{{ reponse.id }}</span></td>
+                    <td>
+                        {% if reponse.reclamation %}
+                            <a href="{{ path('app_dashboard_reclamations_edit', {id: reponse.reclamation.id}) }}" class="text-decoration-none fw-bold text-dark">
+                                #{{ reponse.reclamation.id }} - {{ reponse.reclamation.titre|slice(0, 30) }}{% if reponse.reclamation.titre|length > 30 %}...{% endif %}
+                            </a>
+                            <div class="small text-muted">{{ reponse.reclamation.nomPatient }}</div>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="contenu-preview" title="{{ reponse.contenu }}">{{ reponse.contenu|slice(0, 60) }}{% if reponse.contenu|length > 60 %}...{% endif %}</div>
+                    </td>
+                    <td>
+                        <div class="fw-bold">{{ reponse.adminNom }}</div>
+                        <div class="small text-muted">{{ reponse.adminEmail }}</div>
+                    </td>
+                    <td>
+                        <div class="small text-muted">
+                            <i class="fa-regular fa-clock me-1"></i>{{ reponse.dateReponse|date('d/m/Y H:i') }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if reponse.reclamation %}
+                            {% if reponse.reclamation.statut == 'Traité' %}
+                                <span class="status-badge bg-traite">Traité</span>
+                            {% elseif reponse.reclamation.statut == 'En cours' %}
+                                <span class="status-badge bg-cours">En cours</span>
+                            {% else %}
+                                <span class="status-badge bg-attente">En attente</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-action-group">
+                            <a href="{{ path('app_dashboard_reponses_edit', {id: reponse.id}) }}" class="btn-circle btn-edit" title="Modifier">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <form method="post" action="{{ path('app_dashboard_reponses_delete', {id: reponse.id}) }}" onsubmit="return confirm('Supprimer cette réponse ?');" style="display:inline;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_reponse' ~ reponse.id) }}">
+                                <button type="submit" class="btn-circle btn-delete" title="Supprimer">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-inbox fa-2x mb-3 d-block"></i>
+                        Aucune réponse trouvée.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

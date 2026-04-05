@@ -1,0 +1,307 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Nouvel Événement - Hospismart{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .form-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 40px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .form-label { font-weight: 600; color: #475569; margin-bottom: 8px; }
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        padding: 12px 15px;
+        transition: all 0.3s;
+    }
+    .form-control:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    }
+    .btn-save {
+        background: #3b82f6; color: white; border: none;
+        padding: 12px 25px; border-radius: 10px; font-weight: 600;
+        display: inline-flex; align-items: center; gap: 8px; transition: 0.3s;
+    }
+    .btn-save:hover { background: #2563eb; transform: translateY(-2px); }
+    .btn-back {
+        background: #f1f5f9; color: #475569;
+        padding: 12px 25px; border-radius: 10px; text-decoration: none;
+        font-weight: 600; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .section-title {
+        font-size: 1.1rem; color: #3b82f6; margin-bottom: 20px;
+        padding-bottom: 10px; border-bottom: 2px solid #eff6ff; font-weight: 700;
+    }
+
+    /* Map */
+    #map-picker { width: 100%; height: 320px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 10px; }
+
+    /* Autocomplete search */
+    .map-search-wrapper { position: relative; }
+    #map-search-input {
+        width: 100%; padding: 11px 15px; border-radius: 10px;
+        border: 1px solid #e2e8f0; font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+    #map-search-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+    #autocomplete-list {
+        position: absolute; top: 100%; left: 0; right: 0; z-index: 9999;
+        background: white; border: 1px solid #e2e8f0; border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 220px;
+        overflow-y: auto; display: none;
+    }
+    .autocomplete-item {
+        padding: 10px 15px; cursor: pointer; font-size: 0.9rem;
+        border-bottom: 1px solid #f1f5f9; transition: background 0.15s;
+    }
+    .autocomplete-item:hover { background: #eff6ff; }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .map-hint { font-size: 0.82rem; color: #94a3b8; margin-top: 6px; }
+    .coords-hidden { display: none; }
+</style>
+
+
+<div class="page-header">
+    <div>
+        <h1 class="m-0 fw-bold" style="font-size:24px;">✨ Créer un événement</h1>
+        <small class="text-muted">Remplissez les informations pour planifier une nouvelle activité.</small>
+    </div>
+</div>
+
+<div class="form-container">
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+        <div class="section-title"><i class="fa-solid fa-circle-info me-2"></i>Informations Générales</div>
+        <div class="row mb-4">
+            <div class="col-md-8">
+                {{ form_label(form.titre, 'Titre de l\'événement', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.titre, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Réunion de service'}}) }}
+                {{ form_errors(form.titre) }}
+            </div>
+            <div class="col-md-4">
+                {{ form_label(form.type_evenement, 'Type', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.type_evenement, {'attr': {'class': 'form-select'}}) }}
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between mb-1 flex-wrap gap-2">
+                    {{ form_label(form.description, 'Description détaillée', {'label_attr': {'class': 'form-label mb-0'}}) }}
+                    <button type="button" id="btn-ai-generate" class="btn btn-sm" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; border: none; border-radius: 8px; padding: 6px 16px; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s; box-shadow: 0 2px 8px rgba(99,102,241,0.3); white-space: nowrap; flex-shrink: 0;" title="Générer une description avec l'IA">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Générer avec IA
+                    </button>
+                </div>
+                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '4', 'placeholder': 'Décrivez l\'objectif de l\'événement... ou cliquez sur "Générer avec IA"', 'id': 'evenement_description'}}) }}
+                <div id="ai-status" style="display:none; margin-top: 6px; font-size: 0.82rem;"></div>
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fa-solid fa-clock me-2"></i>Planification</div>
+        <div class="row mb-4">
+            <div class="col-md-6">
+                {{ form_label(form.date_debut, 'Date et heure de début', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.date_debut, {'attr': {'class': 'form-control'}}) }}
+            </div>
+            <div class="col-md-6">
+                {{ form_label(form.date_fin, 'Date et heure de fin', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.date_fin, {'attr': {'class': 'form-control'}}) }}
+            </div>
+        </div>
+
+        <div class="section-title"><i class="fa-solid fa-map-location-dot me-2"></i>Localisation</div>
+        <div class="row mb-4">
+            <div class="col-12">
+                <label class="form-label">Rechercher l'emplacement</label>
+                <div class="map-search-wrapper mb-2">
+                    <input id="map-search-input" type="text" placeholder="🔍 Tapez une adresse ou un lieu...">
+                    <div id="autocomplete-list"></div>
+                </div>
+                <div id="map-picker"></div>
+                <p class="map-hint"><i class="fas fa-info-circle"></i> Cherchez ou cliquez sur la carte. Le champ "Lieu" sera rempli automatiquement.</p>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-md-6">
+                {{ form_label(form.lieu, 'Lieu (rempli automatiquement)', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.lieu, {'attr': {'class': 'form-control', 'id': 'evenement_lieu', 'placeholder': 'Sélectionnez via la carte ci-dessus'}}) }}
+                {{ form_errors(form.lieu) }}
+            </div>
+            <div class="col-md-3">
+                {{ form_label(form.statut, 'Statut initial', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.statut, {'attr': {'class': 'form-select'}}) }}
+            </div>
+            <div class="col-md-3">
+                {{ form_label(form.budget_alloue, 'Budget (TND)', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.budget_alloue, {'attr': {'class': 'form-control', 'placeholder': '0.00'}}) }}
+            </div>
+        </div>
+
+        <div class="coords-hidden">
+            {{ form_widget(form.latitude) }}
+            {{ form_widget(form.longitude) }}
+        </div>
+
+        <hr class="mb-4">
+        <div class="d-flex justify-content-between">
+            <a href="{{ path('app_evenement_index') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Annuler
+            </a>
+            <button type="submit" class="btn-save shadow-sm">
+                <i class="fas fa-save"></i> Confirmer la création
+            </button>
+        </div>
+    {{ form_end(form) }}
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const GEOAPIFY_KEY = '{{ google_maps_api_key }}';
+
+// ── Leaflet map ──────────────────────────────────────────────
+const map = L.map('map-picker').setView([36.8065, 10.1815], 12);
+
+L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19 }
+).addTo(map);
+
+// Fix blank map when container is inside hidden elements
+setTimeout(() => map.invalidateSize(), 300);
+
+let marker = null;
+
+function setMarker(lat, lng) {
+    if (marker) { marker.setLatLng([lat, lng]); }
+    else { marker = L.marker([lat, lng], { draggable: true }).addTo(map); marker.on('dragend', e => reverseGeocode(e.target.getLatLng().lat, e.target.getLatLng().lng)); }
+    map.setView([lat, lng], 16);
+    setCoords(lat, lng);
+}
+
+function setCoords(lat, lng) {
+    document.getElementById('evenement_latitude').value = lat;
+    document.getElementById('evenement_longitude').value = lng;
+}
+
+// Click on map
+map.on('click', e => { setMarker(e.latlng.lat, e.latlng.lng); reverseGeocode(e.latlng.lat, e.latlng.lng); });
+
+// Reverse geocode
+function reverseGeocode(lat, lng) {
+    fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${GEOAPIFY_KEY}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.features && data.features.length > 0) {
+                document.getElementById('evenement_lieu').value = data.features[0].properties.formatted || '';
+            }
+        });
+}
+
+// ── Autocomplete search ──────────────────────────────────────
+let searchTimeout;
+const searchInput = document.getElementById('map-search-input');
+const acList = document.getElementById('autocomplete-list');
+
+searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    const q = searchInput.value.trim();
+    if (q.length < 3) { acList.style.display = 'none'; return; }
+    searchTimeout = setTimeout(() => {
+        fetch(`https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(q)}&limit=6&apiKey=${GEOAPIFY_KEY}`)
+            .then(r => r.json())
+            .then(data => {
+                acList.innerHTML = '';
+                if (!data.features || data.features.length === 0) { acList.style.display = 'none'; return; }
+                data.features.forEach(f => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.textContent = f.properties.formatted;
+                    item.addEventListener('click', () => {
+                        searchInput.value = f.properties.formatted;
+                        document.getElementById('evenement_lieu').value = f.properties.formatted;
+                        acList.style.display = 'none';
+                        const lat = f.geometry.coordinates[1];
+                        const lng = f.geometry.coordinates[0];
+                        setMarker(lat, lng);
+                    });
+                    acList.appendChild(item);
+                });
+                acList.style.display = 'block';
+            });
+    }, 300);
+});
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('.map-search-wrapper')) acList.style.display = 'none';
+});
+
+// ── AI Description Generator ──────────────────────────────────
+document.getElementById('btn-ai-generate').addEventListener('click', async function() {
+    const btn = this;
+    const statusEl = document.getElementById('ai-status');
+    const descEl = document.getElementById('evenement_description');
+
+    // Gather form values
+    const titre = document.querySelector('[id$="_titre"]')?.value || '';
+    const type = document.querySelector('[id$="_type_evenement"]')?.value || '';
+    const dateDebut = document.querySelector('[id$="_date_debut"]')?.value || '';
+    const dateFin = document.querySelector('[id$="_date_fin"]')?.value || '';
+    const lieu = document.getElementById('evenement_lieu')?.value || '';
+    const budget = document.querySelector('[id$="_budget_alloue"]')?.value || '';
+
+    if (!titre.trim()) {
+        statusEl.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-circle-exclamation me-1"></i>Veuillez d\'abord saisir un titre pour générer la description.</span>';
+        statusEl.style.display = 'block';
+        return;
+    }
+
+    // Loading state
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Génération...';
+    statusEl.innerHTML = '<span style="color:#6366f1;"><i class="fa-solid fa-brain me-1"></i>L\'IA analyse les informations et génère une description...</span>';
+    statusEl.style.display = 'block';
+
+    try {
+        const response = await fetch('/api/evenement/generate-description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titre, type, lieu, dateDebut, dateFin, budget })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.description) {
+            descEl.value = data.description;
+            statusEl.innerHTML = '<span style="color:#22c55e;"><i class="fa-solid fa-check-circle me-1"></i>Description générée avec succès ! Vous pouvez la modifier si nécessaire.</span>';
+            setTimeout(() => { statusEl.style.display = 'none'; }, 5000);
+        } else {
+            statusEl.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-circle-exclamation me-1"></i>' + (data.error || 'Erreur lors de la génération.') + '</span>';
+        }
+    } catch (err) {
+        statusEl.innerHTML = '<span style="color:#ef4444;"><i class="fa-solid fa-circle-exclamation me-1"></i>Erreur réseau. Vérifiez votre connexion.</span>';
+    }
+
+    // Reset button
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Générer avec IA';
+});
+</script>
+{% endblock %}

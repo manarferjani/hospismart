@@ -1,0 +1,167 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Accueil - Gestion des Réclamations{% endblock %}
+
+{% block content %}
+<style>
+    .hero-section {
+        margin-bottom: 3rem;
+        padding: 3rem 0;
+        text-align: center;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .hero-section h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 1rem;
+        letter-spacing: -0.5px;
+    }
+
+    .hero-section p {
+        font-size: 1.1rem;
+        color: #666;
+        line-height: 1.8;
+    }
+
+    .action-cards {
+        margin-top: 2rem;
+    }
+
+    .action-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: none;
+        height: 100%;
+    }
+
+    .action-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .action-card .card-body {
+        padding: 2.5rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .action-card i {
+        font-size: 3.5rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+        transition: transform 0.3s ease;
+    }
+
+    .action-card:hover i {
+        transform: scale(1.1);
+    }
+
+    .action-card h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin-bottom: 0.75rem;
+    }
+
+    .action-card p {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 1.75rem;
+        line-height: 1.6;
+    }
+
+    .btn-action {
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        margin-top: auto;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+        border: none;
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(13, 110, 253, 0.4);
+        color: white;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        border: none;
+        box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #157347 0%, #11532f 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(25, 135, 84, 0.4);
+        color: white;
+    }
+
+    .action-card.card-new {
+        background: linear-gradient(135deg, #f0f7ff 0%, #e3f0ff 100%);
+        border-left: 4px solid #0d6efd;
+    }
+
+    .action-card.card-new i {
+        color: #0d6efd;
+    }
+
+    .action-card.card-search {
+        background: linear-gradient(135deg, #f0fff4 0%, #e3f8f0 100%);
+        border-left: 4px solid #198754;
+    }
+
+    .action-card.card-search i {
+        color: #198754;
+    }
+</style>
+
+<div class="hero-section">
+    <h1><i class="bi bi-chat-dots me-3"></i>Bienvenue sur le Portail des Réclamations</h1>
+    <p>Nous sommes à votre écoute et entièrement mobilisés pour traiter vos réclamations.
+    <br>Soumettez vos requêtes et suivez leur progression en temps réel.</p>
+</div>
+
+<div class="action-cards">
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card action-card card-new">
+                <div class="card-body">
+                    <i class="bi bi-plus-circle"></i>
+                    <h3>Nouvelle Réclamation</h3>
+                    <p>Avez-vous une réclamation à nous soumettre? Remplissez le formulaire et nous traiterons votre demande avec attention.</p>
+                    <a href="{{ path('front_office_nouvelle_reclamation') }}" class="btn btn-primary btn-action">
+                        <i class="bi bi-pencil-square me-2"></i>Soumettre
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card action-card card-search">
+                <div class="card-body">
+                    <i class="bi bi-search"></i>
+                    <h3>Suivre mes Réclamations</h3>
+                    <p>Consultez l'état d'avancement de vos réclamations, recevez les réponses et mettez à jour vos informations si nécessaire.</p>
+                    <a href="{{ path('front_office_mes_reclamations') }}" class="btn btn-success btn-action">
+                        <i class="bi bi-search me-2"></i>Consulter
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

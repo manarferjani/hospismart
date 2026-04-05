@@ -1,0 +1,312 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Assistant Vocal Santé - HospiSmart{% endblock %}
+
+{% block body %}
+<div class="front-hero" style="padding: 4rem 1rem;">
+    <h1>Assistant <span>Vocal Intelligent</span></h1>
+    <p>Décrivez vos symptômes naturellement avec votre voix. Notre Intelligence Artificielle médicale structurera automatiquement ces informations pour votre médecin.</p>
+</div>
+
+<div class="front-form-box" style="max-width: 800px; text-align: center; margin-top: -2rem;">
+    
+    <!-- Zone de statut vocal -->
+    <div id="voice-container" style="padding: 2rem;">
+        <button id="btn-record" type="button" class="btn-primary" style="border: none; font-size: 1.2rem; font-weight: 600; color: #ffffff; border-radius: 99px; padding: 1.5rem 3rem; background: #007bff; box-shadow: 0 10px 25px rgba(0, 123, 255, 0.4);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+            <span id="btn-text">Décrire mes symptômes par voix</span>
+        </button>
+
+        <p id="speech-status" style="margin-top: 1.5rem; color: #64748b; font-weight: 500;">Prêt à vous écouter...</p>
+        
+        <div id="speech-text" style="margin-top: 1.5rem; padding: 1.5rem; background: #f8fafc; border-radius: 12px; font-size: 1.1rem; min-height: 100px; text-align: left; display: none; color: #334155; border: 1px solid #e2e8f0;">
+            <!-- Texte retranscrit ici -->
+        </div>
+    </div>
+
+    <!-- Zone de Résultat IA -->
+    <div id="ai-result-container" style="display: none; text-align: left; margin-top: 2rem; border-top: 2px dashed #e2e8f0; padding-top: 2rem;">
+        <h3 style="color: #4f46e5; margin-bottom: 1rem;">🧠 Fiche Médicale Générée par l'IA</h3>
+        
+        <div style="background: #e0e7ff; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; color: #3730a3; font-weight: 600;">
+            " <span id="res-summary"></span> "
+        </div>
+
+        <div class="coordonnees-grid" style="margin-bottom: 2rem;">
+            <div class="coordonnees-item"><strong>Symptôme Principal</strong><span id="res-main"></span></div>
+            <div class="coordonnees-item"><strong>Intensité</strong><span id="res-intensity"></span></div>
+            <div class="coordonnees-item"><strong>Durée</strong><span id="res-duration"></span></div>
+            <div class="coordonnees-item"><strong>Niveau d'alerte</strong><span id="res-alert"></span></div>
+        </div>
+
+        <form id="save-form" style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="button" class="btn-secondary" onclick="resetVoice()">Recommencer</button>
+            <button type="button" class="btn-primary" onclick="confirmAndSave()">Confirmer & Ajouter au dossier</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let recognition;
+    let isRecording = false;
+    let finalTranscript = '';
+    let interimTranscript = '';
+    let micPermissionGranted = false;
+    let currentAnalysis = null;
+
+    function setVoiceStatus(text) {
+        document.getElementById('speech-status').innerText = text;
+    }
+
+    function handleVoiceButtonClick() {
+        if (!recognition) {
+            setVoiceStatus('Reconnaissance vocale indisponible. Utilisez Chrome/Edge et autorisez le microphone.');
+            return;
+        }
+
+        try {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                finalTranscript = '';
+                interimTranscript = '';
+                document.getElementById('ai-result-container').style.display = 'none';
+                setVoiceStatus('Demande d\'accès au microphone...');
+                requestMicrophoneAndStart();
+            }
+        } catch (e) {
+            console.error(e);
+            setVoiceStatus('Impossible de démarrer l\'écoute. Vérifiez les permissions micro.');
+            resetVoiceUI();
+            isRecording = false;
+        }
+    }
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'fr-FR';
+        recognition.interimResults = true;
+        recognition.continuous = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = function() {
+            isRecording = true;
+            document.getElementById('btn-record').style.background = '#ef4444';
+            document.getElementById('btn-record').style.boxShadow = '0 10px 25px rgba(239, 68, 68, 0.4)';
+            document.getElementById('btn-text').innerText = 'Je vous écoute... (Cliquez pour arrêter)';
+            setVoiceStatus('Enregistrement en cours...');
+            document.getElementById('speech-text').style.display = 'block';
+            document.getElementById('speech-text').innerHTML = '<i>Écoute...</i>';
+        };
+
+        recognition.onresult = function(event) {
+            interimTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += ' ' + event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            const merged = (finalTranscript + ' ' + interimTranscript).trim();
+            document.getElementById('speech-text').innerHTML = merged + '<i style="color:#94a3b8;"></i>';
+        };
+
+        recognition.onerror = function(event) {
+            let message = 'Erreur : ' + event.error;
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                message = 'Microphone refusé. Autorisez le micro dans le navigateur puis réessayez.';
+            } else if (event.error === 'no-speech') {
+                message = 'Aucune voix détectée. Parlez plus fort et rapprochez le micro.';
+            } else if (event.error === 'audio-capture') {
+                message = 'Microphone introuvable. Vérifiez votre périphérique audio.';
+            } else if (event.error === 'network') {
+                message = 'Erreur réseau du moteur vocal. Vérifiez Internet et réessayez.';
+            } else if (event.error === 'aborted') {
+                message = 'Écoute interrompue. Cliquez à nouveau pour parler.';
+            }
+            setVoiceStatus(message);
+            resetVoiceUI();
+            isRecording = false;
+        };
+
+        recognition.onend = function() {
+            if (isRecording) { // Arrêté par le système, pas volontairement
+                finalizeRecording();
+            }
+        };
+
+        recognition.onspeechstart = function() {
+            setVoiceStatus('Voix détectée...');
+        };
+
+        recognition.onspeechend = function() {
+            setVoiceStatus('Traitement de votre message...');
+        };
+
+        recognition.onaudiostart = function() {
+            setVoiceStatus('Micro actif, parlez maintenant...');
+        };
+
+        recognition.onaudioend = function() {
+            if (isRecording) {
+                setVoiceStatus('Fin de capture audio...');
+            }
+        };
+
+        recognition.onnomatch = function() {
+            setVoiceStatus('Aucune phrase exploitable détectée. Réessayez en parlant plus lentement.');
+        };
+
+        document.getElementById('btn-record').addEventListener('click', handleVoiceButtonClick);
+
+    } else {
+        setVoiceStatus("Votre navigateur ne supporte pas la reconnaissance vocale. Utilisez Chrome, Edge ou Safari.");
+        document.getElementById('btn-record').disabled = true;
+    }
+
+    async function requestMicrophoneAndStart() {
+        try {
+            if (!micPermissionGranted && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                const micPromise = navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('MIC_TIMEOUT')), 5000)
+                );
+
+                const stream = await Promise.race([micPromise, timeoutPromise]);
+                if (stream && stream.getTracks) {
+                    stream.getTracks().forEach(track => track.stop());
+                    micPermissionGranted = true;
+                }
+            }
+
+            setVoiceStatus('Initialisation du moteur vocal...');
+            recognition.start();
+            setTimeout(() => {
+                if (!isRecording) {
+                    setVoiceStatus('Le moteur vocal tarde à démarrer. Réessayez, ou utilisez Chrome/Edge avec un micro actif.');
+                }
+            }, 2500);
+        } catch (err) {
+            console.error(err);
+            if (err && err.message === 'MIC_TIMEOUT') {
+                try {
+                    setVoiceStatus('Accès micro lent, tentative de démarrage direct...');
+                    recognition.start();
+                    return;
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            setVoiceStatus('Accès micro refusé ou indisponible. Autorisez le microphone puis réessayez.');
+            resetVoiceUI();
+            isRecording = false;
+        }
+    }
+
+    function finalizeRecording() {
+        isRecording = false;
+        resetVoiceUI();
+        const transcript = (finalTranscript + ' ' + interimTranscript).trim();
+
+        if (transcript.length > 5) {
+            analyzeSpeech(transcript);
+        } else {
+            setVoiceStatus('Aucune phrase claire détectée. Parlez plus près du micro puis réessayez.');
+        }
+    }
+
+    function stopRecording() {
+        try {
+            recognition.stop();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function resetVoiceUI() {
+        const btn = document.getElementById('btn-record');
+        btn.style.background = '#007bff';
+        btn.style.boxShadow = '0 10px 25px rgba(0, 123, 255, 0.4)';
+        document.getElementById('btn-text').innerText = 'Décrire mes symptômes par voix';
+    }
+
+    function resetVoice() {
+        finalTranscript = '';
+        currentAnalysis = null;
+        document.getElementById('speech-text').style.display = 'none';
+        document.getElementById('ai-result-container').style.display = 'none';
+        setVoiceStatus('Prêt à vous écouter...');
+    }
+
+    function analyzeSpeech(text) {
+        setVoiceStatus('Analyse par Intelligence Artificielle en cours... 🧠');
+        
+        fetch('{{ path('app_voice_analyze') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ speech: text })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                setVoiceStatus('Erreur: ' + data.error);
+                return;
+            }
+
+            currentAnalysis = data.analysis;
+            currentAnalysis.rawSpeech = text;
+            currentAnalysis.summary = data.summary;
+
+            setVoiceStatus('Analyse terminée ! Veuillez vérifier la fiche ci-dessous.');
+            
+            // Remplir la fiche
+            document.getElementById('res-summary').innerText = data.summary;
+            document.getElementById('res-main').innerText = currentAnalysis.mainSymptom || 'N/A';
+            document.getElementById('res-intensity').innerText = currentAnalysis.intensity || 'N/A';
+            document.getElementById('res-duration').innerText = currentAnalysis.duration || 'N/A';
+            
+            const alertEl = document.getElementById('res-alert');
+            alertEl.innerText = currentAnalysis.alertLevel || 'N/A';
+            if (currentAnalysis.alertLevel === 'urgent' || currentAnalysis.alertLevel === 'eleve') {
+                alertEl.style.color = '#ef4444';
+                alertEl.style.fontWeight = '700';
+            } else {
+                alertEl.style.color = '#10b981';
+            }
+
+            document.getElementById('ai-result-container').style.display = 'block';
+        })
+        .catch(err => {
+            setVoiceStatus('Erreur serveur lors de l\'analyse.');
+            console.error(err);
+        });
+    }
+
+    function confirmAndSave() {
+        if (!currentAnalysis) return;
+
+        fetch('{{ path('app_voice_save') }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(currentAnalysis)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert("Erreur: " + (data.error || 'Erreur inconnue'));
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Inventaire Médical - Hospismart{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-5 px-md-5">
+    <div class="glass-card shadow-lg p-4 p-md-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="fa-solid fa-microscope me-2 text-primary"></i>Inventaire Médical
+            </h2>
+            <a href="{{ path('app_equipement_new') }}" class="btn btn-primary rounded-pill px-4 shadow-sm py-2">
+                <i class="fa-solid fa-plus me-1"></i> Nouveau Matériel
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr class="text-muted border-bottom">
+                        <th class="pb-3">Équipement</th>
+                        <th class="pb-3">Référence</th>
+                        <th class="pb-3">État</th>
+                        <th class="pb-3">Service</th>
+                        <th class="text-center pb-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for equipement in equipements %}
+                        <tr>
+                            <td class="py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3 text-primary" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-kit-medical fs-5"></i>
+                                    </div>
+                                    <span class="fw-bold text-dark">{{ equipement.nom }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <code class="text-primary fw-bold">{{ equipement.reference }}</code>
+                            </td>
+                            <td>
+                                {% if equipement.etat == 'Opérationnel' %}
+                                    <span class="badge bg-success-subtle text-success border border-success rounded-pill px-3 py-2">
+                                        <i class="fa-solid fa-check-circle me-1"></i> {{ equipement.etat }}
+                                    </span>
+                                {% elseif equipement.etat == 'Maintenance' %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning rounded-pill px-3 py-2">
+                                        <i class="fa-solid fa-clock me-1"></i> {{ equipement.etat }}
+                                    </span>
+                                {% elseif equipement.etat == 'En Panne' %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger rounded-pill px-3 py-2">
+                                        <i class="fa-solid fa-circle-xmark me-1"></i> {{ equipement.etat }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary rounded-pill px-3 py-2">
+                                        {{ equipement.etat }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if equipement.service %}
+                                    <span class="text-muted">
+                                        <i class="fa-solid fa-hospital me-1"></i> {{ equipement.service.nom }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted fst-italic">Non affecté</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="{{ path('app_equipement_show', {'id': equipement.id}) }}" class="btn btn-sm btn-white rounded-circle border shadow-sm p-2" style="width: 38px; height: 38px;" title="Voir">
+                                        <i class="fa-solid fa-eye text-primary"></i>
+                                    </a>
+                                    <a href="{{ path('app_equipement_edit', {'id': equipement.id}) }}" class="btn btn-sm btn-white rounded-circle border shadow-sm p-2" style="width: 38px; height: 38px;" title="Modifier">
+                                        <i class="fa-solid fa-pen text-warning"></i>
+                                    </a>
+                                    <form method="post" action="{{ path('app_equipement_delete', {'id': equipement.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet équipement ?');" style="display:inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ equipement.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-white rounded-circle border shadow-sm p-2" style="width: 38px; height: 38px;" title="Supprimer">
+                                            <i class="fa-solid fa-trash text-danger"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-inbox fa-3x mb-3 opacity-25"></i>
+                                <p class="mb-0">Aucun équipement enregistré.</p>
+                                <a href="{{ path('app_equipement_new') }}" class="btn btn-sm btn-primary rounded-pill mt-3">
+                                    <i class="fa-solid fa-plus me-1"></i> Ajouter un équipement
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    tbody tr {
+        transition: all 0.3s ease;
+        border-color: rgba(0,0,0,0.05) !important;
+    }
+    tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.5) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    .btn-white {
+        background: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .badge {
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+</style>
+{% endblock %}

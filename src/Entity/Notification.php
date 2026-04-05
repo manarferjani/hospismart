@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Entity;
+
+use App\Repository\NotificationRepository;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: NotificationRepository::class)]
+class Notification
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 255)]
+    private string $content = '';
+
+    #[ORM\Column]
+    private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column]
+    private bool $isRead = false; // Initialisé à false par défaut
+
+    // On utilise 'user' au lieu de 'patient' car tout le monde reçoit des notifications
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'notifications')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?User $user = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $type = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $linkUrl = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->isRead = false;
+    }
+
+    public function getId(): ?int { return $this->id; }
+
+    public function getContent(): ?string { return $this->content; }
+
+    public function setContent(string $content): static
+    {
+        $this->content = $content;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
+
+    private function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function isRead(): ?bool { return $this->isRead; }
+
+    public function setIsRead(bool $isRead): static
+    {
+        $this->isRead = $isRead;
+        return $this;
+    }
+
+    // Changement de Patient vers User
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    public function getType(): ?string { return $this->type; }
+
+    public function setType(?string $type): static
+    {
+        $this->type = $type;
+        return $this;
+    }
+
+    public function getLinkUrl(): ?string { return $this->linkUrl; }
+
+    public function setLinkUrl(?string $linkUrl): static
+    {
+        $this->linkUrl = $linkUrl;
+        return $this;
+    }
+}

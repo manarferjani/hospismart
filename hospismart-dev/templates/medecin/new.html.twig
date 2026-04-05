@@ -1,0 +1,28 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Nouveau Médecin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 fw-bold"><i class="fas fa-user-md text-primary me-2"></i> Nouveau Médecin</h1>
+            <p class="text-muted small mb-0">Créer un nouveau compte médecin</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_medecin_index') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0" style="border-radius: 15px;">
+        <div class="card-header py-3 bg-white border-bottom">
+            <h6 class="m-0 fw-bold text-primary"><i class="fas fa-user-plus me-2"></i> Informations du médecin</h6>
+        </div>
+        <div class="card-body p-4">
+            {{ include('medecin/_form.html.twig', {'button_label': 'Créer le médecin'}) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

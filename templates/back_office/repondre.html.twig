@@ -1,0 +1,36 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Repondre{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">Details</div>
+                <div class="card-body">
+                    <p><strong>Patient:</strong> {{ reclamation.nomPatient }}</p>
+                    <p><strong>Email:</strong> {{ reclamation.email }}</p>
+                    <p><strong>Titre:</strong> {{ reclamation.titre }}</p>
+                    <p><strong>Categorie:</strong> {{ reclamation.categorie }}</p>
+                    <hr>
+                    <p><strong>Description:</strong></p>
+                    <p class="bg-light p-3">{{ reclamation.description }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">Votre Reponse</div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        {{ form_widget(form) }}
+                        <button type="submit" class="btn btn-success mt-3">Envoyer</button>
+                        <a href="{{ path('app_admin_reclamations') }}" class="btn btn-secondary mt-3">Annuler</a>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

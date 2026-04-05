@@ -1,0 +1,103 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Modifier {{ user.prenom }} {{ user.nom }} - Hospismart{% endblock %}
+
+{% block content %}
+<div class="back-page-header">
+    <h1 class="back-page-title">✎ Modifier l'utilisateur</h1>
+    <a href="{{ path('app_dashboard_utilisateurs_show', { id: user.id }) }}" class="btn" style="background:#95a5a6;color:#fff;">← Retour</a>
+</div>
+
+<form method="post" action="{{ path('app_dashboard_utilisateurs_edit', { id: user.id }) }}" class="back-form js-form-validate">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token('edit_user') }}">
+    <div class="back-form-card">
+        <h3>Compte</h3>
+        <div class="back-form-grid">
+            <div class="form-group">
+                <label for="nom">Nom d'utilisateur *</label>
+                <input type="text" id="nom" name="nom" value="{{ user.nom }}" required data-required-msg="Le nom est obligatoire." maxlength="180">
+                <span class="field-error" aria-live="polite"></span>
+            </div>
+            <div class="form-group">
+                <label for="prenom">Prénom *</label>
+                <input type="text" id="prenom" name="prenom" value="{{ user.prenom }}" required data-required-msg="Le prénom est obligatoire." maxlength="255">
+                <span class="field-error" aria-live="polite"></span>
+            </div>
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" value="{{ user.email }}" required data-required-msg="L'email est obligatoire." data-email-msg="Email invalide.">
+                <span class="field-error" aria-live="polite"></span>
+            </div>
+            <div class="form-group">
+                <label for="telephone">Téléphone</label>
+                <input type="text" id="telephone" name="telephone" value="{{ user.telephone }}">
+            </div>
+            <div class="form-group">
+                <label for="password">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+                <input type="password" id="password" name="password" placeholder="••••••••">
+            </div>
+        </div>
+    </div>
+
+    {% if patient %}
+    <div class="back-form-card">
+        <h3>Profil patient</h3>
+        <div class="back-form-grid">
+            <div class="form-group">
+                <label for="genre">Genre</label>
+                <select id="genre" name="genre">
+                    <option value="Homme" {{ patient.genre == 'Homme' ? 'selected' : '' }}>Homme</option>
+                    <option value="Femme" {{ patient.genre == 'Femme' ? 'selected' : '' }}>Femme</option>
+                    <option value="Autre" {{ patient.genre == 'Autre' ? 'selected' : '' }}>Autre</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="date_naissance">Date de naissance</label>
+                <input type="date" id="date_naissance" name="date_naissance" value="{{ patient.dateNaissance ? patient.dateNaissance|date('Y-m-d') : '' }}">
+            </div>
+            <div class="form-group">
+                <label for="groupe_sanguin">Groupe sanguin</label>
+                <input type="text" id="groupe_sanguin" name="groupe_sanguin" value="{{ patient.groupeSanguin }}">
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+                <label for="adresse">Adresse</label>
+                <input type="text" id="adresse" name="adresse" value="{{ patient.adresse }}">
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if user %}
+    <div class="back-form-card">
+        <h3>Profil médecin</h3>
+        <div class="back-form-grid">
+            <div class="form-group">
+                <label for="specialite">Spécialité</label>
+                <input type="text" id="specialite" name="specialite" value="{{ user.specialite }}">
+            </div>
+            <div class="form-group">
+                <label for="matricule">Matricule</label>
+                <input type="text" id="matricule" name="matricule" value="{{ user.matricule }}">
+            </div>
+            <div class="form-group">
+                <label for="user_telephone">Téléphone médecin</label>
+                <input type="text" id="user_telephone" name="user_telephone" value="{{ user.telephone }}">
+            </div>
+            <div class="form-group">
+                <label for="service">Service</label>
+                <select id="service" name="service">
+                    {% for s in services %}
+                    <option value="{{ s.id }}" {{ user.service and user.service.id == s.id ? 'selected' : '' }}>{{ s.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="back-form-actions">
+        <button type="submit" class="btn btn-save">Enregistrer</button>
+        <a href="{{ path('app_dashboard_utilisateurs_show', { id: user.id }) }}" class="btn btn-cancel">Annuler</a>
+    </div>
+</form>
+{% endblock %}

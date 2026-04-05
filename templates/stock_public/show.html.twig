@@ -1,0 +1,205 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}{{ medicament.nom }} - Détails - Hospismart OASIS{% endblock %}
+
+{% block body %}
+    <div class="animate-fade-up">
+        <nav aria-label="breadcrumb" class="mb-5">
+            <ol class="breadcrumb bg-white p-3 rounded-pill shadow-sm px-4">
+                <li class="breadcrumb-item"><a href="{{ path('app_stock_public') }}" class="text-decoration-none fw-medium text-primary">Médicaments</a></li>
+                <li class="breadcrumb-item active fw-bold text-dark" aria-current="page">{{ medicament.nom }}</li>
+            </ol>
+        </nav>
+
+        <div class="row g-5">
+            {# Colonne Image IA #}
+            <div class="col-lg-5">
+                <div class="premium-card p-0 overflow-hidden shadow-lg animate-fade-up" style="animation-delay: 0.1s;">
+                    <div class="bg-primary bg-opacity-10 d-flex align-items-center justify-content-center border-bottom" style="aspect-ratio: 1/1;">
+                        {% if medicament.imageFilename %}
+                            <img src="{{ asset('uploads/medicaments/' ~ medicament.imageFilename) }}" alt="{{ medicament.nom }}" class="w-100 h-100 object-fit-cover">
+                        {% else %}
+                            <div class="text-center p-5 opacity-25">
+                                <i class="fa-solid fa-capsules fa-10x text-primary"></i>
+                                <p class="mt-4 fs-5 fw-bold">Image non disponible</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Colonne Détails #}
+            <div class="col-lg-7">
+                <div class="animate-fade-up" style="animation-delay: 0.2s;">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-3 py-2 rounded-pill fw-bold">
+                            {{ medicament.categorie ? medicament.categorie.nom : 'Non classé' }}
+                        </span>
+                        <span class="text-muted small">REF-{{ medicament.id|format("%04d") }}</span>
+                    </div>
+
+                    <h1 class="display-4 fw-bold text-dark mb-4" style="letter-spacing: -1px;">{{ medicament.nom }}</h1>
+                    
+                    <div class="glass-effect rounded-xl p-4 mb-5 shadow-sm border-0">
+                        <div class="row align-items-center">
+                            <div class="col-6 border-end">
+                                <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 1px;">Disponibilité</small>
+                                <div class="d-flex align-items-baseline gap-2">
+                                    <span class="display-6 fw-bold {{ medicament.quantite <= medicament.seuilAlerte ? 'text-danger' : 'text-primary' }}">{{ medicament.quantite }}</span>
+                                    <span class="text-muted h5 fw-normal mb-0">unités</span>
+                                </div>
+                            </div>
+                            <div class="col-6 ps-4">
+                                <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 1px;">Prix Public</small>
+                                <span class="display-6 fw-bold text-dark">{{ medicament.prixUnitaire|number_format(2, ',', ' ') }}<small class="h4 ms-1">€</small></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-5">
+                        <div class="col-sm-6">
+                            <div class="premium-card p-3 d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                    <i class="fa-regular fa-calendar-days text-primary"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Expirant le</small>
+                                    <span class="fw-bold">{{ medicament.datePeremption|date('d F Y') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="premium-card p-3 d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                    <i class="fa-solid fa-shield-halved text-success"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Statut Stock</small>
+                                    {% if medicament.quantite <= medicament.seuilAlerte %}
+                                        <span class="fw-bold text-danger">Réapprovisionnement requis</span>
+                                    {% else %}
+                                        <span class="fw-bold text-success">Stock sécurisé</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3">
+                        <a href="{{ path('app_stock_public') }}" class="btn btn-light px-4 py-3 rounded-pill fw-bold border shadow-sm">
+                            <i class="fa-solid fa-arrow-left me-2"></i> Retour à la liste
+                        </a>
+                        <button class="btn btn-primary px-5 py-3 rounded-pill fw-bold shadow-lg" onclick="window.print()">
+                            <i class="fa-solid fa-print me-2"></i> Imprimer la fiche
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .rounded-xl { border-radius: 1.5rem; }
+        .breadcrumb-item + .breadcrumb-item::before { content: "›"; font-size: 1.2rem; line-height: 1; vertical-align: middle; }
+
+        /* Styles Impression Professionnelle */
+        @media print {
+            @page { margin: 2cm; }
+            
+            body { 
+                background: white !important; 
+                color: black !important;
+                font-family: 'Times New Roman', serif !important;
+            }
+
+            .breadcrumb, .btn, .navbar, footer, .navbar-glass, .hero-gradient::before { 
+                display: none !important; 
+            }
+
+            .container { 
+                width: 100% !important; 
+                max-width: none !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+            }
+
+            .premium-card {
+                border: 1px solid #eee !important;
+                box-shadow: none !important;
+                background: white !important;
+            }
+
+            .glass-effect {
+                background: white !important;
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+            }
+
+            /* En-tête de rapport */
+            .animate-fade-up { animation: none !important; transform: none !important; opacity: 1 !important; }
+            
+            #printHeader {
+                display: block !important;
+                border-bottom: 2px solid #333;
+                margin-bottom: 30px;
+                padding-bottom: 10px;
+            }
+
+            h1 { font-size: 28pt !important; color: black !important; margin-top: 10px !important; }
+            .display-6 { font-size: 24pt !important; }
+            
+            .col-lg-5 { width: 35% !important; float: left; }
+            .col-lg-7 { width: 60% !important; float: right; }
+            
+            #printFooter {
+                display: block !important;
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                border-top: 1px solid #eee;
+                padding-top: 10px;
+                font-size: 9pt;
+                text-align: center;
+                color: #666;
+            }
+
+            .badge {
+                border: 1px solid #666 !important;
+                color: black !important;
+                background: white !important;
+            }
+        }
+
+        #printHeader, #printFooter { display: none; }
+    </style>
+
+    {# En-tête spécial impression #}
+    <div id="printHeader">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0 fw-bold">CENTRE HOSPITALIER HOSPISMART</h4>
+                <p class="small mb-0">Département Pharmacie & Stocks</p>
+            </div>
+            <div class="text-end">
+                <p class="small mb-0">Réf : DOC-MED-{{ medicament.id|format("%04s") }}</p>
+                <p class="small mb-0">Émis le : {{ "now"|date("d/m/Y H:i") }}</p>
+            </div>
+        </div>
+    </div>
+
+    {# Pied de page spécial impression #}
+    <div id="printFooter">
+        <div class="row">
+            <div class="col-4">
+                <div class="p-2 border border-1 border-dark bg-light text-center" style="height: 100px;">
+                    <small class="text-muted d-block mb-4">Cachet de l'unité</small>
+                </div>
+            </div>
+            <div class="col-8">
+                <p class="mb-1 text-uppercase fw-bold" style="font-size: 8pt; color: #333;">Certification de Conformité</p>
+                <p class="mb-0" style="font-size: 9pt;">Ce document atteste l'état officiel des stocks pour le médicament <strong>{{ medicament.nom }}</strong> à la date du {{ "now"|date("d/m/Y") }}. Toute modification manuelle ou falsification rend ce document caduc et passible de poursuites.</p>
+                <p class="mt-2 small text-muted">Document généré numériquement via le système HospiSmart OASIS.</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

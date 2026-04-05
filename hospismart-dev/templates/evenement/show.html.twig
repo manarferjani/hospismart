@@ -1,0 +1,120 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Détails de l'Événement{% endblock %}
+{% block page_title %}Détails de l'Événement{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('app_evenement_index') }}">Accueil</a></li>
+<li class="breadcrumb-item"><a href="{{ path('app_evenement_index') }}">Événements</a></li>
+<li class="breadcrumb-item active">Détails</li>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ evenement.titre }}</h3>
+                <div class="card-tools">
+                    <a href="{{ path('app_evenement_edit', {'id': evenement.id}) }}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit"></i> Modifier
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th>Id</th>
+                            <td>{{ evenement.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Titre</th>
+                            <td>{{ evenement.titre }}</td>
+                        </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td>{{ evenement.description }}</td>
+                        </tr>
+                        <tr>
+                            <th>Type</th>
+                            <td><span class="badge bg-info">{{ evenement.typeEvenement }}</span></td>
+                        </tr>
+                        <tr>
+                            <th>Date de début</th>
+                            <td>{{ evenement.dateDebut ? evenement.dateDebut|date('d/m/Y H:i') : '' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Date de fin</th>
+                            <td>{{ evenement.dateFin ? evenement.dateFin|date('d/m/Y H:i') : '' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Lieu</th>
+                            <td>{{ evenement.lieu }}</td>
+                        </tr>
+                        <tr>
+                            <th>Statut</th>
+                            <td>
+                                {% if evenement.statut == 'planifié' %}
+<span class="badge bg-warning text-dark">{{ evenement.statut }}</span>
+                                    {% elseif evenement.statut == 'en_cours' %}
+                                    <span class="badge bg-primary">{{ evenement.statut }}</span>
+                                    {% elseif evenement.statut == 'terminé' %}
+                                    <span class="badge bg-success">{{ evenement.statut }}</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">{{ evenement.statut }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Budget alloué</th>
+                            <td>{{ evenement.budgetAlloue ? evenement.budgetAlloue ~ ' TND' : '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 class="mt-4">Participants ({{ evenement.participants|length }})</h4>
+                {% if evenement.participants|length > 0 %}
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Participant</th>
+                                <th>Rôle</th>
+                                <th>Confirmation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for participant in evenement.participants %}
+                                <tr>
+                                    <td>{{ participant.nomComplet }} <small class="text-muted">({{ participant.email }})</small></td>
+                                    <td><span class="badge bg-secondary">{{ participant.role }}</span></td>
+                                    <td>
+                                        {% if participant.confirmePresence %}
+                                            <span class="badge bg-success">Confirmé</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">En attente</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted">Aucun participant pour cet événement.</p>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="{{ path('app_evenement_index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour à la liste
+                </a>
+                <form method="post" action="{{ path('app_evenement_delete', {'id': evenement.id}) }}" class="d-inline ms-2" onsubmit="return confirm('Supprimer cet événement et ses participants ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ evenement.id) }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Supprimer l'événement
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

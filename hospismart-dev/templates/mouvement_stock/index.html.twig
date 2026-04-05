@@ -1,0 +1,55 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Mouvements de stock{% endblock %}
+
+{% block body %}
+    <div class="content-header">
+        <div class="container-fluid">
+            <h1 class="m-0">Mouvements de stock</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Liste des mouvements</h3>
+            <div class="card-tools">
+                <a href="{{ path('app_mouvement_stock_new') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Nouveau mouvement</a>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-bordered table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Type</th>
+                        <th>Quantité</th>
+                        <th>Date</th>
+                        <th>Commentaire</th>
+                        <th>Médicament</th>
+                        <th style="width: 120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mouvement_stock in mouvement_stocks %}
+                        <tr>
+                            <td>{{ mouvement_stock.id }}</td>
+                            <td><span class="badge {{ mouvement_stock.type == 'ENTREE' ? 'bg-success' : 'bg-warning text-dark' }}">{{ mouvement_stock.type }}</span></td>
+                            <td>{{ mouvement_stock.quantite }}</td>
+                            <td>{{ mouvement_stock.dateMouvement ? mouvement_stock.dateMouvement|date('d/m/Y H:i') : '' }}</td>
+                            <td>{{ mouvement_stock.commentaire|default('-') }}</td>
+                            <td>{% if mouvement_stock.medicament %}<a href="{{ path('app_medicament_show', {id: mouvement_stock.medicament.id}) }}" class="text-decoration-none">{{ mouvement_stock.medicament.nom }}</a>{% else %}-{% endif %}</td>
+                            <td>
+                                <a href="{{ path('app_mouvement_stock_show', {id: mouvement_stock.id}) }}" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a>
+                                <a href="{{ path('app_mouvement_stock_edit', {id: mouvement_stock.id}) }}" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Aucun mouvement enregistré.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Modifier Réponse #{{ reponse.id }}{% endblock %}
+
+{% block content %}
+<div class="back-page-header">
+    <h1 class="back-page-title">✏️ Modifier la réponse #{{ reponse.id }}</h1>
+    <a href="{{ path('app_dashboard_reponses') }}" class="btn" style="background:#64748b;color:white;">← Retour</a>
+</div>
+
+<div class="row">
+    {# ====== COLONNE GAUCHE : Réclamation associée ====== #}
+    <div class="col-lg-5 mb-4">
+        {% if reponse.reclamation %}
+        <div class="card shadow-sm border-0" style="border-radius:15px;">
+            <div class="card-header bg-dark text-white" style="border-radius:15px 15px 0 0;">
+                <h5 class="mb-0"><i class="fa-solid fa-file-lines me-2"></i>Réclamation #{{ reponse.reclamation.id }}</h5>
+            </div>
+            <div class="card-body p-4">
+                <h5 class="text-primary mb-3">{{ reponse.reclamation.titre }}</h5>
+                <div class="mb-3">
+                    <span class="badge {{ reponse.reclamation.statut == 'Traité' ? 'bg-success' : (reponse.reclamation.statut == 'En cours' ? 'bg-primary' : 'bg-warning text-dark') }} me-2">
+                        {{ reponse.reclamation.statut }}
+                    </span>
+                    <span class="badge {{ reponse.reclamation.priorite == 'Urgente' ? 'bg-danger' : (reponse.reclamation.priorite == 'Haute' ? 'bg-warning text-dark' : 'bg-secondary') }}">
+                        {{ reponse.reclamation.priorite }}
+                    </span>
+                </div>
+                <hr>
+                <p><strong><i class="fa-solid fa-user me-1"></i> Patient :</strong> {{ reponse.reclamation.nomPatient }}</p>
+                <p><strong><i class="fa-solid fa-envelope me-1"></i> Email :</strong> {{ reponse.reclamation.email }}</p>
+                <p><strong><i class="fa-solid fa-tag me-1"></i> Catégorie :</strong> {{ reponse.reclamation.categorie ?? 'Non spécifiée' }}</p>
+                <p><strong><i class="fa-regular fa-clock me-1"></i> Date :</strong> {{ reponse.reclamation.dateCreation|date('d/m/Y à H:i') }}</p>
+                <hr>
+                <h6 class="text-muted">Description</h6>
+                <div class="bg-light p-3 rounded" style="max-height:200px; overflow-y:auto;">{{ reponse.reclamation.description|nl2br }}</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {# ====== COLONNE DROITE : Formulaire de modification ====== #}
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow-sm border-0" style="border-radius:15px;">
+            <div class="card-header bg-success text-white" style="border-radius:15px 15px 0 0;">
+                <h5 class="mb-0"><i class="fa-solid fa-pen-to-square me-2"></i>Modifier la réponse</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="admin_nom" class="form-label fw-bold">Nom de l'administrateur</label>
+                        <input type="text" name="admin_nom" id="admin_nom" class="form-control" 
+                               value="{{ reponse.adminNom }}" required minlength="2">
+                    </div>
+                    <div class="mb-3">
+                        <label for="admin_email" class="form-label fw-bold">Email de l'administrateur</label>
+                        <input type="email" name="admin_email" id="admin_email" class="form-control" 
+                               value="{{ reponse.adminEmail }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contenu" class="form-label fw-bold">Contenu de la réponse</label>
+                        <textarea name="contenu" id="contenu" class="form-control" rows="6" 
+                                  required minlength="10">{{ reponse.contenu }}</textarea>
+                        <div class="form-text">Minimum 10 caractères</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <small class="text-muted">
+                            <i class="fa-regular fa-clock me-1"></i>Créée le {{ reponse.dateReponse|date('d/m/Y à H:i') }}
+                        </small>
+                        <button type="submit" class="btn btn-success btn-lg px-5">
+                            <i class="fa-solid fa-save me-2"></i>Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# ====== Bouton supprimer ====== #}
+        <div class="card shadow-sm border-0 mt-4" style="border-radius:15px; border: 1px solid #fecaca !important;">
+            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-danger mb-1"><i class="fa-solid fa-triangle-exclamation me-2"></i>Zone dangereuse</h6>
+                    <small class="text-muted">Supprimer définitivement cette réponse</small>
+                </div>
+                <form method="post" action="{{ path('app_dashboard_reponses_delete', {id: reponse.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réponse ?');">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_reponse' ~ reponse.id) }}">
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="fa-solid fa-trash me-2"></i>Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

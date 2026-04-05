@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Controller;
+
+use App\Repository\MedicamentRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+/**
+ * Front Office : page publique de consultation des stocks.
+ */
+final class StockPublicController extends AbstractController
+{
+    #[Route('/stock', name: 'app_stock_public', methods: ['GET'])]
+    public function index(MedicamentRepository $medicamentRepository, \App\Repository\CategorieRepository $categorieRepository): Response
+    {
+        $medicaments = $medicamentRepository->findForPublic();
+        $categories = $categorieRepository->findBy([], ['nom' => 'ASC']);
+
+        return $this->render('stock_public/index.html.twig', [
+            'medicaments' => $medicaments,
+            'categories' => $categories,
+        ]);
+    }
+
+    #[Route('/stock/{id}', name: 'app_stock_public_show', methods: ['GET'])]
+    public function show(\App\Entity\Medicament $medicament): Response
+    {
+        return $this->render('stock_public/show.html.twig', [
+            'medicament' => $medicament,
+        ]);
+    }
+}

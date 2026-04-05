@@ -1,0 +1,8 @@
+# Configuration de la protection CSRF (Cross-Site Request Forgery)
+framework:
+    form:
+        csrf_protection:
+            enabled: true
+
+    csrf_protection:
+        enabled: true

@@ -1,0 +1,82 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Participants - {{ evenement.titre }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fa-solid fa-users me-2 text-primary"></i>Participants : {{ evenement.titre }}
+        </h1>
+        <p class="text-muted small mt-1">
+            <i class="fa-regular fa-calendar me-1"></i> {{ evenement.dateDebut|date('d/m/Y H:i') }}
+            &nbsp;|&nbsp; 
+            <i class="fa-solid fa-location-dot me-1"></i> {{ evenement.lieu }}
+        </p>
+    </div>
+    <a href="{{ path('app_evenement_index') }}" class="btn btn-secondary shadow-sm">
+        <i class="fas fa-arrow-left me-1"></i> Retour à la liste
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-white">
+        <h6 class="m-0 font-weight-bold text-primary">Liste des inscrits ({{ participants|length }})</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Date Inscription</th>
+                        <th>Nom & Prénom</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Rôle</th>
+                        <th>Statut</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in participants %}
+                    <tr>
+                        <td>{{ p.dateConfirmation ? p.dateConfirmation|date('d/m/Y H:i') : '-' }}</td>
+                        <td class="fw-bold">{{ p.nomComplet }}</td>
+                        <td>
+                            <a href="mailto:{{ p.email }}" class="text-decoration-none">
+                                {{ p.email }}
+                            </a>
+                        </td>
+                        <td>{{ p.telephone ?: '-' }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ p.role|capitalize }}</span>
+                        </td>
+                        <td>
+                            {% if p.confirmePresence %}
+                                <span class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Confirmé</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark"><i class="fa-regular fa-clock me-1"></i>En attente</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <form method="post" action="{{ path('app_participant_evenement_delete', {'id': p.id}) }}" onsubmit="return confirm('Supprimer ce participant ?');" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ p.id) }}">
+                                <button class="btn btn-sm btn-danger btn-circle" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            Aucun participant inscrit pour le moment.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Gestion des Réponses - Hospismart{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .page-header h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin: 0;
+    }
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .table thead th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+    .contenu-preview {
+        max-width: 350px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #374151;
+    }
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: transform 0.15s, box-shadow 0.15s;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    .action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .btn-edit  { background: #e0f2fe; color: #0369a1; }
+    .btn-edit:hover { background: #0369a1; color: white; }
+    .btn-delete { background: #fee2e2; color: #dc2626; }
+    .btn-delete:hover { background: #dc2626; color: white; }
+    .badge-reclamation {
+        background: #ede9fe;
+        color: #7c3aed;
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 6px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+</style>
+
+<div class="container-fluid py-2">
+    <div class="page-header">
+        <h2><i class="fa-solid fa-comments me-2 text-primary"></i>Gestion des Réponses</h2>
+        <a href="{{ path('back_office_dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fa-solid fa-arrow-left me-2"></i>Retour au Dashboard
+        </a>
+    </div>
+
+    <div class="table-container">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
+            <h5 class="mb-0 fw-bold text-dark">
+                <i class="fa-solid fa-list me-2"></i>
+                Toutes les réponses
+                <span class="badge bg-primary ms-2">{{ reponses|length }}</span>
+            </h5>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Réclamation</th>
+                        <th>Contenu</th>
+                        <th>Admin</th>
+                        <th>Date</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reponse in reponses %}
+                    <tr>
+                        <td class="fw-bold text-muted">{{ reponse.id }}</td>
+                        <td>
+                            <a href="{{ path('back_office_voir_reclamation', {'id': reponse.reclamation.id}) }}" class="badge-reclamation text-decoration-none">
+                                <i class="fa-solid fa-link me-1"></i>#{{ reponse.reclamation.id }} — {{ reponse.reclamation.titre|slice(0,30) }}...
+                            </a>
+                        </td>
+                        <td>
+                            <span class="contenu-preview">{{ reponse.contenu }}</span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ reponse.adminNom }}</div>
+                            <small class="text-muted">{{ reponse.adminEmail }}</small>
+                        </td>
+                        <td class="text-muted small">{{ reponse.dateReponse|date('d/m/Y H:i') }}</td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{{ path('back_office_modifier_reponse', {'id': reponse.id}) }}"
+                                   class="action-btn btn-edit" title="Modifier">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <form method="post"
+                                      action="{{ path('back_office_supprimer_reponse', {'id': reponse.id}) }}"
+                                      onsubmit="return confirm('Supprimer cette réponse ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_reponse_' ~ reponse.id) }}">
+                                    <button type="submit" class="action-btn btn-delete" title="Supprimer">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-inbox fa-2x d-block mb-2 text-secondary"></i>
+                            Aucune réponse pour le moment.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

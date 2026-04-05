@@ -1,0 +1,44 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Mes coordonnées - Hospismart{% endblock %}
+
+{% block body %}
+<h1 class="front-title">Mon Compte</h1>
+
+{% if patient %}
+<div class="front-card">
+    <div class="front-card-header">{{ user.prenom }} {{ user.nom }}</div>
+    <div class="front-card-body">
+        <div class="front-card-meta">
+            <span>📅 {{ patient.dateNaissance ? patient.dateNaissance|date('d/m/Y') : '—' }}</span>
+            <span>🏷️ {{ patient.genre ?? '—' }}</span>
+        </div>
+        <div class="coordonnees-grid" style="margin-top:0.75rem;">
+            <div class="coordonnees-item"><strong>Nom :</strong> {{ user.nom }}</div>
+            <div class="coordonnees-item"><strong>Prénom :</strong> {{ user.prenom }}</div>
+            <div class="coordonnees-item"><strong>Email :</strong> {{ user.email }}</div>
+            <div class="coordonnees-item"><strong>Téléphone :</strong> {{ user.telephone ?? '—' }}</div>
+            <div class="coordonnees-item"><strong>Genre :</strong> {{ patient.genre ?? '—' }}</div>
+            <div class="coordonnees-item"><strong>Date de naissance :</strong> {{ patient.dateNaissance ? patient.dateNaissance|date('d/m/Y') : '—' }}</div>
+            <div class="coordonnees-item"><strong>Groupe sanguin :</strong> {{ patient.groupeSanguin ?? '—' }}</div>
+            <div class="coordonnees-item"><strong>Adresse :</strong> {{ patient.adresse ?? '—' }}</div>
+        </div>
+        <div class="front-card-actions">
+            <a href="{{ path('app_compte_edit') }}" class="btn-edit">Modifier</a>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="front-card">
+    <div class="front-card-body">
+        <p>Coordonnées du compte :</p>
+        <div class="coordonnees-grid">
+            <div class="coordonnees-item"><strong>Nom :</strong> {{ user.nom }}</div>
+            <div class="coordonnees-item"><strong>Prénom :</strong> {{ user.prenom }}</div>
+            <div class="coordonnees-item"><strong>Email :</strong> {{ user.email }}</div>
+            <div class="coordonnees-item"><strong>Téléphone :</strong> {{ user.telephone ?? '—' }}</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

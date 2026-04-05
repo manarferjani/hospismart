@@ -1,0 +1,233 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Dashboard - OASIS{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="page-header">
+        <h1><i class="fas fa-chart-line me-2" style="color: var(--accent);"></i>Dashboard</h1>
+        <p>Vue d'ensemble du stock de médicaments</p>
+    </div>
+
+    {# Stat Cards #}
+    <div class="row mb-4 g-4 animate-fade-up">
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card-premium shadow-lg" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                <h6 class="opacity-75 fw-normal">Total Médicaments</h6>
+                <h2 class="display-5 mb-0">{{ totalMedicaments }}</h2>
+                <i class="fas fa-pills stat-icon opacity-25" style="font-size: 3rem; position: absolute; right: 15px; bottom: 15px;"></i>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card-premium shadow-lg" style="background: linear-gradient(135deg, #f43f5e, #e11d48);">
+                <h6 class="opacity-75 fw-normal">Stock Faible</h6>
+                <h2 class="display-5 mb-0">{{ stockFaible }}</h2>
+                <i class="fas fa-triangle-exclamation stat-icon opacity-25" style="font-size: 3rem; position: absolute; right: 15px; bottom: 15px;"></i>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="stat-card-premium shadow-lg" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+                <h6 class="opacity-75 fw-normal">Valeur du Stock</h6>
+                <h2 class="display-5 mb-0">{{ (valeurStockTotal / 1000)|round(1) }}k€</h2>
+                <i class="fas fa-euro-sign stat-icon opacity-25" style="font-size: 3rem; position: absolute; right: 15px; bottom: 15px;"></i>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <a href="{{ path('app_predictions') }}" style="text-decoration: none;">
+                <div class="stat-card-premium shadow-lg hover-scale" style="background: linear-gradient(135deg, {% if predictionSummary.critique > 0 %}#f43f5e, #be123c{% elseif predictionSummary.eleve > 0 %}#f59e0b, #d97706{% else %}#10b981, #059669{% endif %}); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                    <h6 class="opacity-75 fw-normal">🤖 Alertes IA</h6>
+                    <h2 class="display-5 mb-0">{{ predictionSummary.totalAlertes }}</h2>
+                    <i class="fas fa-brain stat-icon opacity-25" style="font-size: 3rem; position: absolute; right: 15px; bottom: 15px;"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    {# Charts #}
+    <div class="row mb-4 g-4 animate-fade-up" style="animation-delay: 0.1s;">
+        <div class="col-lg-8">
+            <div class="premium-card shadow-sm h-100">
+                <div class="card-header border-0 bg-transparent pt-4 px-4">
+                    <h4 class="mb-0 text-primary-emphasis">Top 10 Médicaments</h4>
+                    <p class="text-muted small">Quantités disponibles en stock</p>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <canvas id="chartMedicaments" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="premium-card shadow-sm h-100">
+                <div class="card-header border-0 bg-transparent pt-4 px-4">
+                    <h4 class="mb-0 text-primary-emphasis">Activités</h4>
+                </div>
+                <div class="card-body px-4 pb-4 text-center">
+                    <div style="max-width: 200px; margin: 0 auto;">
+                        <canvas id="chartMouvements" width="200" height="200"></canvas>
+                    </div>
+                    <div class="mt-4 d-flex justify-content-center gap-3">
+                        <div class="glass-effect rounded-pill px-3 py-1 small fw-bold text-success border-success border-opacity-25">
+                            <i class="fas fa-circle me-1" style="font-size: 8px;"></i> {{ entrees }} Entrées
+                        </div>
+                        <div class="glass-effect rounded-pill px-3 py-1 small fw-bold text-danger border-danger border-opacity-25">
+                            <i class="fas fa-circle me-1" style="font-size: 8px;"></i> {{ sorties }} Sorties
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Recent Movements #}
+    <div class="row g-4 mb-4 animate-fade-up" style="animation-delay: 0.2s;">
+        {# Critical AI Predictions #}
+        <div class="col-lg-6">
+            <div class="premium-card shadow-sm h-100">
+                <div class="card-header border-0 bg-transparent pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 text-primary-emphasis">🚨 Alertes IA Prioritaires</h4>
+                        <p class="text-muted small">Risques de rupture imminente</p>
+                    </div>
+                    <a href="{{ path('app_predictions') }}" class="btn btn-sm btn-link text-decoration-none">Tout voir <i class="fas fa-chevron-right ms-1" style="font-size: 10px;"></i></a>
+                </div>
+                <div class="card-body px-4 pb-4">
+                    <div class="list-group list-group-flush">
+                        {% for p in criticalPredictions %}
+                            <div class="list-group-item px-0 border-0 mb-2 glass-effect rounded-3 p-3 transition-all hover-scale">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-opacity-10 me-3 d-flex align-items-center justify-content-center {% if p.niveauRisque == 'critique' %}bg-danger text-danger{% else %}bg-warning text-warning{% endif %}" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-pills"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{ p.medicament.nom }}</h6>
+                                            <small class="text-muted">Rupture estimée : <strong>{{ p.joursRestants }} jours</strong></small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge rounded-pill {% if p.niveauRisque == 'critique' %}bg-danger{% else %}bg-warning text-dark{% endif %} mb-1">
+                                            {{ p.niveauRisque|upper }}
+                                        </span>
+                                        <br>
+                                        <small class="text-muted" style="font-size: 10px;">{{ p.tendance == 'hausse' ? '📈 Consommation ↑' : (p.tendance == 'baisse' ? '📉 Consommation ↓' : '➡ Stable') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-circle-check fs-1 opacity-25 mb-2"></i>
+                                <p>Aucune alerte critique détectée par l'IA.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Recent Movements (reduced to 5 items) #}
+        <div class="col-lg-6">
+            <div class="premium-card shadow-sm h-100">
+                <div class="card-header border-0 bg-transparent pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 text-primary-emphasis"><i class="fas fa-history me-2 text-muted"></i>Activités Récentes</h4>
+                    </div>
+                    <a href="{{ path('app_mouvement_stock_index') }}" class="btn btn-sm btn-link text-decoration-none">Historique <i class="fas fa-chevron-right ms-1" style="font-size: 10px;"></i></a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 border-0">Médicament</th>
+                                    <th class="border-0">Type</th>
+                                    <th class="border-0 text-center">Qté</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for mouvement in recentMouvements %}
+                                <tr class="border-0">
+                                    <td class="ps-4">
+                                        <div>
+                                            <strong class="text-dark">{{ mouvement.medicament.nom }}</strong>
+                                            <br><small class="text-muted">{{ mouvement.dateMouvement|date('d/m H:i') }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if mouvement.type == 'ENTREE' %}
+                                            <span class="badge bg-success-subtle text-success border border-success border-opacity-10 px-2 rounded-pill"><i class="fas fa-plus-circle me-1"></i>Entrée</span>
+                                        {% else %}
+                                            <span class="badge bg-danger-subtle text-danger border border-danger border-opacity-10 px-2 rounded-pill"><i class="fas fa-minus-circle me-1"></i>Sortie</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center fw-bold">{{ mouvement.quantite }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script>
+// Bar Chart
+const ctxMed = document.getElementById('chartMedicaments').getContext('2d');
+new Chart(ctxMed, {
+    type: 'bar',
+    data: {
+        labels: {{ chartData.labels|json_encode|raw }},
+        datasets: [{
+            label: 'Quantité',
+            data: {{ chartData.quantities|json_encode|raw }},
+            backgroundColor: [
+                'rgba(102, 126, 234, 0.8)',
+                'rgba(118, 75, 162, 0.8)',
+                'rgba(240, 147, 251, 0.8)',
+                'rgba(245, 87, 108, 0.8)',
+                'rgba(79, 172, 254, 0.8)',
+                'rgba(0, 242, 254, 0.8)',
+                'rgba(67, 233, 123, 0.8)',
+                'rgba(56, 249, 215, 0.8)',
+                'rgba(233, 69, 96, 0.8)',
+                'rgba(255, 107, 129, 0.8)'
+            ],
+            borderRadius: 8,
+            borderSkipped: false,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+// Doughnut Chart
+const ctxMvt = document.getElementById('chartMouvements').getContext('2d');
+new Chart(ctxMvt, {
+    type: 'doughnut',
+    data: {
+        labels: ['Entrées', 'Sorties'],
+        datasets: [{
+            data: [{{ entrees }}, {{ sorties }}],
+            backgroundColor: ['#43e97b', '#f5576c'],
+            borderColor: '#fff',
+            borderWidth: 3,
+            hoverOffset: 8,
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: { legend: { display: false } }
+    }
+});
+</script>
+{% endblock %}

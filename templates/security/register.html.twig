@@ -1,0 +1,159 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Créer un compte - HospiSmart{% endblock %}
+
+{% block layout %}
+<style>
+    /* Structure Split Screen */
+    .auth-split {
+        display: flex;
+        min-height: 100vh;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .auth-image {
+        flex: 1;
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 3rem;
+        text-align: center;
+    }
+
+    .auth-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        background-color: #f8fafc;
+        overflow-y: auto;
+    }
+
+    /* Formulaire */
+    .front-form-box {
+        width: 100%;
+        max-width: 500px;
+        background: white;
+        padding: 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .form-group { margin-bottom: 1.2rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        box-sizing: border-box; /* Important pour éviter que les inputs dépassent */
+    }
+
+    .btn-primary {
+        width: 100%;
+        padding: 0.8rem;
+        background-color: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .btn-primary:hover { background-color: #1d4ed8; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .auth-split { flex-direction: column; }
+        .auth-image { display: none; } /* On cache l'image sur mobile pour gagner de la place */
+    }
+</style>
+
+<div class="auth-split">
+    <div class="auth-image">
+        <h2>Rejoignez HospiSmart</h2>
+        <p style="max-width: 400px; opacity: 0.9;">Prenez le contrôle de votre santé. Une plateforme intuitive et hautement sécurisée conçue pour votre bien-être.</p>
+        <svg width="80" height="80" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 2rem;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </div>
+    
+    <div class="auth-content">
+        <div class="front-form-box">
+            <h2 style="text-align: left; margin-bottom: 1.5rem;">Créer un compte</h2>
+            
+            {% if errors %}
+                <div style="padding: 1rem; margin-bottom: 1.5rem; background-color: #fee2e2; color: #b91c1c; border-radius: 8px; font-size: 0.95rem;">
+                    <strong>Erreur(s) :</strong>
+                    <ul style="margin: 0.5rem 0 0 1.5rem; padding:0;">
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="post" action="{{ path('app_register') }}" class="js-form-validate">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="nom">Nom *</label>
+                        <input type="text" id="nom" name="nom" required value="{{ app.request.get('nom') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="prenom">Prénom *</label>
+                        <input type="text" id="prenom" name="prenom" required value="{{ app.request.get('prenom') }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Adresse Email *</label>
+                    <input type="email" id="email" name="email" required value="{{ app.request.get('email') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe *</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="telephone">Téléphone</label>
+                        <input type="text" id="telephone" name="telephone" placeholder="Ex: 24116037">
+                    </div>
+                    <div class="form-group">
+                        <label for="genre">Genre</label>
+                        <select id="genre" name="genre">
+                            <option value="">-- Choisir --</option>
+                            <option value="Homme">Homme</option>
+                            <option value="Femme">Femme</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="date_naissance">Naissance</label>
+                        <input type="date" id="date_naissance" name="date_naissance">
+                    </div>
+                    <div class="form-group">
+                        <label for="groupe_sanguin">Groupe Sanguin</label>
+                        <input type="text" id="groupe_sanguin" name="groupe_sanguin" placeholder="Ex: O+">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Ouvrir mon compte</button>
+            </form>
+            
+            <p style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem;">
+                Déjà patient chez nous ? <a href="{{ path('app_login') }}" style="color: #2563eb; font-weight: 600; text-decoration: none;">Connectez-vous</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

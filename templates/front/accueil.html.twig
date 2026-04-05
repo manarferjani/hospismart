@@ -1,0 +1,77 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Bienvenue sur Hospismart{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row align-items-center justify-content-center min-vh-75 py-5">
+        <div class="col-lg-8 text-center">
+            
+            {# Badge / Icône de bienvenue #}
+            <div class="mb-4">
+                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg" style="width: 100px; height: 100px;">
+                    <i class="fa-solid fa-hospital-user fa-3x"></i>
+                </div>
+            </div>
+
+            {# Texte principal #}
+            <h2 class="display-3 fw-bold mb-3" style="color: #2c3e50;">
+                Votre santé, <span class="text-primary">notre priorité</span>
+            </h2>
+            
+            <p class="lead text-muted mb-5 mx-auto" style="max-width: 650px; font-size: 1.25rem;">
+                Hospismart simplifie votre parcours de soin. Prenez rendez-vous, consultez vos documents médicaux et suivez vos événements de santé en un clic.
+            </p>
+
+            {# Zone du bouton d'action principal (Call to Action) #}
+            <div class="mb-5">
+                {% if app.user %}
+                    <a href="{{ path('app_evenement_public') }}" class="btn btn-primary btn-lg px-5 py-3 shadow-sm fw-bold">
+                        <i class="fa-solid fa-house-medical me-2"></i>Accéder à mon espace santé
+                    </a>
+                {% else %}
+                    {# On incite à l'action principale pour un nouveau visiteur #}
+                    <a href="{{ path('app_register') }}" class="btn btn-primary btn-lg px-5 py-3 shadow-sm fw-bold">
+                        <i class="fa-solid fa-calendar-plus me-2"></i>Commencer mon parcours
+                    </a>
+                {% endif %}
+            </div>
+
+            {# Section "Nos Services" #}
+            <div class="row g-4 mt-5">
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <i class="fa-solid fa-calendar-check text-primary mb-3 fa-2x"></i>
+                        <h5 class="fw-bold">Rendez-vous</h5>
+                        <p class="small text-muted">Planifiez vos consultations en quelques secondes.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <i class="fa-solid fa-bell text-primary mb-3 fa-2x"></i>
+                        <h5 class="fw-bold">Suivi en temps réel</h5>
+                        <p class="small text-muted">Recevez des notifications pour vos soins.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="p-3">
+                        <i class="fa-solid fa-shield-halved text-primary mb-3 fa-2x"></i>
+                        <h5 class="fw-bold">Sécurité</h5>
+                        <p class="small text-muted">Vos données sont protégées par les meilleurs standards.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .min-vh-75 { min-height: 75vh; }
+    .btn-primary { transition: all 0.3s ease; }
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(13, 110, 253, 0.3) !important;
+    }
+</style>
+{% endblock %}

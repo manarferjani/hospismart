@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { 
+            margin: 1.5cm; 
+            size: A4 portrait;
+        }
+        
+        body { 
+            font-family: 'Arial', 'Helvetica', sans-serif; 
+            font-size: 12px; 
+            color: #2c3e50; 
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* En-tête avec bande bleue */
+        .header { 
+            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .header-content {
+            display: table;
+            width: 100%;
+        }
+
+        .hospital-info {
+            display: table-cell;
+            width: 50%;
+            vertical-align: middle;
+        }
+
+        .hospital-name { 
+            font-size: 26px; 
+            font-weight: 900; 
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .hospital-subtitle {
+            font-size: 11px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .doctor-info { 
+            display: table-cell;
+            width: 50%;
+            text-align: right;
+            vertical-align: middle;
+        }
+
+        .doctor-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .doctor-specialty {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        /* Informations patient dans une boîte */
+        .patient-card {
+            background: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+
+        .patient-card table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .patient-card td {
+            padding: 6px 0;
+        }
+
+        .patient-card .label {
+            font-weight: 600;
+            color: #495057;
+            width: 100px;
+        }
+
+        .patient-card .value {
+            color: #212529;
+        }
+
+        /* Titre ordonnance */
+        .title-section { 
+            text-align: center; 
+            margin: 30px 0 25px 0;
+            position: relative;
+        }
+
+        .title { 
+            font-size: 22px;
+            font-weight: 700;
+            color: #0d6efd;
+            letter-spacing: 2px;
+            display: inline-block;
+            padding: 0 20px;
+            background: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .title-section::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #dee2e6;
+            z-index: 0;
+        }
+
+        /* Contenu ordonnance */
+        .prescription-content { 
+            min-height: 300px;
+            padding: 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .prescription-content h3 {
+            color: #0d6efd;
+            font-size: 14px;
+            margin: 0 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #0d6efd;
+        }
+
+        .prescription-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-left: 3px solid #0d6efd;
+            border-radius: 4px;
+        }
+
+        .medication-name {
+            font-weight: 700;
+            font-size: 13px;
+            color: #212529;
+        }
+
+        .medication-dosage {
+            color: #495057;
+            margin-top: 4px;
+            font-size: 11px;
+        }
+
+        /* Section diagnostic */
+        .diagnostic-section {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .diagnostic-section strong {
+            color: #856404;
+        }
+
+        /* Signature */
+        .signature-section {
+            margin-top: 50px;
+            text-align: right;
+            padding-right: 30px;
+        }
+
+        .signature-label {
+            font-size: 11px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .signature-box {
+            margin-top: 10px;
+            border-bottom: 2px solid #212529;
+            width: 250px;
+            height: 80px;
+            display: inline-block;
+        }
+
+        /* Footer légal */
+        .legal-footer {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 9px;
+            color: #6c757d;
+            padding: 0 50px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 10px;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 120px;
+            color: rgba(13, 110, 253, 0.03);
+            font-weight: 900;
+            z-index: -1;
+            white-space: nowrap;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b6d7ff;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 11px;
+            color: #004085;
+        }
+    </style>
+</head>
+<body>
+    <!-- Watermark -->
+    <div class="watermark">HOSPISMART</div>
+
+    <!-- En-tête -->
+    <div class="header">
+        <div class="header-content">
+            <div class="hospital-info">
+                <div class="hospital-name">✚ HOSPISMART</div>
+                <div class="hospital-subtitle">Établissement de Santé Numérique • Centre de Soins Moderne</div>
+            </div>
+            <div class="doctor-info">
+                <div class="doctor-name">Dr. {{ consultation.medecin.nom|upper }} {{ consultation.medecin.prenom }}</div>
+                <div class="doctor-specialty">{{ consultation.medecin.specialite|default('Médecin Généraliste') }}</div>
+                {% if consultation.medecin.matricule %}
+                    <div class="doctor-specialty">N° Ordre: {{ consultation.medecin.matricule }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Informations Patient -->
+    <div class="patient-card">
+        <table>
+            <tr>
+                <td class="label">📅 Date :</td>
+                <td class="value">{{ consultation.dateHeure|date('d/m/Y à H:i') }}</td>
+                <td class="label">👤 Patient :</td>
+                <td class="value"><strong>{{ consultation.patient.prenom }} {{ consultation.patient.nom|upper }}</strong></td>
+            </tr>
+            <tr>
+                <td class="label">🎂 Âge :</td>
+                <td class="value">
+                    {% if consultation.patient.dateNaissance %}
+                        {{ "now"|date('Y') - consultation.patient.dateNaissance|date('Y') }} ans
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td class="label">🩸 Groupe :</td>
+                <td class="value">{{ consultation.patient.groupeSanguin|default('Non renseigné') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Diagnostic (si présent) -->
+    {% if consultation.diagnostic %}
+    <div class="diagnostic-section">
+        <strong>🩺 Diagnostic :</strong> {{ consultation.diagnostic }}
+    </div>
+    {% endif %}
+
+    <!-- Titre -->
+    <div class="title-section">
+        <div class="title">ORDONNANCE MÉDICALE</div>
+    </div>
+
+    <!-- Contenu de l'ordonnance -->
+    <div class="prescription-content">
+        {% if consultation.traitement %}
+            {{ consultation.traitement|nl2br }}
+        {% else %}
+            <p style="text-align: center; color: #6c757d; font-style: italic;">Aucun traitement prescrit</p>
+        {% endif %}
+    </div>
+
+    <!-- Recommandations -->
+    {% if consultation.recommandations %}
+    <div class="info-box">
+        <strong>ℹ️ Recommandations :</strong><br>
+        {{ consultation.recommandations|nl2br }}
+    </div>
+    {% endif %}
+
+    <!-- Examens complémentaires -->
+    {% if consultation.examensComplementaires %}
+    <div class="info-box">
+        <strong>🔬 Examens à réaliser :</strong><br>
+        {{ consultation.examensComplementaires|nl2br }}
+    </div>
+    {% endif %}
+
+    <!-- Signature -->
+    <div class="signature-section">
+        <div class="signature-label">Fait à HospiSmart, le {{ consultation.dateHeure|date('d/m/Y') }}</div>
+        <div style="font-weight: bold; margin: 15px 0 5px 0;">Signature et cachet du médecin</div>
+        <div class="signature-box"></div>
+    </div>
+
+    <!-- Footer légal -->
+    <div class="legal-footer">
+        Ordonnance délivrée par le Dr. {{ consultation.medecin.nom|upper }} {{ consultation.medecin.prenom }} • 
+        Document confidentiel destiné au patient et aux professionnels de santé • 
+        Ne pas jeter sur la voie publique • Conservation recommandée : 1 an
+    </div>
+</body>
+</html>

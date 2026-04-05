@@ -1,0 +1,34 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Réinitialiser le mot de passe - HospiSmart{% endblock %}
+
+{% block body %}
+<div class="auth-wrapper" style="min-height: calc(100vh - 200px);">
+    <div class="auth-card" style="max-width: 440px;">
+        <div class="auth-logo">
+            <svg width="56" height="56" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--front-primary)"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <h1>Nouveau mot de passe</h1>
+            <p>Veuillez choisir un nouveau mot de passe sécurisé.</p>
+        </div>
+
+        {{ form_start(resetForm, {'attr': {'novalidate': 'novalidate'}}) }}
+            <div class="field-group">
+                <label for="{{ resetForm.plainPassword.first.vars.id }}">Nouveau mot de passe</label>
+                {{ form_widget(resetForm.plainPassword.first, {'attr': {'placeholder': '••••••••'}}) }}
+                {% if form_errors(resetForm.plainPassword.first) %}
+                    <div style="color: #e11d48; font-size: 0.85rem; margin-top: 5px;">{{ form_errors(resetForm.plainPassword.first) }}</div>
+                {% endif %}
+            </div>
+
+            <div class="field-group">
+                <label for="{{ resetForm.plainPassword.second.vars.id }}">Confirmer le mot de passe</label>
+                {{ form_widget(resetForm.plainPassword.second, {'attr': {'placeholder': '••••••••'}}) }}
+            </div>
+
+            <button type="submit" class="btn-auth">
+                Enregistrer le mot de passe
+            </button>
+        {{ form_end(resetForm) }}
+    </div>
+</div>
+{% endblock %}

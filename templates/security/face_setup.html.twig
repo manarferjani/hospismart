@@ -1,0 +1,542 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Configurer la reconnaissance faciale - Hospismart{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .face-setup-wrapper {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+        }
+
+        .face-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .face-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .face-header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin: 0 0 0.5rem;
+        }
+
+        .face-header p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .face-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #3b82f6, #06b6d4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .face-icon svg {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+
+        /* Registered Banner */
+        .face-registered-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .face-registered-banner.has-face {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+
+        .face-registered-banner.no-face {
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #94a3b8;
+        }
+
+        .face-registered-banner .banner-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .face-registered-banner .banner-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Steps */
+        .steps {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+        }
+
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.3);
+            border: 2px solid rgba(59, 130, 246, 0.5);
+            color: #93c5fd;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.3rem;
+        }
+
+        .step.active .step-num {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .step.done .step-num {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .step.active .step-label { color: #93c5fd; }
+        .step.done .step-label { color: #4ade80; }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: rgba(59, 130, 246, 0.2);
+            align-self: center;
+            margin-bottom: 1.2rem;
+        }
+
+        /* Camera */
+        .camera-wrap {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 4/3;
+            margin-bottom: 1rem;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        #setup-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        #setup-canvas {
+            position: absolute;
+            inset: 0;
+            transform: scaleX(-1);
+        }
+
+        .camera-guide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            height: 200px;
+            border: 3px solid rgba(16, 185, 129, 0.6);
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+            animation: pulse-g 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-g {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15); }
+            50% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0.05); }
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-pill.loading { background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3); color: #fbbf24; }
+        .status-pill.ready   { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ade80; }
+        .status-pill.error   { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; }
+        .status-pill.success { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ade80; }
+
+        .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: currentColor;
+            animation: blink 1.2s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* Buttons grid */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .btn-register-face {
+            grid-column: 1 / -1;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #10b981, #06b6d4);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-register-face:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-register-face:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-delete-face {
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            color: #f87171;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-delete-face:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-back {
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: rgba(255,255,255,0.12);
+            color: #f1f5f9;
+        }
+
+        .result-msg {
+            text-align: center;
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-height: 22px;
+        }
+
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+{% endblock %}
+
+{% block layout %}
+<div class="face-setup-wrapper">
+    <div class="face-card">
+
+        <div class="face-header">
+            <div class="face-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M9 11.75A1.25 1.25 0 0 0 7.75 13 1.25 1.25 0 0 0 9 14.25 1.25 1.25 0 0 0 10.25 13 1.25 1.25 0 0 0 9 11.75m6 0A1.25 1.25 0 0 0 13.75 13 1.25 1.25 0 0 0 15 14.25 1.25 1.25 0 0 0 16.25 13 1.25 1.25 0 0 0 15 11.75M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 18a8 8 0 0 1-8-8 8 8 0 0 1 8-8 8 8 0 0 1 8 8 8 8 0 0 1-8 8m0-4c2.28 0 4.22-1.27 5.25-3.13l-1.75-.87c-.67 1.25-1.97 2-3.5 2s-2.83-.75-3.5-2L6.75 12.87C7.78 14.73 9.72 16 12 16z"/></svg>
+            </div>
+            <h1>Reconnaissance faciale</h1>
+            <p>Bonjour {{ user.prenom }} — configurez votre authentification biométrique</p>
+        </div>
+
+        <!-- Statut actuel -->
+        {% if hasFace %}
+        <div class="face-registered-banner has-face">
+            <span class="banner-icon">🔒</span>
+            <div class="banner-text">Visage déjà enregistré. Vous pouvez le mettre à jour ou le supprimer ci-dessous.</div>
+        </div>
+        {% else %}
+        <div class="face-registered-banner no-face">
+            <span class="banner-icon">👤</span>
+            <div class="banner-text">Aucun visage enregistré. Enregistrez votre visage pour une connexion rapide.</div>
+        </div>
+        {% endif %}
+
+        <!-- Status pill -->
+        <div style="text-align:center; margin-bottom:0.75rem;">
+            <span class="status-pill loading" id="setup-status-pill">
+                <span class="dot"></span>
+                <span id="setup-status-text">Chargement des modèles IA…</span>
+            </span>
+        </div>
+
+        <!-- Caméra -->
+        <div class="camera-wrap">
+            <video id="setup-video" autoplay muted playsinline></video>
+            <canvas id="setup-canvas"></canvas>
+            <div class="camera-guide"></div>
+        </div>
+
+        <!-- Boutons -->
+        <div class="btn-grid">
+            <button id="btn-capture" class="btn-register-face" onclick="captureAndRegister()" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.2c-1.77 0-3.2-1.43-3.2-3.2S10.23 8.8 12 8.8s3.2 1.43 3.2 3.2-1.43 3.2-3.2 3.2M12 7c-2.77 0-5 2.23-5 5s2.23 5 5 5 5-2.23 5-5-2.23-5-5-5m0-5L9 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2h-5l-3-3z"/></svg>
+                {{ hasFace ? 'Mettre à jour mon visage' : 'Enregistrer mon visage' }}
+            </button>
+
+            {% if hasFace %}
+            <button class="btn-delete-face" onclick="deleteFace()">
+                🗑️ Supprimer
+            </button>
+            {% endif %}
+
+            <a href="{{ path('app_patient_coordonnees') }}" class="btn-back">
+                ← Retour au profil
+            </a>
+        </div>
+
+        <div class="result-msg" id="setup-result"></div>
+
+    </div>
+</div>
+
+<script src="{{ asset('js/face-api/face-api.min.js') }}"></script>
+<script>
+const MODEL_URL = '{{ asset('models') }}';
+const REGISTER_URL = '{{ path('api_face_register') }}';
+const DELETE_URL = '{{ path('api_face_delete') }}';
+
+let modelsLoaded = false;
+let videoStream = null;
+
+// Auto-init
+window.addEventListener('DOMContentLoaded', initSetup);
+
+async function initSetup() {
+    setStatus('loading', 'Chargement des modèles IA…');
+    try {
+        await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+            faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+            faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+        ]);
+        modelsLoaded = true;
+        setStatus('ready', 'Prêt — Démarrage caméra…');
+        await startCamera();
+    } catch (err) {
+        setStatus('error', 'Erreur modèles: ' + err.message);
+        console.error(err);
+    }
+}
+
+async function startCamera() {
+    try {
+        videoStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 640, height: 480, facingMode: 'user' }
+        });
+        const video = document.getElementById('setup-video');
+        video.srcObject = videoStream;
+        await new Promise(r => video.onloadedmetadata = r);
+        document.getElementById('btn-capture').disabled = false;
+        setStatus('ready', 'Positionnez votre visage dans le cadre vert');
+        startLiveDetection();
+    } catch (err) {
+        let errorMsg = err.message;
+        if (err.name === 'NotAllowedError') {
+            errorMsg = "Autorisation de la caméra refusée par le navigateur.";
+        } else if (err.name === 'NotFoundError') {
+            errorMsg = "Aucune webcam disponible.";
+        } else if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            errorMsg = "HTTPS obligatoire pour l'accès caméra.";
+        }
+        setStatus('error', 'Caméra inaccessible : ' + errorMsg);
+    }
+}
+
+async function startLiveDetection() {
+    const video = document.getElementById('setup-video');
+    const canvas = document.getElementById('setup-canvas');
+
+    const loop = async () => {
+        if (!videoStream || video.paused || video.ended) return;
+        const displaySize = { width: video.videoWidth, height: video.videoHeight };
+        faceapi.matchDimensions(canvas, displaySize);
+
+        const detections = await faceapi
+            .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
+            .withFaceLandmarks(true);
+
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const resized = faceapi.resizeResults(detections, displaySize);
+        resized.forEach(det => {
+            const box = det.detection.box;
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(box.x, box.y, box.width, box.height);
+            ctx.fillStyle = '#10b981';
+            det.landmarks.positions.forEach(pt => {
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 2, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+        });
+
+        requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+}
+
+async function captureAndRegister() {
+    const btn = document.getElementById('btn-capture');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Capture en cours…';
+    setResult('', '');
+
+    const video = document.getElementById('setup-video');
+
+    try {
+        setStatus('loading', 'Détection du visage…');
+
+        const detection = await faceapi
+            .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 }))
+            .withFaceLandmarks(true)
+            .withFaceDescriptor();
+
+        if (!detection) {
+            setStatus('error', 'Aucun visage détecté');
+            setResult('error', '⚠️ Aucun visage détecté — positionnez-vous bien et réessayez');
+            btn.disabled = false;
+            btn.innerHTML = '📸 Réessayer';
+            return;
+        }
+
+        setStatus('loading', 'Enregistrement en cours…');
+        const descriptor = Array.from(detection.descriptor);
+
+        const response = await fetch(REGISTER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ descriptor }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            setStatus('success', '✅ Visage enregistré !');
+            setResult('success', '✅ ' + result.message);
+            setTimeout(() => window.location.reload(), 2000);
+        } else {
+            setStatus('error', result.message);
+            setResult('error', '❌ ' + result.message);
+            btn.disabled = false;
+            btn.innerHTML = '📸 Réessayer';
+        }
+    } catch (err) {
+        setStatus('error', 'Erreur: ' + err.message);
+        setResult('error', '❌ Erreur: ' + err.message);
+        btn.disabled = false;
+        btn.innerHTML = '📸 Réessayer';
+    }
+}
+
+async function deleteFace() {
+    if (!confirm('Supprimer vos données biométriques ?')) return;
+
+    try {
+        const response = await fetch(DELETE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        const result = await response.json();
+        if (result.success) {
+            setResult('success', '✅ ' + result.message);
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            setResult('error', '❌ ' + result.message);
+        }
+    } catch (err) {
+        setResult('error', '❌ Erreur: ' + err.message);
+    }
+}
+
+function setStatus(type, text) {
+    const pill = document.getElementById('setup-status-pill');
+    const span = document.getElementById('setup-status-text');
+    pill.className = 'status-pill ' + type;
+    span.textContent = text;
+}
+
+function setResult(type, text) {
+    const el = document.getElementById('setup-result');
+    if (!text) { el.innerHTML = ''; return; }
+    const colors = { success: '#4ade80', error: '#f87171', info: '#38bdf8' };
+    el.style.color = colors[type] || '#94a3b8';
+    el.textContent = text;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,194 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Medicament;
+use App\Form\MedicamentType;
+use App\Repository\MedicamentRepository;
+use App\Service\AiImageService;
+use App\Service\EmailService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/medicament')]
+final class MedicamentController extends AbstractController
+{
+    private function checkStockAndSendEmail(Medicament $medicament, EmailService $emailService): void
+    {
+        if ($medicament->getQuantite() <= $medicament->getSeuilAlerte()) {
+            $imageUrl = null;
+            if ($medicament->getImageFilename()) {
+                $imageUrl = $this->getParameter('kernel.project_dir') . '/public/uploads/medicaments/' . $medicament->getImageFilename();
+            }
+            
+            $emailService->sendStockAlert(
+                'arfaouimahmoud62@gmail.com',
+                $medicament->getNom(),
+                $medicament->getQuantite(),
+                $medicament->getSeuilAlerte(),
+                $imageUrl
+            );
+        }
+    }
+
+    #[Route(name: 'app_medicament_index', methods: ['GET'])]
+    public function index(MedicamentRepository $medicamentRepository, Request $request): Response
+    {
+        $search = $request->query->get('search');
+        $sortBy = $request->query->get('sort', 'nom');
+        $order = $request->query->get('order', 'ASC');
+
+        $medicaments = $medicamentRepository->findWithSearch($search, $sortBy, $order);
+
+        return $this->render('medicament/index.html.twig', [
+            'medicaments' => $medicaments,
+            'search' => $search,
+            'sortBy' => $sortBy,
+            'order' => $order,
+        ]);
+    }
+
+    #[Route('/new', name: 'app_medicament_new', methods: ['GET', 'POST'])]
+    public function new(Request $request, EntityManagerInterface $entityManager, EmailService $emailService, AiImageService $aiImageService): Response
+    {
+        $medicament = new Medicament();
+        $form = $this->createForm(MedicamentType::class, $medicament);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($medicament);
+            $entityManager->flush();
+
+            // Generate AI image for the medication
+            $imageFilename = $aiImageService->generateImage($medicament->getNom());
+            if ($imageFilename) {
+                $medicament->setImageFilename($imageFilename);
+                $entityManager->flush();
+            }
+
+            $this->checkStockAndSendEmail($medicament, $emailService);
+
+            $this->addFlash('success', sprintf("Médicament '%s' créé avec succès. %s", 
+                $medicament->getNom(),
+                $imageFilename ? "🤖 Image IA générée !" : ""
+            ));
+
+            return $this->redirectToRoute('app_medicament_index', [], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->render('medicament/new.html.twig', [
+            'medicament' => $medicament,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'app_medicament_show', methods: ['GET'])]
+    public function show(Medicament $medicament): Response
+    {
+        return $this->render('medicament/show.html.twig', [
+            'medicament' => $medicament,
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'app_medicament_edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Medicament $medicament, EntityManagerInterface $entityManager, EmailService $emailService, AiImageService $aiImageService): Response
+    {
+        $oldName = $medicament->getNom();
+        $form = $this->createForm(MedicamentType::class, $medicament);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // If the name changed, regenerate the AI image
+            if ($medicament->getNom() !== $oldName) {
+                // Delete old image if exists
+                if ($medicament->getImageFilename()) {
+                    $aiImageService->deleteImage($medicament->getImageFilename());
+                }
+                // Generate new image
+                $imageFilename = $aiImageService->generateImage($medicament->getNom());
+                if ($imageFilename) {
+                    $medicament->setImageFilename($imageFilename);
+                }
+            }
+
+            $entityManager->flush();
+
+            $this->checkStockAndSendEmail($medicament, $emailService);
+
+            $this->addFlash('success', sprintf("Médicament '%s' modifié avec succès.", $medicament->getNom()));
+
+            return $this->redirectToRoute('app_medicament_index', [], Response::HTTP_SEE_OTHER);
+        }
+
+        return $this->render('medicament/edit.html.twig', [
+            'medicament' => $medicament,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/export/pdf', name: 'app_medicament_export_pdf', methods: ['GET'])]
+    public function exportPdf(MedicamentRepository $medicamentRepository): Response
+    {
+        $medicaments = $medicamentRepository->findBy([], ['nom' => 'ASC']);
+        
+        return $this->render('medicament/export_pdf.html.twig', [
+            'medicaments' => $medicaments,
+            'exportDate' => new \DateTime(),
+        ]);
+    }
+
+    #[Route('/{id}/delete', name: 'app_medicament_delete', methods: ['POST'])]
+    public function delete(Request $request, Medicament $medicament, EntityManagerInterface $entityManager, AiImageService $aiImageService): Response
+    {
+        $submittedToken = $request->request->get('_token') ?? $request->get('_token');
+
+        if ($this->isCsrfTokenValid('delete'.$medicament->getId(), $submittedToken)) {
+            // Delete AI image if exists
+            if ($medicament->getImageFilename()) {
+                $aiImageService->deleteImage($medicament->getImageFilename());
+            }
+
+            // Remove all related movements first to avoid foreign key constraint errors
+            foreach ($medicament->getMouvements() as $mouvement) {
+                $entityManager->remove($mouvement);
+            }
+
+            $entityManager->remove($medicament);
+            $entityManager->flush();
+
+            $this->addFlash('success', sprintf("Médicament '%s' (id=%d) et ses mouvements associés supprimés.", $medicament->getNom(), $medicament->getId()));
+        } else {
+            $this->addFlash('error', 'Jeton CSRF invalide — suppression annulée. Rechargez la page et réessayez.');
+        }
+
+        return $this->redirectToRoute('app_medicament_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/{id}/regenerate-image', name: 'app_medicament_regenerate_image', methods: ['POST'])]
+    public function regenerateImage(Request $request, Medicament $medicament, EntityManagerInterface $entityManager, AiImageService $aiImageService): Response
+    {
+        $submittedToken = $request->request->get('_token') ?? $request->get('_token');
+
+        if ($this->isCsrfTokenValid('regenerate'.$medicament->getId(), $submittedToken)) {
+            // Delete old image if exists
+            if ($medicament->getImageFilename()) {
+                $aiImageService->deleteImage($medicament->getImageFilename());
+            }
+
+            // Generate new image
+            $imageFilename = $aiImageService->generateImage($medicament->getNom());
+            if ($imageFilename) {
+                $medicament->setImageFilename($imageFilename);
+                $entityManager->flush();
+                $this->addFlash('success', '🤖 Image IA régénérée avec succès !');
+            } else {
+                $this->addFlash('error', 'Impossible de générer l\'image. Réessayez.');
+            }
+        }
+
+        return $this->redirectToRoute('app_medicament_show', ['id' => $medicament->getId()]);
+    }
+}

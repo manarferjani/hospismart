@@ -1,0 +1,80 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Paramètres Vitaux{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-heart"></i> Paramètres Vitaux</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_parametre_vital_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouveau Paramètre
+            </a>
+        </div>
+    </div>
+
+    {% if parametres_vitaux %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Liste des paramètres vitaux</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tension</th>
+                                <th>Température</th>
+                                <th>Fréquence cardiaque</th>
+                                <th>Date de prise</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for parametre in parametres_vitaux %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-info">{{ parametre.tension }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">{{ parametre.temperature }}°C</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-danger">{{ parametre.frequenceCardiaque }} bpm</span>
+                                    </td>
+                                    <td>
+                                        {% if parametre.datePrise %}
+                                            {{ parametre.datePrise|date('d/m/Y H:i') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_parametre_vital_show', {id: parametre.id}) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                        <a href="{{ path('app_parametre_vital_edit', {id: parametre.id}) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i> Modifier
+                                        </a>
+                                        <form method="post" action="{{ path('app_parametre_vital_delete', {id: parametre.id}) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ parametre.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Supprimer
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> Aucun paramètre vital trouvé.
+            <a href="{{ path('app_parametre_vital_new') }}" class="alert-link">Créer un paramètre</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

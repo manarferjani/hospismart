@@ -1,0 +1,71 @@
+{% extends 'front.html.twig' %}
+
+{% block title %}Faire une réclamation - Hospismart{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="bg-light d-inline-block p-3 rounded-circle mb-3 text-primary">
+                            <i class="fa-solid fa-bullhorn fa-2x"></i>
+                        </div>
+                        <h2 class="fw-bold">Faire une réclamation</h2>
+                        <p class="text-muted">Votre retour est précieux pour améliorer nos services.</p>
+                    </div>
+
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Titre de la réclamation</label>
+                            {{ form_widget(form.titre, {'attr': {'class': 'form-control rounded-3 py-2', 'placeholder': 'Ex: Temps d\'attente...'}}) }}
+                            <div class="text-danger small">{{ form_errors(form.titre) }}</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Votre Nom</label>
+                                {{ form_widget(form.nomPatient, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                                <div class="text-danger small">{{ form_errors(form.nomPatient) }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Votre Email</label>
+                                {{ form_widget(form.email, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                                <div class="text-danger small">{{ form_errors(form.email) }}</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Catégorie</label>
+                                {{ form_widget(form.categorie, {'attr': {'class': 'form-select rounded-3 py-2'}}) }}
+                                <div class="text-danger small">{{ form_errors(form.categorie) }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Priorité</label>
+                                {{ form_widget(form.priorite, {'attr': {'class': 'form-select rounded-3 py-2'}}) }}
+                                <div class="text-danger small">{{ form_errors(form.priorite) }}</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Description détaillée</label>
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control rounded-3', 'rows': 5, 'placeholder': 'Expliquez le problème rencontré...'}}) }}
+                            <div class="text-danger small">{{ form_errors(form.description) }}</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="fa-solid fa-paper-plane me-2"></i>Envoyer la réclamation
+                            </button>
+                            <a href="{{ path('app_home') }}" class="btn btn-light rounded-pill text-muted">Annuler</a>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

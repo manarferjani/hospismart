@@ -1,0 +1,162 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Utilisateurs - Hospismart{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    /* En-tête de page */
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .page-title { font-size: 24px; font-weight: 700; color: #1e293b; margin: 0; }
+
+    /* Filtres */
+    .filters-card {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .filters-card input, .filters-card select {
+        padding: 10px 15px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        outline: none;
+        min-width: 200px;
+    }
+    .btn-primary { background: #0d6efd; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; text-decoration: none; }
+    .btn-success { background: #198754; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; text-decoration: none; }
+    .btn-reset { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 10px; text-decoration: none; }
+
+    /* Tableau */
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    .custom-table { width: 100%; border-collapse: collapse; }
+    .custom-table th { background: #f8fafc; padding: 15px; text-align: left; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 12px; }
+    .custom-table td { padding: 15px; border-top: 1px solid #f1f5f9; vertical-align: middle; }
+    
+    /* Badges */
+    .badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-red { background: #fee2e2; color: #dc2626; }
+    .badge-blue { background: #dbeafe; color: #2563eb; }
+    .badge-green { background: #dcfce7; color: #16a34a; }
+    .badge-grey { background: #f1f5f9; color: #475569; }
+
+    /* Actions */
+    .actions-btns { display: flex; gap: 10px; }
+    .action-btn { 
+        width: 35px; height: 35px; 
+        display: flex; align-items: center; justify-content: center; 
+        border-radius: 8px; text-decoration: none; transition: 0.3s;
+    }
+    .view { background: #f1f5f9; color: #475569; }
+    .edit { background: #eff6ff; color: #2563eb; }
+    .delete { background: #fef2f2; color: #dc2626; border: none; cursor: pointer; }
+    .action-btn:hover { transform: translateY(-2px); opacity: 0.8; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">👥 Gestion des utilisateurs</h1>
+    <a href="{{ path('app_dashboard_utilisateurs_new') }}" class="btn-success">
+        <i class="fa-solid fa-plus me-2"></i>Ajouter un utilisateur
+    </a>
+</div>
+
+<div class="filters-card">
+    <form method="get" action="{{ path('app_dashboard_utilisateurs_list') }}" class="d-flex gap-2 flex-wrap w-100">
+        <input type="text" name="nom" value="{{ nom }}" placeholder="Rechercher par nom, email...">
+        
+        <select name="role">
+            <option value="">Tous les rôles</option>
+            <option value="ROLE_ADMIN" {{ role == 'ROLE_ADMIN' ? 'selected' : '' }}>Administrateur</option>
+            <option value="ROLE_MEDECIN" {{ role == 'ROLE_MEDECIN' ? 'selected' : '' }}>Médecin</option>
+            <option value="ROLE_PATIENT" {{ role == 'ROLE_PATIENT' ? 'selected' : '' }}>Patient</option>
+        </select>
+
+        <select name="tri">
+            <option value="nom_asc" {{ tri == 'nom_asc' ? 'selected' : '' }}>Nom (A → Z)</option>
+            <option value="nom_desc" {{ tri == 'nom_desc' ? 'selected' : '' }}>Nom (Z → A)</option>
+        </select>
+
+        <button type="submit" class="btn-primary">🔍 Filtrer</button>
+        <a href="{{ path('app_dashboard_utilisateurs_list') }}" class="btn-reset">↺ Reset</a>
+    </form>
+</div>
+
+<div class="table-container">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>#ID</th>
+                <th>Utilisateur</th>
+                <th>Email</th>
+                <th>Rôle</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td><span class="text-muted">#{{ u.id }}</span></td>
+                <td>
+                    <div class="d-flex align-items:center">
+                        <img src="https://ui-avatars.com/api/?name={{ u.nom }}+{{ u.prenom }}&background=random" style="width:35px;height:35px;border-radius:50%;margin-right:10px;">
+                        <div>
+                            <div class="fw-bold text-dark">{{ u.nom }} {{ u.prenom }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ u.email }}</td>
+                <td>
+                    {% if 'ROLE_ADMIN' in u.roles %}
+                        <span class="badge badge-red">Admin</span>
+                    {% elseif 'ROLE_MEDECIN' in u.roles %}
+                        <span class="badge badge-blue">Médecin</span>
+                    {% elseif 'ROLE_PATIENT' in u.roles %}
+                        <span class="badge badge-green">Patient</span>
+                    {% else %}
+                        <span class="badge badge-grey">User</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="actions-btns">
+                        <a href="{{ path('app_dashboard_utilisateurs_show', { id: u.id }) }}" class="action-btn view" title="Voir"><i class="fa-solid fa-eye"></i></a>
+                        <a href="{{ path('app_dashboard_utilisateurs_edit', { id: u.id }) }}" class="action-btn edit" title="Modifier"><i class="fa-solid fa-pen-to-square"></i></a>
+                        
+                        {% if u.id != app.user.id %}
+                        <form method="post" action="{{ path('app_dashboard_utilisateurs_delete', { id: u.id }) }}" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ u.id) }}">
+                            <button type="submit" class="action-btn delete" title="Supprimer"><i class="fa-solid fa-trash"></i></button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align:center;padding:40px;color:#64748b;">Aucun utilisateur trouvé.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

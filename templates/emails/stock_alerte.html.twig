@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Alerte Stock Faible</title>
+</head>
+<body>
+    <h2 style="color: #d9534f;">⚠️ Alerte Stock Faible</h2>
+    <p>Bonjour Admin,</p>
+    <p>Le stock du médicament <strong>{{ medicament.nom }}</strong> est passé en dessous du seuil d'alerte.</p>
+    
+    <ul>
+        <li><strong>Quantité actuelle :</strong> {{ medicament.quantite }}</li>
+        <li><strong>Seuil d'alerte :</strong> {{ medicament.seuilAlerte }}</li>
+        <li><strong>Prix unitaire :</strong> {{ medicament.prixUnitaire }} TND</li>
+        <li><strong>Date de péremption :</strong> {{ medicament.datePeremption|date('d/m/Y') }}</li>
+    </ul>
+
+    <p>Veuillez procéder au réapprovisionnement dès que possible.</p>
+
+    <hr>
+    <p><small>Ceci est un message automatique envoyé par Hospismart.</small></p>
+</body>
+</html>

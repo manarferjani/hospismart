@@ -1,0 +1,169 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Services - Hospismart{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .service-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 25px;
+    }
+
+    .custom-table { width: 100%; border-collapse: collapse; }
+    .custom-table th { 
+        background: #f8fafc; 
+        padding: 15px; 
+        text-align: left; 
+        color: #64748b; 
+        font-weight: 600; 
+        font-size: 13px; 
+        border-bottom: 2px solid #edf2f7; 
+    }
+    .custom-table td { 
+        padding: 15px; 
+        border-top: 1px solid #f1f5f9; 
+        vertical-align: middle; 
+    }
+    
+    .custom-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .custom-table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+
+    .service-icon {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-size: 20px;
+    }
+
+    .btn-group-actions { 
+        display: flex; 
+        gap: 8px; 
+    }
+    
+    .btn-sm-custom { 
+        width: 32px; 
+        height: 32px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        border-radius: 8px; 
+        border: none; 
+        transition: 0.3s;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="page-header">
+    <h1 class="page-title m-0 fw-bold"><i class="fa-solid fa-hospital text-primary me-2"></i>Services</h1>
+    <div class="d-flex gap-2">
+        <a href="{{ path('app_service_new') }}" class="btn btn-primary shadow-sm">
+            <i class="fa-solid fa-plus me-1"></i> Nouveau
+        </a>
+    </div>
+</div>
+
+<div class="service-card">
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Service</th>
+                    <th>Description / Localisation</th>
+                    <th>Équipements</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                    <tr>
+                        <td><span class="text-muted">#{{ service.id }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% set service_name = service.nom|lower %}
+                                
+                                {# Utilisation de l'icône de la base de données si disponible #}
+                                {% if service.icon %}
+                                    {% set icon = 'fa-' ~ service.icon %}
+                                {% else %}
+                                    {% set icon = 'fa-hospital' %}
+                                {% endif %}
+                                
+                                {# Attribution de la couleur selon le type de service #}
+                                {% if 'cardio' in service_name %}
+                                    {% set color = 'danger' %}
+                                {% elseif 'radio' in service_name or 'imagerie' in service_name %}
+                                    {% set color = 'primary' %}
+                                {% elseif 'reanim' in service_name or 'urgence' in service_name %}
+                                    {% set color = 'warning' %}
+                                {% elseif 'pediatr' in service_name %}
+                                    {% set color = 'info' %}
+                                {% elseif 'bloc' in service_name or 'chirurgie' in service_name %}
+                                    {% set color = 'success' %}
+                                {% else %}
+                                    {% set color = 'secondary' %}
+                                {% endif %}
+
+                                <div class="service-icon bg-{{ color }} bg-opacity-10 text-{{ color }} me-3">
+                                    <i class="fa-solid {{ icon }}"></i>
+                                </div>
+                                <span class="fw-bold text-dark">{{ service.nom }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <i class="fa-solid fa-location-dot me-1 text-muted"></i> 
+                            <span class="text-muted">{{ service.description }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary bg-opacity-10 text-primary">
+                                {{ service.equipements|length }} équipement(s)
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group-actions justify-content-end">
+                                <a href="{{ path('app_service_show', {id: service.id}) }}" class="btn btn-sm btn-info text-white btn-sm-custom" title="Voir"><i class="fas fa-eye"></i></a>
+                                <a href="{{ path('app_service_edit', {id: service.id}) }}" class="btn btn-sm btn-primary btn-sm-custom" title="Modifier"><i class="fas fa-edit"></i></a>
+                                <form method="post" action="{{ path('app_service_delete', {id: service.id}) }}" style="display:inline;" onsubmit="return confirm('Supprimer « {{ service.nom }} » ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ service.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-danger btn-sm-custom" title="Supprimer"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-box-open fa-2x mb-3 d-block"></i>
+                            Aucun service trouvé.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

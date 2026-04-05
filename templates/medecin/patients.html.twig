@@ -1,0 +1,123 @@
+{% extends 'back.html.twig' %}
+
+{% block title %}Mes Patients - Hospismart{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# En-tête avec Titre et Compteur #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0" style="color: #1a1a2e;">Ma File Active Patients</h2>
+            <p class="text-muted small mb-0">Gestion et suivi de vos patients rattachés</p>
+        </div>
+        <div class="badge bg-primary px-3 py-2 shadow-sm" style="border-radius: 10px; font-size: 0.9rem;">
+            <i class="fa-solid fa-user-group me-2"></i> {{ patients|length|default(0) }} Patients
+        </div>
+    </div>
+
+    {# Barre de Recherche et Filtres #}
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="input-group shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                <span class="input-group-text bg-white border-0 ps-3">
+                    <i class="fa-solid fa-magnifying-glass text-muted"></i>
+                </span>
+                <input type="text" id="patientSearch" class="form-control border-0 py-2" placeholder="Rechercher un patient par nom ou email..." aria-label="Rechercher">
+            </div>
+        </div>
+    </div>
+
+    {# Carte contenant le Tableau #}
+    <div class="card shadow-sm border-0 p-4" style="border-radius: 20px;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="patientsTable">
+                <thead class="text-muted small text-uppercase" style="background-color: #f8f9fa;">
+                    <tr>
+                        <th class="border-0 ps-3">Identité</th>
+                        <th class="border-0">Dernier RDV</th>
+                        <th class="border-0">Email</th>
+                        <th class="border-0 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients|default([]) %}
+                        <tr>
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-3 bg-soft-primary rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px; background-color: rgba(13, 110, 253, 0.1);">
+                                        <i class="fa-solid fa-user text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold d-block text-dark">{{ patient.nom|upper }} {{ patient.prenom }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border py-2 px-2">
+                                    <i class="fa-regular fa-calendar me-1"></i> {{ "now"|date("d/m/Y") }}
+                                </span>
+                            </td>
+                            <td class="text-muted">
+                                <i class="fa-regular fa-envelope me-1 small"></i> {{ patient.email }}
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ path('app_medecin_patient_show', {'id': patient.id}) }}" 
+                                class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm d-inline-flex align-items-center justify-content-center transition-all hover-scale"
+                                style="white-space: nowrap; min-width: 110px;">
+                                    <i class="fa-solid fa-folder-open me-2"></i>
+                                    <span>Dossier</span>
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-users-slash fa-3x text-light"></i>
+                                </div>
+                                <h5 class="text-muted">Aucun patient trouvé</h5>
+                                <p class="text-muted small">Vous n'avez pas encore de patients rattachés à votre file active.</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-soft-primary { background-color: rgba(13, 110, 253, 0.1); }
+    .hover-scale:hover { transform: scale(1.05); }
+    .transition-all { transition: all 0.3s ease; }
+    
+    /* Style pour la barre de recherche focus */
+    .input-group:focus-within {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15) !important;
+        border: 1px solid #0d6efd;
+    }
+</style>
+
+{# Script pour la recherche dynamique côté client #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('patientSearch');
+    const tableBody = document.querySelector('#patientsTable tbody');
+    const rows = tableBody.querySelectorAll('tr');
+
+    searchInput.addEventListener('keyup', function(e) {
+        const term = e.target.value.toLowerCase();
+        
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            if (text.includes(term)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
