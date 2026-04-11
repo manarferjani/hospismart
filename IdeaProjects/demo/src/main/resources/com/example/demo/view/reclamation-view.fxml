@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.demo.controller.ReclamationController">
+    <top>
+        <VBox spacing="10" style="-fx-border-color: #ddd; -fx-border-width: 0 0 1 0;">
+            <padding>
+                <Insets top="10" left="10" right="10" bottom="10"/>
+            </padding>
+            <Label text="Liste des Réclamations" style="-fx-font-size: 18; -fx-font-weight: bold;"/>
+            <Label fx:id="statusLabel" style="-fx-text-fill: #666;"/>
+        </VBox>
+    </top>
+    <center>
+        <TableView fx:id="reclamationTable">
+            <columns>
+                <TableColumn text="ID" prefWidth="50" fx:id="idColumn"/>
+                <TableColumn text="Titre" prefWidth="150" fx:id="titreColumn"/>
+                <TableColumn text="Patient" prefWidth="120" fx:id="patientColumn"/>
+                <TableColumn text="Statut" prefWidth="100" fx:id="statutColumn"/>
+                <TableColumn text="Catégorie" prefWidth="120" fx:id="categorieColumn"/>
+                <TableColumn text="Priorité" prefWidth="80" fx:id="prioriteColumn"/>
+                <TableColumn text="Email" prefWidth="150" fx:id="emailColumn"/>
+                <TableColumn text="Date" prefWidth="140" fx:id="dateColumn"/>
+            </columns>
+        </TableView>
+    </center>
+</BorderPane>
+

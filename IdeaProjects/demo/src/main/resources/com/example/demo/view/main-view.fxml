@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.demo.controller.MainController" stylesheets="@app.css">
+    <top>
+        <HBox spacing="20" styleClass="app-header">
+            <VBox spacing="2">
+                <Label text="HospiSmart - Back Office" styleClass="app-title"/>
+                <Label text="Dashboard administrateur &amp; gestion des réponses" styleClass="app-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Front Office" onAction="#openFrontOffice" styleClass="action-button secondary-button"/>
+            <Button text="Portail" onAction="#openPortal" styleClass="action-button secondary-button"/>
+            <Label fx:id="statusLabel" styleClass="app-subtitle"/>
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <Tab text="Dashboard" closable="false">
+                <VBox spacing="16" style="-fx-padding: 16;">
+                    <Label text="Tableau de bord" styleClass="page-title"/>
+
+                    <HBox spacing="16">
+                        <VBox spacing="8" styleClass="card" HBox.hgrow="ALWAYS">
+                            <Label text="Réclamations" styleClass="card-title"/>
+                            <Label fx:id="totalReclamationsLabel" styleClass="card-value"/>
+                            <Label text="Total des réclamations enregistrées" styleClass="muted-label"/>
+                        </VBox>
+                        <VBox spacing="8" styleClass="card" HBox.hgrow="ALWAYS">
+                            <Label text="Réponses" styleClass="card-title"/>
+                            <Label fx:id="totalReponsesLabel" styleClass="card-value"/>
+                            <Label text="Réponses saisies par le back office" styleClass="muted-label"/>
+                        </VBox>
+                        <VBox spacing="8" styleClass="card" HBox.hgrow="ALWAYS">
+                            <Label text="Taux de réponse" styleClass="card-title"/>
+                            <Label fx:id="tauxReponseLabel" styleClass="card-value"/>
+                            <Label text="Réclamations déjà traitées" styleClass="muted-label"/>
+                        </VBox>
+                    </HBox>
+
+                    <SplitPane dividerPositions="0.55">
+                        <VBox spacing="10" styleClass="card">
+                            <Label text="Répartition des réclamations" styleClass="section-title"/>
+                            <PieChart fx:id="reponsePieChart" prefHeight="320"/>
+                        </VBox>
+
+                        <VBox spacing="10" styleClass="card">
+                            <Label text="Activité récente" styleClass="section-title"/>
+                            <ListView fx:id="activityListView" VBox.vgrow="ALWAYS"/>
+                        </VBox>
+                    </SplitPane>
+
+                    <VBox spacing="10" styleClass="card">
+                        <Label text="Informations système" styleClass="section-title"/>
+                        <TextArea fx:id="systemInfoArea" wrapText="true" prefHeight="180" editable="false"/>
+                        <HBox spacing="10">
+                            <Button text="Actualiser les statistiques" onAction="#refreshDashboard" styleClass="action-button primary-button"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </Tab>
+
+            <Tab text="Gestion des réponses" closable="false">
+                <fx:include source="backoffice-view.fxml"/>
+            </Tab>
+        </TabPane>
+    </center>
+</BorderPane>
+
+
+
+
+
+

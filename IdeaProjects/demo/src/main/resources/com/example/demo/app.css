@@ -1,0 +1,240 @@
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-font-size: 17px;
+    -fx-base: #ffffff;
+    -fx-background-color: #ffffff;
+}
+
+.label {
+    -fx-text-fill: #111827;
+    -fx-font-size: 16px;
+}
+
+.text-field,
+.text-area,
+.combo-box,
+.button,
+.list-view,
+.table-view {
+    -fx-font-size: 16px;
+}
+
+.text-field,
+.text-area,
+.combo-box {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #0f172a;
+    -fx-prompt-text-fill: #4b5563;
+    -fx-border-color: #64748b;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 10;
+}
+
+.app-header {
+    -fx-background-color: linear-gradient(to right, #1f3c88, #2d6cdf);
+    -fx-padding: 16 20 16 20;
+}
+
+.app-title {
+    -fx-text-fill: white;
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+}
+
+.app-subtitle {
+    -fx-text-fill: rgba(255,255,255,0.85);
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+}
+
+.page-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0b2a4a;
+}
+
+.section-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0b2a4a;
+}
+
+.card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1.5;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.12), 20, 0.2, 0, 4);
+}
+
+.card-title {
+    -fx-font-size: 16px;
+    -fx-text-fill: #1f2937;
+    -fx-font-weight: bold;
+}
+
+.card-value {
+    -fx-font-size: 38px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #0f172a;
+}
+
+.muted-label {
+    -fx-text-fill: #1f2937;
+    -fx-font-size: 16px;
+}
+
+.success-label {
+    -fx-text-fill: #1f9d55;
+    -fx-font-weight: bold;
+}
+
+.warning-label {
+    -fx-text-fill: #d97706;
+    -fx-font-weight: bold;
+}
+
+.error-label {
+    -fx-text-fill: #dc2626;
+    -fx-font-weight: bold;
+}
+
+.action-button {
+    -fx-background-radius: 8;
+    -fx-padding: 11 20;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+
+.primary-button {
+    -fx-background-color: #1d4ed8;
+    -fx-text-fill: white;
+}
+
+.secondary-button {
+    -fx-background-color: #f3f4f6;
+    -fx-text-fill: #111827;
+    -fx-border-color: #64748b;
+    -fx-border-width: 1;
+}
+
+.danger-button {
+    -fx-background-color: #dc2626;
+    -fx-text-fill: white;
+}
+
+.success-button {
+    -fx-background-color: #059669;
+    -fx-text-fill: white;
+}
+
+.form-box {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 14;
+    -fx-padding: 16;
+}
+
+.table-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 12;
+}
+
+.table-view .table-row-cell {
+    -fx-cell-size: 46px;
+}
+
+.table-view .table-cell {
+    -fx-text-fill: #111827;
+    -fx-font-size: 16px;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #2563eb;
+}
+
+.table-view .table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #e2e8f0;
+    -fx-background-radius: 12 12 0 0;
+}
+
+.table-view .column-header,
+.table-view .filler {
+    -fx-size: 48px;
+    -fx-border-color: transparent transparent #cbd5e1 transparent;
+}
+
+.table-view .column-header .label {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: #dbeafe;
+}
+
+.tab-pane .tab {
+    -fx-background-radius: 8 8 0 0;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.navbar-actions {
+    -fx-background-color: #f5f5f5;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 10 15;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.navbar-actions .label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #555;
+    -fx-font-weight: 600;
+}
+
+.navbar-actions .separator {
+    -fx-padding: 5 5;
+}
+
+.action-button:hover {
+    -fx-opacity: 0.85;
+}
+
+.primary-button:hover {
+    -fx-background-color: #1b3bb8;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #e5e7eb;
+}
+
+.danger-button:hover {
+    -fx-background-color: #b91c1c;
+}
+
+.success-button:hover {
+    -fx-background-color: #047857;
+}
+
+

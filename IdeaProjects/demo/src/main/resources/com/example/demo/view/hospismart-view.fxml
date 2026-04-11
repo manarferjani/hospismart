@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.example.demo.controller.HospiSmartController">
+    <top>
+        <VBox spacing="10" style="-fx-border-color: #2c3e50; -fx-border-width: 0 0 2 0; -fx-background-color: #34495e;">
+            <padding>
+                <Insets top="15" left="15" right="15" bottom="15"/>
+            </padding>
+            <Label text="HospiSmart - Système de Gestion Hospitalier"
+                   style="-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <HBox spacing="20">
+                <Label fx:id="connectionStatusLabel"
+                       style="-fx-font-size: 12; -fx-text-fill: #ecf0f1;"/>
+                <Button text="Actualiser" onAction="#refreshData"
+                        style="-fx-font-size: 11; -fx-padding: 5 15;"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <Tab text="Réclamations" fx:id="reclamationTab">
+                <fx:include source="reclamation-view.fxml"/>
+            </Tab>
+            <Tab text="Utilisateurs">
+                <BorderPane>
+                    <top>
+                        <VBox spacing="10" style="-fx-border-color: #ddd; -fx-border-width: 0 0 1 0;">
+                            <padding>
+                                <Insets top="10" left="10" right="10" bottom="10"/>
+                            </padding>
+                            <Label text="Liste des Utilisateurs" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+                            <Label fx:id="userStatusLabel" style="-fx-text-fill: #666;"/>
+                        </VBox>
+                    </top>
+                    <center>
+                        <TableView fx:id="userTable">
+                            <columns>
+                                <TableColumn text="ID" prefWidth="50" fx:id="userIdColumn"/>
+                                <TableColumn text="Prénom" prefWidth="100" fx:id="userPrenomColumn"/>
+                                <TableColumn text="Nom" prefWidth="100" fx:id="userNomColumn"/>
+                                <TableColumn text="Email" prefWidth="150" fx:id="userEmailColumn"/>
+                                <TableColumn text="Téléphone" prefWidth="120" fx:id="userTelephoneColumn"/>
+                                <TableColumn text="Rôle" prefWidth="100" fx:id="userRoleColumn"/>
+                                <TableColumn text="Statut" prefWidth="80" fx:id="userStatutColumn"/>
+                            </columns>
+                        </TableView>
+                    </center>
+                </BorderPane>
+            </Tab>
+            <Tab text="Services">
+                <BorderPane>
+                    <top>
+                        <VBox spacing="10" style="-fx-border-color: #ddd; -fx-border-width: 0 0 1 0;">
+                            <padding>
+                                <Insets top="10" left="10" right="10" bottom="10"/>
+                            </padding>
+                            <Label text="Liste des Services" style="-fx-font-size: 16; -fx-font-weight: bold;"/>
+                            <Label fx:id="serviceStatusLabel" style="-fx-text-fill: #666;"/>
+                        </VBox>
+                    </top>
+                    <center>
+                        <TableView fx:id="serviceTable">
+                            <columns>
+                                <TableColumn text="ID" prefWidth="50" fx:id="serviceIdColumn"/>
+                                <TableColumn text="Nom" prefWidth="150" fx:id="serviceNomColumn"/>
+                                <TableColumn text="Description" prefWidth="250" fx:id="serviceDescriptionColumn"/>
+                                <TableColumn text="Responsable" prefWidth="120" fx:id="serviceResponsableColumn"/>
+                                <TableColumn text="Capacité" prefWidth="80" fx:id="serviceCapaciteColumn"/>
+                            </columns>
+                        </TableView>
+                    </center>
+                </BorderPane>
+            </Tab>
+            <Tab text="Dashboard">
+                <VBox spacing="15" style="-fx-padding: 20;">
+                    <Label text="Tableau de Bord HospiSmart" style="-fx-font-size: 18; -fx-font-weight: bold;"/>
+                    <HBox spacing="20">
+                        <VBox spacing="5" style="-fx-border-color: #ddd; -fx-border-width: 1; -fx-padding: 15; -fx-border-radius: 5;">
+                            <Label text="Total Réclamations" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="totalReclamationsLabel" style="-fx-font-size: 24; -fx-text-fill: #e74c3c;"/>
+                        </VBox>
+                        <VBox spacing="5" style="-fx-border-color: #ddd; -fx-border-width: 1; -fx-padding: 15; -fx-border-radius: 5;">
+                            <Label text="Total Utilisateurs" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="totalUsersLabel" style="-fx-font-size: 24; -fx-text-fill: #3498db;"/>
+                        </VBox>
+                        <VBox spacing="5" style="-fx-border-color: #ddd; -fx-border-width: 1; -fx-padding: 15; -fx-border-radius: 5;">
+                            <Label text="Total Services" style="-fx-font-weight: bold;"/>
+                            <Label fx:id="totalServicesLabel" style="-fx-font-size: 24; -fx-text-fill: #2ecc71;"/>
+                        </VBox>
+                    </HBox>
+                    <Label text="Statut de la Connexion" style="-fx-font-weight: bold;"/>
+                    <Label fx:id="databaseInfoLabel" style="-fx-text-fill: #666; -fx-wrap-text: true;"/>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </center>
+</BorderPane>
+
